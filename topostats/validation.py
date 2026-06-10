@@ -380,6 +380,19 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 ),
             },
         },
+        "close_strand_correction": {
+            "run": Or(
+                True,
+                False,
+                error="Invalid value in config for 'close_strand_correction.run', valid values are 'True' or 'False'",
+            ),
+            "class_index": int,
+            "height_threshold_nm": lambda n: n > 0.0,
+            "branch_explore_distance_nm": lambda n: n > 0.0,
+            "cost_image_exponent": lambda n: n > 0.0,
+            "cost_image_base": lambda n: n >= 0.0,
+            "crossing_correction_strand_minimum_height_nm": lambda n: n > 0.0,
+        },
         "nodestats": {
             "run": Or(
                 True,
@@ -475,6 +488,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                     "grains",
                     "grain_crops",
                     "disordered_tracing",
+                    "close_strand_correction",
                     "nodestats",
                     "ordered_tracing",
                     "splining",
@@ -1240,6 +1254,36 @@ PLOTTING_SCHEMA = Schema(
             "core_set": bool,
             "savefig_dpi": int,
             "module": "disordered_tracing",
+        },
+        "close_strand_correction": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "savefig_dpi": int,
+            "module": "close_strand_correction",
+        },
+        "close_strand_correction_before": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "savefig_dpi": int,
+            "module": "close_strand_correction",
         },
         "convolved_skeletons": {
             "filename": str,

@@ -325,7 +325,11 @@ def convolve_skeleton(skeleton: npt.NDArray) -> npt.NDArray:
     """
     conv = convolve(skeleton.astype(np.int32), np.ones((3, 3)))
     conv[skeleton == 0] = 0  # remove non-skeleton points
+    # 2 means that the pixel has one neighbouring pixel, so it's an endpoint
+    conv[conv == 2] = 2  # endpoints = 2
+    # 3 means the pixel has two neighbouring pixels, so it's part of a branch
     conv[conv == 3] = 1  # skelly = 1
+    # more than 3 means it must be a junction between branches, so it's a node.
     conv[conv > 3] = 3  # nodes = 3
     return conv
 

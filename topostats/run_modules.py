@@ -180,6 +180,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
         grains_config=config["grains"],
         grainstats_config=config["grainstats"],
         disordered_tracing_config=config["disordered_tracing"],
+        close_strand_correction_config=config["close_strand_correction"],
         nodestats_config=config["nodestats"],
         ordered_tracing_config=config["ordered_tracing"],
         splining_config=config["splining"],

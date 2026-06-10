@@ -24,6 +24,7 @@ from topostats.plottingfuncs import (
 )
 from topostats.tracing.disordered_tracing import trace_image_disordered
 from topostats.tracing.nodestats import nodestats_image
+from topostats.tracing.close_strand_correction import correct_close_strands_image
 from topostats.tracing.ordered_tracing import ordered_tracing_image
 from topostats.tracing.splining import splining_image
 
@@ -623,6 +624,98 @@ def run_nodestats(  # noqa: C901
     return
 
 
+def run_close_strand_correction(
+    topostats_object: TopoStats,
+    core_out_path: Path,
+    tracing_out_path: Path,
+    close_strand_correction_config: dict | None = None,
+    plotting_config: dict | None = None,
+) -> None:
+    """
+    Correct close strands in skeletons.
+
+    Parameters
+    ----------
+    topostats_object : TopoStats
+        TopoStats object for processing, should have had nodestats processing performed first.
+    core_out_path : Path
+        Path to save the core close strand correction image to.
+    tracing_out_path : Path
+        Path to save optional, diagnostic close strand correction images to.
+    close_strand_correction_config : dict
+        Dictionary configuration for correcting close strands in skeletons.
+    plotting_config : dict
+        Dictionary configuration for plotting images.
+    """
+    close_strand_correction_config = (
+        topostats_object.config["close_strand_correction"]
+        if close_strand_correction_config is None
+        else close_strand_correction_config
+    )
+    plotting_config = (
+        deepcopy(topostats_object.config["plotting"]) if plotting_config is None else deepcopy(plotting_config)
+    )
+    tracing_out_path = (
+        core_out_path / f"{topostats_object.filename}" / "dnatracing" / "close_strand_correction"
+        if tracing_out_path is None
+        else tracing_out_path / "close_strand_correction"
+    )
+    if close_strand_correction_config["run"]:
+        close_strand_correction_config.pop("run")
+        LOGGER.info(f"[{topostats_object.filename}] : *** Close Strand Correction ***")
+        if topostats_object.grain_crops is None:
+            LOGGER.warning(f"[{topostats_object.filename}] : No grains exist. Skipping close strand correction.")
+            return
+        try:
+            correct_close_strands_image(
+                topostats_object=topostats_object,
+                **close_strand_correction_config,
+            )
+            LOGGER.info(f"[{topostats_object.filename}] : Close Strand Correction stage completed successfully.")
+        except ValueError as e:
+            LOGGER.info(
+                f"[{topostats_object.filename}] : Close strand correction failed with ValueError {e} - No skeletons exist."
+            )
+        except KeyError as e:
+            LOGGER.info(
+                f"[{topostats_object.filename}] : Close strand correction failed with KeyError {e} - no skeletons found from the Disordered Tracing step."
+            )
+        except Exception as e:
+            LOGGER.info(
+                f"[{topostats_object.filename}] : Close strand correction failed - skipping. Consider raising an issue on GitHub. Error: ",
+                exc_info=e,
+            )
+        else:
+            if plotting_config["run"]:
+                tracing_out_path.mkdir(parents=True, exist_ok=True)
+                for grain_number, grain_crop in topostats_object.grain_crops.items():
+                    if grain_crop.skeleton_override is not None:
+                        config_filename = plotting_config["plot_dict"]["close_strand_correction"].pop("filename")
+                        plotting_config["plot_dict"]["close_strand_correction"][
+                            "filename"
+                        ] = f"{topostats_object.filename}_grain_{grain_number}_close_strand_corrected_skeleton.png"
+                        Images(
+                            data=grain_crop.image,
+                            masked_array=grain_crop.skeleton_override,
+                            output_dir=tracing_out_path,
+                            **plotting_config["plot_dict"]["close_strand_correction"],
+                        ).plot_and_save()
+                        config_filename = plotting_config["plot_dict"]["close_strand_correction_before"].pop("filename")
+                        plotting_config["plot_dict"]["close_strand_correction_before"][
+                            "filename"
+                        ] = f"{topostats_object.filename}_grain_{grain_number}_close_strand_correction_before.png"
+                        Images(
+                            data=grain_crop.image,
+                            masked_array=grain_crop.overridden_skeleton,
+                            output_dir=tracing_out_path,
+                            **plotting_config["plot_dict"]["close_strand_correction_before"],
+                        ).plot_and_save()
+
+    else:
+        LOGGER.info(f"[{topostats_object.filename}] Close Strand Correction disabled.")
+    return
+
+
 # need to add in the molstats here
 def run_ordered_tracing(  # noqa: C901
     topostats_object: TopoStats,
@@ -1011,13 +1104,14 @@ def get_out_paths(
     return core_out_path, filter_out_path, grain_out_path, tracing_out_path
 
 
-def process_scan(
+def process_scan(  # noqa: C901
     topostats_object: TopoStats,
     base_dir: str | Path,
     filter_config: dict,
     grains_config: dict,
     grainstats_config: dict,
     disordered_tracing_config: dict,
+    close_strand_correction_config: dict,
     nodestats_config: dict,
     ordered_tracing_config: dict,
     splining_config: dict,
@@ -1043,6 +1137,8 @@ def process_scan(
         Dictionary of configuration options for running the Grain Statistics stage.
     disordered_tracing_config : dict
         Dictionary configuration for obtaining a disordered trace representation of the grains.
+    close_strand_correction_config : dict
+        Dictionary configuration for correcting close strands in skeletons.
     nodestats_config : dict
         Dictionary of configuration options for running the NodeStats stage.
     ordered_tracing_config : dict
@@ -1073,6 +1169,9 @@ def process_scan(
         config["disordered_tracing"] if disordered_tracing_config is None else disordered_tracing_config
     )
     nodestats_config = config["nodestats"] if nodestats_config is None else nodestats_config
+    close_strand_correction_config = (
+        config["close_strand_correction"] if close_strand_correction_config is None else close_strand_correction_config
+    )
     ordered_tracing_config = config["ordered_tracing"] if ordered_tracing_config is None else ordered_tracing_config
     splining_config = config["splining"] if splining_config is None else splining_config
     curvature_config = config["curvature"] if curvature_config is None else curvature_config
@@ -1132,6 +1231,37 @@ def process_scan(
             plotting_config=plotting_config,
             nodestats_config=nodestats_config,
         )
+
+        if close_strand_correction_config["run"]:
+            # Run the correction, it'll populate the graincrops with skeleton overrides
+            run_close_strand_correction(
+                topostats_object=topostats_object,
+                core_out_path=core_out_path,
+                tracing_out_path=tracing_out_path,
+                plotting_config=plotting_config,
+                close_strand_correction_config=close_strand_correction_config,
+            )
+            # Re-run disordered tracing to ensure the stats produced are accurate to the corrected skeletons
+            # disordered tracing config has had its "run" popped, re-add
+            disordered_tracing_config["run"] = True
+            run_disordered_tracing(
+                topostats_object=topostats_object,
+                core_out_path=core_out_path,
+                tracing_out_path=tracing_out_path,
+                disordered_tracing_config=disordered_tracing_config,
+                plotting_config=plotting_config,
+            )
+
+            # Re-run nodestats to ensure the stats produced are accurate to the corrected skeletons
+            # nodestats config has had its "run" popped, re-add
+            nodestats_config["run"] = True
+            run_nodestats(
+                topostats_object=topostats_object,
+                core_out_path=core_out_path,
+                tracing_out_path=tracing_out_path,
+                plotting_config=plotting_config,
+                nodestats_config=nodestats_config,
+            )
 
         # Ordered Tracing
         run_ordered_tracing(

@@ -376,6 +376,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
             disordered_trace_images: dict | None = disordered_trace_grain(
                 cropped_image=grain_crop.image,
                 cropped_mask=grain_crop_class_mask,
+                skeleton_override=grain_crop.skeleton_override,
                 pixel_to_nm_scaling=grain_crop.pixel_to_nm_scaling,
                 filename=filename,
                 mask_smoothing_params=mask_smoothing_params,
@@ -607,6 +608,7 @@ def grain_anchor(array_shape: tuple, bounding_box: list, pad_width: int) -> list
 def disordered_trace_grain(  # pylint: disable=too-many-arguments
     cropped_image: npt.NDArray,
     cropped_mask: npt.NDArray,
+    skeleton_override: npt.NDArray | None,
     pixel_to_nm_scaling: float,
     mask_smoothing_params: dict,
     skeletonisation_params: dict,
@@ -631,6 +633,8 @@ def disordered_trace_grain(  # pylint: disable=too-many-arguments
     cropped_mask : npt.NDArray
         Cropped array from the labelled image defined as the bounding box from the labelled mask. This should have been
         converted to a binary mask.
+    skeleton_override : npt.NDArray | None
+        Option to override the skeletonisation step with a user defined skeleton.
     pixel_to_nm_scaling : float
         Pixel to nm scaling.
     mask_smoothing_params : dict
@@ -670,6 +674,13 @@ def disordered_trace_grain(  # pylint: disable=too-many-arguments
 
     if disorderedtrace.disordered_trace is None:
         return None
+
+    # If we have been given an override, use that instead of the standard skeleton
+    if skeleton_override is not None:
+        print(f"@@@@@@@@@@ SKELETON OVERRIDE IN PLACE FOR GRAIN {n_grain} @@@@@@@@@@")
+        disorderedtrace.pruned_skeleton = skeleton_override
+    else:
+        print(f"@@@@@@@@@@ NO SKELETON OVERRIDE IN PLACE FOR GRAIN {n_grain} @@@@@@@@@@")
 
     return {
         "image": cropped_image,

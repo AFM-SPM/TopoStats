@@ -137,6 +137,8 @@ class GrainCrop:
         self.height_profiles: dict[int, dict[int, npt.NDArray[np.float32]]] | None = height_profiles
         self.stats: dict[str, Any] | None = {} if stats is None else stats
         self.skeleton: npt.NDArray[np.bool_] | None = skeleton
+        self.overridden_skeleton: npt.NDArray[np.bool_] | None = None
+        self.skeleton_override: npt.NDArray[np.bool_] | None = None
         self.convolved_skeleton: npt.NDArray[np.int32] | None = convolved_skeleton
         self.disordered_trace: DisorderedTrace | None = disordered_trace
         self.nodes: dict[int, Node] | None = nodes

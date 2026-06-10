@@ -269,6 +269,23 @@ branch_types:
   core_set: false
   savefig_dpi: 600
   module: "disordered_tracing"
+# Close strand correction images
+close_strand_correction:
+  filename: "close-strand-correction"
+  title: "Close Strand Correction"
+  image_type: "non-binary"
+  mask_cmap: "blue"
+  core_set: false
+  savefig_dpi: 600
+  module: "close_strand_correction"
+close_strand_correction_before:
+  filename: "close-strand-correction-before"
+  title: "Close Strand Correction Before"
+  image_type: "non-binary"
+  mask_cmap: "blue"
+  core_set: false
+  savefig_dpi: 600
+  module: "close_strand_correction"
 # Nodestats troubleshooting images
 convolved_skeletons:
   filename: "25-convolved_skeleton"

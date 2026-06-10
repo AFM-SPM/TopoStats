@@ -144,15 +144,12 @@ class nodeStats:
         """
         LOGGER.debug(f"Node Stats - Processing Grain: {self.n_grain}")
         self.grain_crop.convolved_skeleton = convolve_skeleton(self.skeleton)
-        if self.grain_crop.convolved_skeleton.max() == 3:  # check if any nodes are crossings
+        if self.grain_crop.convolved_skeleton.max() == 3:  # check for crossings, designated by a 3 in the conv skelly
             LOGGER.debug(f"[{self.filename}] : Nodestats - {self.n_grain} contains crossings.")
-            # convolve to see crossing and end points
-            # self.grain_crop.convolved_skeleton = self.tidy_branches(self.grain_crop.convolved_skeleton, self.image)
-            # reset skeleton var as tidy branches may have modified it
+            # Set the skeleton to be the binary convolved skeleton
             self.skeleton = np.where(self.grain_crop.convolved_skeleton != 0, 1, 0)
-            # self.image_dict["grain"]["grain_skeleton"] = self.skeleton
             self.grain_crop.skeleton = self.skeleton
-            # get graph of skeleton
+            # get graph of skeleton, where nodes are pixels and edges connect neighbouring pixels
             self.whole_skel_graph = self.skeleton_image_to_graph(self.skeleton)
             # connect the close nodes
             LOGGER.debug(f"[{self.filename}] : Nodestats - {self.n_grain} connecting close nodes.")
@@ -191,25 +188,34 @@ class nodeStats:
         nx.classes.graph.Graph
             A networkX graph connecting the pixels in the skeleton to their neighbours.
         """
-        skeImPos = np.argwhere(skeleton).T
+        skeleton_pixel_coords = np.argwhere(skeleton).T
         g = nx.Graph()
-        neigh = np.array([[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [1, -1], [-1, 1], [-1, -1]])
+        neighbours_relative_coords = np.array([[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [1, -1], [-1, 1], [-1, -1]])
 
-        for idx in range(skeImPos[0].shape[0]):
-            for neighIdx in range(neigh.shape[0]):
-                curNeighPos = skeImPos[:, idx] + neigh[neighIdx]
-                if np.any(curNeighPos < 0) or np.any(curNeighPos >= skeleton.shape):
+        # iterate over the skeleton pixels and connect them to their neighbours in the graph
+        for skeleton_pixel_index in range(skeleton_pixel_coords[0].shape[0]):
+            for neighbour_index in range(neighbours_relative_coords.shape[0]):
+                # get the coords of the neighbour pixel
+                current_neighbour_position = (
+                    skeleton_pixel_coords[:, skeleton_pixel_index] + neighbours_relative_coords[neighbour_index]
+                )
+                # check for out of bounds
+                if np.any(current_neighbour_position < 0) or np.any(current_neighbour_position >= skeleton.shape):
                     continue
-                if skeleton[curNeighPos[0], curNeighPos[1]] > 0:
-                    idx_coord = skeImPos[0, idx], skeImPos[1, idx]
-                    curNeigh_coord = curNeighPos[0], curNeighPos[1]
+                #
+                if skeleton[current_neighbour_position[0], current_neighbour_position[1]] > 0:
+                    idx_coord = (
+                        skeleton_pixel_coords[0, skeleton_pixel_index],
+                        skeleton_pixel_coords[1, skeleton_pixel_index],
+                    )
+                    curNeigh_coord = current_neighbour_position[0], current_neighbour_position[1]
                     # assign lower weight to nodes if not a binary image
                     if skeleton[idx_coord] == 3 and skeleton[curNeigh_coord] == 3:
                         weight = 0
                     else:
                         weight = 1
                     g.add_edge(idx_coord, curNeigh_coord, weight=weight)
-        g.graph["physicalPos"] = skeImPos.T
+        g.graph["physicalPos"] = skeleton_pixel_coords.T
         return g
 
     @staticmethod
@@ -444,10 +450,10 @@ class nodeStats:
             Coordinate array of pixels next to crossing points (=3 in input).
         """
         node = np.where(reduced_node_image == 3, 1, 0)
-        nodeless = np.where(reduced_node_image == 1, 1, 0)
-        thick_node = binary_dilation(node, structure=np.ones((3, 3)))
+        branches_only = np.where(reduced_node_image == 1, 1, 0)
+        dilated_node = binary_dilation(node, structure=np.ones((3, 3)))
 
-        return np.argwhere(thick_node * nodeless == 1)
+        return np.argwhere(dilated_node * branches_only == 1)
 
     # pylint: disable=too-many-locals
     def analyse_nodes(self, max_branch_length: float = 20) -> None:

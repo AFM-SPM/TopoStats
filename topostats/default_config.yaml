@@ -101,6 +101,14 @@ disordered_tracing:
     method_values: mid # The method to obtain a branch's height for pruning. Options : min | median | mid.
     method_outlier: mean_abs # The method to prune branches based on height. Options : abs | mean_abs | iqr.
     only_height_prune_endpoints: False # Whether to restrict height-based pruning to skeleton segments containing an endpoint or not.
+close_strand_correction:
+  run: true
+  class_index: 1
+  height_threshold_nm: 2.2  # Minimum height in nm required for a crossing to be considered a true crossing.
+  branch_explore_distance_nm: 2.5  # Maximum distance in nm to explore along a branch from a node for creating
+  cost_image_exponent: 4.0  # Exponent to apply to the cost image to increase the cost of using lower pixels
+  cost_image_base: 0.01  # base cost to prevent zero cost pixels, just in case
+  crossing_correction_strand_minimum_height_nm: 1.0  # minimum height for a strand to be used for crossing correction
 nodestats:
   run: true # Options : true, false
   node_joining_length: 7.0 # The distance in nanometres over which to join nearby crossing points.
@@ -142,6 +150,7 @@ plotting:
     # - grains
     # - grain_crops
     # - disordered_tracing
+    # - close_strand_correction
     # - nodestats
     # - ordered_tracing
     # - splining
