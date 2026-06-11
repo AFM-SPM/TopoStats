@@ -1243,7 +1243,7 @@ def process_scan(
         )
         if grain_stats_df.shape != (0, 0):
             grain_stats_df["image"] = topostats_object.filename
-            grain_stats_df["basename"] = str(Path(topostats_object.img_path.name).parent)
+            grain_stats_df["basename"] = str(Path(topostats_object.img_path).parent)
             grain_stats_df.index.set_names(["grain_number", "class", "subgrain"], inplace=True)
         else:
             grain_stats_df = None
@@ -1486,7 +1486,7 @@ def process_grainstats(
         )
         if grain_stats_df.shape != (0, 0):
             grain_stats_df["image"] = topostats_object.filename
-            grain_stats_df["basename"] = str(Path(topostats_object.img_path.name).parent)
+            grain_stats_df["basename"] = str(Path(topostats_object.img_path).parent)
             grain_stats_df.index.set_names(["grain_number", "class", "subgrain"], inplace=True)
         else:
             grain_stats_df = None
