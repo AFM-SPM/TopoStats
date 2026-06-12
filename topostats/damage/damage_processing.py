@@ -788,7 +788,7 @@ def find_height_defects(  # noqa: C901
             for _molecule_id, molecule_data in grain_model.molecule_data_collection.items():
                 heights_nm = molecule_data.spline_coords_heights
                 spline_coords_nm = molecule_data.spline_coords_nm
-                height_defects_bool = heights_nm > height_threshold_absolute_nm
+                height_defects_bool = heights_nm < height_threshold_absolute_nm
 
                 ordered_defect_gap_list = get_defects_and_gaps_from_bool_array(
                     defects_bool=height_defects_bool,
@@ -813,7 +813,7 @@ def find_height_defects(  # noqa: C901
             for _molecule_id, molecule_data in grain_model.molecule_data_collection.items():
                 heights_nm = molecule_data.spline_coords_heights
                 spline_coords_nm = molecule_data.spline_coords_nm
-                height_defects_bool = heights_nm > height_threshold_percentage_of_median_value
+                height_defects_bool = heights_nm < height_threshold_percentage_of_median_value
 
                 ordered_defect_gap_list = get_defects_and_gaps_from_bool_array(
                     defects_bool=height_defects_bool,
