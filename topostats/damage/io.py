@@ -103,118 +103,124 @@ def load_grain_models_from_topo_files(  # noqa: C901
 
         # Now we can confidently grab the grain data based on the dataframe
         for grain_index in grain_indexes_from_df:
-            grain_crop = grain_crops[grain_index]
-            df_grain_stats_grain = df_grain_stats_image[df_grain_stats_image["grain_number"] == grain_index]
-            assert (
-                len(df_grain_stats_grain) == 1
-            ), f"expected exactly one row in the grain stats dataframe for grain {grain_index} in"
-            f"image {filename}, but found {len(df_grain_stats_grain)}. DEBUG THIS!"
+            try:
+                grain_crop = grain_crops[grain_index]
+                df_grain_stats_grain = df_grain_stats_image[df_grain_stats_image["grain_number"] == grain_index]
+                assert (
+                    len(df_grain_stats_grain) == 1
+                ), f"expected exactly one row in the grain stats dataframe for grain {grain_index} in"
+                f"image {filename}, but found {len(df_grain_stats_grain)}. DEBUG THIS!"
 
-            dose_percentage = get_dose_from_folder_name(folder_name)
-            sample_type = get_sample_type_from_folder_name(folder_name)
-            aspect_ratio = df_grain_stats_grain["aspect_ratio"].values[0]
-            total_contour_length = df_grain_stats_grain["total_contour_length"].values[0]
-            num_crossings = df_grain_stats_grain["num_crossings"].values[0]
-            smallest_bounding_area = df_grain_stats_grain["smallest_bounding_area"].values[0]
+                dose_percentage = get_dose_from_folder_name(folder_name)
+                sample_type = get_sample_type_from_folder_name(folder_name)
+                aspect_ratio = df_grain_stats_grain["aspect_ratio"].values[0]
+                total_contour_length = df_grain_stats_grain["total_contour_length"].values[0]
+                num_crossings = df_grain_stats_grain["num_crossings"].values[0]
+                smallest_bounding_area = df_grain_stats_grain["smallest_bounding_area"].values[0]
 
-            # get the bounding box for the grain, stored as the same value in each molecule's data so just grab from
-            # the first one
-            grain_bbox = grain_crop.bbox
+                # get the bounding box for the grain, stored as the same value in each molecule's data so just grab from
+                # the first one
+                grain_bbox = grain_crop.bbox
 
-            # make the bounding box square and add some padding. bbox will be the same for all molecules so this is okay
-            bbox_square = make_bounding_box_square(
-                crop_min_row=grain_bbox[0],
-                crop_min_col=grain_bbox[1],
-                crop_max_row=grain_bbox[2],
-                crop_max_col=grain_bbox[3],
-                image_shape=(full_image.shape[0], full_image.shape[1]),
-            )
-            bbox_padded = pad_bounding_box_cutting_off_at_image_bounds(
-                crop_min_row=bbox_square[0],
-                crop_min_col=bbox_square[1],
-                crop_max_row=bbox_square[2],
-                crop_max_col=bbox_square[3],
-                image_shape=(full_image.shape[0], full_image.shape[1]),
-                padding=bbox_padding,
-            )
-            # keep track of how much padding we have added to the original bbox on each side so we can adjust
-            # coordinates accordingly later.
-            bbox_added_left = bbox_padded[1] - grain_bbox[1]
-            bbox_added_top = bbox_padded[0] - grain_bbox[0]
-
-            # create crops of the mask and image based on the new square bounding box + padding
-            mask = full_mask[
-                bbox_padded[0] : bbox_padded[2],
-                bbox_padded[1] : bbox_padded[3],
-            ]
-
-            image = full_image[
-                bbox_padded[0] : bbox_padded[2],
-                bbox_padded[1] : bbox_padded[3],
-            ]
-
-            # get the molecule data
-            grain_molecule_data = grain_crop.ordered_trace.require_molecule_data()
-            molecule_data_collection = UnanalysedMoleculeDataCollection(molecules={})
-            for molecule_id, molecule_ordered_trace_data in grain_molecule_data.items():
-                molecule_data_ordered_coords = molecule_ordered_trace_data.ordered_coords
-                assert molecule_data_ordered_coords is not None
-                # adjust the ordered coords to account for padding
-                molecule_data_ordered_coords[:, 0] -= bbox_added_top
-                molecule_data_ordered_coords[:, 1] -= bbox_added_left
-                molecule_data_ordered_coords_heights = molecule_ordered_trace_data.heights
-                assert molecule_data_ordered_coords_heights is not None
-                molecule_data_distances = molecule_ordered_trace_data.distances
-                assert molecule_data_distances is not None
-                molecule_data_circular = molecule_ordered_trace_data.circular
-                assert molecule_data_circular is not None
-                splining_coords = molecule_ordered_trace_data.require_splined_coords()
-                # adjust the splining coords to account for padding
-                splining_coords[:, 0] -= bbox_added_top
-                splining_coords[:, 1] -= bbox_added_left
-                molecule_data_spline_coords_px = splining_coords
-                # get the splining heights
-                molecule_data_spline_coords_heights = np.zeros(splining_coords.shape[0], dtype=np.float64)
-                for point_index in range(splining_coords.shape[0]):
-                    coord_int = tuple(splining_coords[point_index].astype(int))
-                    molecule_data_spline_coords_heights[point_index] = image[coord_int[0], coord_int[1]]
-                # get curvature information (pertaining to the splines)
-                molecule_curvature_stats = molecule_ordered_trace_data.require_curvature_stats()
-
-                molecule_data = UnanalysedMoleculeData(
-                    molecule_id=molecule_id,
-                    ordered_coords_heights=molecule_data_ordered_coords_heights,
-                    spline_coords_heights=molecule_data_spline_coords_heights,
-                    distances=molecule_data_distances,
-                    circular=molecule_data_circular,
-                    curvature_data=molecule_curvature_stats,
-                    spline_coords_px=molecule_data_spline_coords_px,
-                    ordered_coords=molecule_data_ordered_coords,
-                    pixel_to_nm_scaling=pixel_to_nm_scaling,
+                # make the bounding box square and add some padding. bbox will be the same for all molecules so this is okay
+                bbox_square = make_bounding_box_square(
+                    crop_min_row=grain_bbox[0],
+                    crop_min_col=grain_bbox[1],
+                    crop_max_row=grain_bbox[2],
+                    crop_max_col=grain_bbox[3],
+                    image_shape=(full_image.shape[0], full_image.shape[1]),
                 )
-                molecule_data_collection.add_molecule(molecule_data)
+                bbox_padded = pad_bounding_box_cutting_off_at_image_bounds(
+                    crop_min_row=bbox_square[0],
+                    crop_min_col=bbox_square[1],
+                    crop_max_row=bbox_square[2],
+                    crop_max_col=bbox_square[3],
+                    image_shape=(full_image.shape[0], full_image.shape[1]),
+                    padding=bbox_padding,
+                )
+                # keep track of how much padding we have added to the original bbox on each side so we can adjust
+                # coordinates accordingly later.
+                bbox_added_left = bbox_padded[1] - grain_bbox[1]
+                bbox_added_top = bbox_padded[0] - grain_bbox[0]
 
-            grain_model = UnanalysedGrain(
-                file_grain_id=grain_index,
-                filename=filename,
-                pixel_to_nm_scaling=pixel_to_nm_scaling,
-                folder=str(folder_name),
-                percent_damage=dose_percentage,
-                sample_type=sample_type,
-                bbox=bbox_padded,
-                image=image,
-                mask=mask,
-                aspect_ratio=aspect_ratio,
-                total_contour_length=total_contour_length,
-                num_crossings=num_crossings,
-                molecule_data_collection=molecule_data_collection,
-                added_left=bbox_added_left,
-                added_top=bbox_added_top,
-                padding=bbox_padding,
-                smallest_bounding_area=smallest_bounding_area,
-            )
+                # create crops of the mask and image based on the new square bounding box + padding
+                mask = full_mask[
+                    bbox_padded[0] : bbox_padded[2],
+                    bbox_padded[1] : bbox_padded[3],
+                ]
 
-            grain_model_collection.add_grain(grain_model)
+                image = full_image[
+                    bbox_padded[0] : bbox_padded[2],
+                    bbox_padded[1] : bbox_padded[3],
+                ]
+
+                # get the molecule data
+                grain_molecule_data = grain_crop.ordered_trace.require_molecule_data()
+                molecule_data_collection = UnanalysedMoleculeDataCollection(molecules={})
+                for molecule_id, molecule_ordered_trace_data in grain_molecule_data.items():
+                    molecule_data_ordered_coords = molecule_ordered_trace_data.ordered_coords
+                    assert molecule_data_ordered_coords is not None
+                    # adjust the ordered coords to account for padding
+                    molecule_data_ordered_coords[:, 0] -= bbox_added_top
+                    molecule_data_ordered_coords[:, 1] -= bbox_added_left
+                    molecule_data_ordered_coords_heights = molecule_ordered_trace_data.heights
+                    assert molecule_data_ordered_coords_heights is not None
+                    molecule_data_distances = molecule_ordered_trace_data.distances
+                    assert molecule_data_distances is not None
+                    molecule_data_circular = molecule_ordered_trace_data.circular
+                    assert molecule_data_circular is not None
+                    splining_coords = molecule_ordered_trace_data.require_splined_coords()
+                    # adjust the splining coords to account for padding
+                    splining_coords[:, 0] -= bbox_added_top
+                    splining_coords[:, 1] -= bbox_added_left
+                    molecule_data_spline_coords_px = splining_coords
+                    # get the splining heights
+                    molecule_data_spline_coords_heights = np.zeros(splining_coords.shape[0], dtype=np.float64)
+                    for point_index in range(splining_coords.shape[0]):
+                        coord_int = tuple(splining_coords[point_index].astype(int))
+                        molecule_data_spline_coords_heights[point_index] = image[coord_int[0], coord_int[1]]
+                    # get curvature information (pertaining to the splines)
+                    molecule_curvature_stats = molecule_ordered_trace_data.require_curvature_stats()
+
+                    molecule_data = UnanalysedMoleculeData(
+                        molecule_id=molecule_id,
+                        ordered_coords_heights=molecule_data_ordered_coords_heights,
+                        spline_coords_heights=molecule_data_spline_coords_heights,
+                        distances=molecule_data_distances,
+                        circular=molecule_data_circular,
+                        curvature_data=molecule_curvature_stats,
+                        spline_coords_px=molecule_data_spline_coords_px,
+                        ordered_coords=molecule_data_ordered_coords,
+                        pixel_to_nm_scaling=pixel_to_nm_scaling,
+                    )
+                    molecule_data_collection.add_molecule(molecule_data)
+
+                grain_model = UnanalysedGrain(
+                    file_grain_id=grain_index,
+                    filename=filename,
+                    pixel_to_nm_scaling=pixel_to_nm_scaling,
+                    folder=str(folder_name),
+                    percent_damage=dose_percentage,
+                    sample_type=sample_type,
+                    bbox=bbox_padded,
+                    image=image,
+                    mask=mask,
+                    aspect_ratio=aspect_ratio,
+                    total_contour_length=total_contour_length,
+                    num_crossings=num_crossings,
+                    molecule_data_collection=molecule_data_collection,
+                    added_left=bbox_added_left,
+                    added_top=bbox_added_top,
+                    padding=bbox_padding,
+                    smallest_bounding_area=smallest_bounding_area,
+                )
+
+                grain_model_collection.add_grain(grain_model)
+            except Exception as e:
+                print(
+                    f"error loading grain index {grain_index} from image {filename} in folder {folder_name}: {e} - skipping this grain."
+                )
+                continue
     return grain_model_collection
 
 
