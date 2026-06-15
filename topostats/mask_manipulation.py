@@ -600,7 +600,17 @@ def skeletonise_and_join_close_ends(  # noqa: C901
     # Get the endpoints, value = 2
     endpoint_coords: list[tuple[int, int]] = [tuple(coord) for coord in np.argwhere(convolved_skeleton == 2)]
     # Get the junctions, value = 3
-    junction_coords: list[tuple[int, int]] = [tuple(coord) for coord in np.argwhere(convolved_skeleton >= 3)]
+    junction_mask = convolved_skeleton >= 3
+    junction_regions = label(junction_mask)
+    # Get the centroids of the junction regions to use as junctionpoint coords
+    junction_coords: list[tuple[int, int]] = []
+    for region_label in range(1, junction_regions.max() + 1):
+        region_mask = junction_regions == region_label
+        if region_mask.sum() == 0:
+            continue
+        region_coords = np.argwhere(region_mask)
+        centroi = region_coords.mean(axis=0)
+        junction_coords.append((int(centroi[0]), int(centroi[1])))
 
     # Create dictionary of connectionpoints
     connectionpoints: dict[int, Endpoint | Junctionpoint] = {}
@@ -671,6 +681,11 @@ def skeletonise_and_join_close_ends(  # noqa: C901
 
         # If there are only 2 endpoints in the group remove the junctionpoints and connect the endpoints.
         if len(connection_group.endpoints) == 2:
+            LOGGER.info(
+                f"[{filename}] : connection group {group_id} has 2 endpoints and "
+                f"{len(connection_group.junctionpoints)} junctionpoints, removing junctionpoints"
+                f"and connecting endpoints directly."
+            )
             # remove the junctionpoints from the group
             connection_group.remove_all_junctionpoints()
 
