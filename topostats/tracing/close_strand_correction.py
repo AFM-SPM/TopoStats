@@ -95,26 +95,45 @@ def get_point_along_branch(
 
 
 def trace_skeleton_better_through_node(
-    node_coords: tuple[int, int],
+    node_branch_coords: tuple[int, int],
     peak_coords: tuple[int, int],
     image: npt.NDArray[np.float64],
     skeleton: npt.NDArray[np.bool_],
 ) -> None:
-    euclidean_distance_to_peak_px = np.linalg.norm((peak_coords[0] - node_coords[0]), (peak_coords[1] - node_coords[1]))
+    """
+    Trace half a node crossing using height based biasing, towards a peak height coordinate.
+
+    Parameters
+    ----------
+    node_branch_coords : tuple[int, int]
+        Coordinates of the node branch start.
+    peak_coords : tuple[int, int]
+        Coordinates of the peak height pixel in the node region to trace to.
+    image : npt.NDArray[np.float64]
+        The image to use for height sampling.
+    skeleton : npt.NDArray[np.bool_]
+        The binary skeleton mask to store the new trace.
+    """
+    euclidean_distance_to_peak_px = np.linalg.norm(
+        (peak_coords[0] - node_branch_coords[0]), (peak_coords[1] - node_branch_coords[1])
+    )
     number_of_interpolation_steps = np.max(int(euclidean_distance_to_peak_px * 2.0), 5)
 
     to_fill_points: list[tuple[int, int]] = []
     for index in range(number_of_interpolation_steps):
         interp_factor = index / (number_of_interpolation_steps - 1)  # since working in range 0 - num -1.
         # find the point along the line proportional to the interpolation factor
-        interp_point = (1 - interp_factor) * node_coords + (interp_factor) * peak_coords
+        interp_point = (1 - interp_factor) * node_branch_coords + (interp_factor) * peak_coords
 
         if index == 0:
-            to_fill_points.append(node_coords)
+            to_fill_points.append(node_branch_coords)
         if index == number_of_interpolation_steps - 1:
             to_fill_points.append(peak_coords)
 
-        vector_of_interpolated_point_peak_line = (peak_coords[0] - node_coords[0], peak_coords[1] - node_coords[1])
+        vector_of_interpolated_point_peak_line = (
+            peak_coords[0] - node_branch_coords[0],
+            peak_coords[1] - node_branch_coords[1],
+        )
         vector_of_interpolated_point_peak_line_length_px = np.linalg.norm(vector_of_interpolated_point_peak_line)
         normal_of_interpolated_point_peak_line = (
             np.array([-vector_of_interpolated_point_peak_line[1], vector_of_interpolated_point_peak_line[0]])
@@ -272,25 +291,25 @@ def correct_close_strands_image(  # noqa: C901
 
                 # trace a more apt line through the node for the skeleton
                 trace_skeleton_better_through_node(
-                    node_coords=strand_1_start,
+                    node_branch_coords=strand_1_start,
                     peak_coords=max_node_pixel_coords,
                     image=grain_image,
                     skeleton=proposed_result_corrected_skeleton,
                 )
                 trace_skeleton_better_through_node(
-                    node_coords=strand_1_end,
+                    node_branch_coords=strand_1_end,
                     peak_coords=max_node_pixel_coords,
                     image=grain_image,
                     skeleton=proposed_result_corrected_skeleton,
                 )
                 trace_skeleton_better_through_node(
-                    node_coords=strand_2_start,
+                    node_branch_coords=strand_2_start,
                     peak_coords=max_node_pixel_coords,
                     image=grain_image,
                     skeleton=proposed_result_corrected_skeleton,
                 )
                 trace_skeleton_better_through_node(
-                    node_coords=strand_2_end,
+                    node_branch_coords=strand_2_end,
                     peak_coords=max_node_pixel_coords,
                     image=grain_image,
                     skeleton=proposed_result_corrected_skeleton,
