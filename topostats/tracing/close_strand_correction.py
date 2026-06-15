@@ -1,14 +1,18 @@
 """Perform close strand correction."""
 
 import copy
+import logging
 
 import numpy as np
 import numpy.typing as npt
 from skimage.graph import route_through_array
-from scipy.ndimage import convolve
+from skimage.measure import label
 from skimage.morphology import binary_dilation
 
 from topostats.classes import TopoStats
+from topostats.logs.logs import LOGGER_NAME
+
+LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 def get_neighbouring_true_pixels(
@@ -90,17 +94,16 @@ def get_point_along_branch(
     return current_coord, np.array(path_taken)
 
 
-def correct_close_strands_image(
+def correct_close_strands_image(  # noqa: C901
     topostats_object: TopoStats,
-    class_index: int,
     height_threshold_nm: float,
+    class_index: int,
     branch_explore_distance_nm: float,
     cost_image_exponent: float,
     cost_image_base: float,
     crossing_correction_strand_minimum_height_nm: float,
 ) -> None:
     """Correct close strands in the image."""
-
     crossing_data = []
 
     for grain_index, graincrop in topostats_object.require_grain_crops().items():
@@ -114,11 +117,16 @@ def correct_close_strands_image(
         assert (
             disordered_trace_images is not None
         ), f"Missing attribute: disordered_trace_images for grain {grain_index}"
-        pruned_skeleton = disordered_trace_images["pruned_skeleton"]
-        result_corrected_skeleton = copy.deepcopy(pruned_skeleton)
+        original_pruned_skeleton = disordered_trace_images["pruned_skeleton"]
+        assert (
+            np.max(label(original_pruned_skeleton)) == 1
+        ), "close strand correction: expected pruned skeleton to only have one connected component for grain"
+        f"{grain_index}, but found {np.max(label(original_pruned_skeleton))} - debug this."
+        result_corrected_skeleton = copy.deepcopy(original_pruned_skeleton)
 
         # iterate over the nodes
         for node_index, node in graincrop.nodes.items():
+            proposed_result_corrected_skeleton = copy.deepcopy(result_corrected_skeleton)
             node_area_skeleton = node.node_area_skeleton
             assert (
                 node_area_skeleton is not None
@@ -165,22 +173,22 @@ def correct_close_strands_image(
                 point_a, path_a = get_point_along_branch(
                     mask_branches, branch_starts[0], branch_explore_distance_nm / pixel_to_nm_scaling
                 )
-                result_corrected_skeleton[path_a[:, 0], path_a[:, 1]] = False
+                proposed_result_corrected_skeleton[path_a[:, 0], path_a[:, 1]] = False
                 point_b, path_b = get_point_along_branch(
                     mask_branches, branch_starts[1], branch_explore_distance_nm / pixel_to_nm_scaling
                 )
-                result_corrected_skeleton[path_b[:, 0], path_b[:, 1]] = False
+                proposed_result_corrected_skeleton[path_b[:, 0], path_b[:, 1]] = False
                 point_c, path_c = get_point_along_branch(
                     mask_branches, branch_starts[2], branch_explore_distance_nm / pixel_to_nm_scaling
                 )
-                result_corrected_skeleton[path_c[:, 0], path_c[:, 1]] = False
+                proposed_result_corrected_skeleton[path_c[:, 0], path_c[:, 1]] = False
                 point_d, path_d = get_point_along_branch(
                     mask_branches, branch_starts[3], branch_explore_distance_nm / pixel_to_nm_scaling
                 )
-                result_corrected_skeleton[path_d[:, 0], path_d[:, 1]] = False
+                proposed_result_corrected_skeleton[path_d[:, 0], path_d[:, 1]] = False
 
                 # Also remove the node coords from the result skeleton
-                result_corrected_skeleton[mask_node == 1] = False
+                proposed_result_corrected_skeleton[mask_node == 1] = False
 
                 possible_combinations = [
                     ((point_a, point_b), (point_c, point_d)),
@@ -221,6 +229,18 @@ def correct_close_strands_image(
                 # apply the correction to the pruned skeleton
                 for _, _, path_coords in best_combination:
                     for coord in path_coords:
-                        result_corrected_skeleton[coord[0], coord[1]] = 1
+                        proposed_result_corrected_skeleton[coord[0], coord[1]] = 1
+
+                # Sanity check for the node before applying the correction
+                # if the proposed correction now has disconnected components, skip this correction
+                if np.max(label(proposed_result_corrected_skeleton)) != 1:
+                    LOGGER.info(
+                        f"Close strand correction :  grain [{grain_index}] node [{node_index}]: Proposed"
+                        f"correction results in disconnected components. Skipping."
+                    )
+                    continue
+
+                result_corrected_skeleton = proposed_result_corrected_skeleton
+
         graincrop.skeleton_override = result_corrected_skeleton
-        graincrop.overridden_skeleton = pruned_skeleton
+        graincrop.overridden_skeleton = original_pruned_skeleton
