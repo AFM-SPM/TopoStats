@@ -96,8 +96,7 @@ def get_point_along_branch(
 
 def correct_close_strands_image(  # noqa: C901
     topostats_object: TopoStats,
-    height_threshold_nm: float,
-    class_index: int,
+    true_peak_threshold_median_multiplier: float,
     branch_explore_distance_nm: float,
     cost_image_exponent: float,
     cost_image_base: float,
@@ -124,6 +123,12 @@ def correct_close_strands_image(  # noqa: C901
         f"{grain_index}, but found {np.max(label(original_pruned_skeleton))} - debug this."
         result_corrected_skeleton = copy.deepcopy(original_pruned_skeleton)
 
+        # calculate the median height of the skeleton pixels for the grain
+        skeleton_pixel_coords = np.argwhere(original_pruned_skeleton == 1)
+        skeleton_pixel_heights = grain_image[skeleton_pixel_coords[:, 0], skeleton_pixel_coords[:, 1]]
+        median_skeleton_height = np.median(skeleton_pixel_heights)
+        true_peak_threshold = median_skeleton_height * true_peak_threshold_median_multiplier
+
         # iterate over the nodes
         for node_index, node in graincrop.nodes.items():
             proposed_result_corrected_skeleton = copy.deepcopy(result_corrected_skeleton)
@@ -137,7 +142,7 @@ def correct_close_strands_image(  # noqa: C901
             node_pixel_coords = np.argwhere(mask_node == 1)
             node_pixel_heights = grain_image[node_pixel_coords[:, 0], node_pixel_coords[:, 1]]
             max_node_pixel_height = np.max(node_pixel_heights)
-            if max_node_pixel_height > height_threshold_nm:
+            if max_node_pixel_height > true_peak_threshold:
                 # this is a true crossing (probably)
                 crossing_data.append(
                     {
