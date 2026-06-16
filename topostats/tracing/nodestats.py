@@ -873,7 +873,7 @@ class nodeStats:
                 AssertionError,
                 IndexError,
             ) as e:  # Assertion - avg trace not advised, Index - wiggy branches
-                LOGGER.debug(f"[{filename}] : avg trace failed with {e}, single trace only.")
+                LOGGER.info(f"[{filename}] : avg trace failed with {e}, single trace only.")
                 average_trace_advised = False
                 distances = nodeStats.coord_dist_rad(single_branch_coords, np.array([node_coords[0], node_coords[1]]))
                 zero_dist = distances[
@@ -1440,9 +1440,10 @@ class nodeStats:
         branch_dist = nodeStats.coord_dist_rad(branch_coords, centre)
         # branch_dist = self.coord_dist(branch_coords)
         branch_heights = img[branch_coords[:, 0], branch_coords[:, 1]]
-        branch_dist, branch_heights = nodeStats.mean_uniques(
-            branch_dist, branch_heights
-        )  # needs to be paired with coord_dist_rad
+        # why is this even called?
+        # branch_dist, branch_heights = nodeStats.mean_uniques(
+        #     branch_dist_original, branch_heights
+        # )  # needs to be paired with coord_dist_rad
         dist_zero_point = branch_dist[
             np.argmin(np.sqrt((branch_coords[:, 0] - centre[0]) ** 2 + (branch_coords[:, 1] - centre[1]) ** 2))
         ]
@@ -1673,8 +1674,13 @@ class nodeStats:
         """
         arr1_uniq, index = np.unique(arr1, return_index=True)
         arr2_new = np.zeros_like(arr1_uniq).astype(np.float64)
+        # iterating over the 1st array but only the unique indices
+        # i is range(0, len(arr1_uniq)) but vals are the unique values
         for i, val in enumerate(arr1[index]):
+            # calculate the mean of points in arr2 where arr1 == val
+            # so calculate the mean of all heights where the distances are equal.
             mean = arr2[arr1 == val].mean()
+            # what the fuck? this goes only 0 to len.
             arr2_new[i] += mean
 
         return arr1[index], arr2_new
