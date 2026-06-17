@@ -232,10 +232,9 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         npt.NDArray
             Unique ordered_array values and retained coordinates. Retains the order of ordered_array.
         """
-
         if retain is None:
             retain = []
-        
+
         # Convert the arrays to sets for faster common value lookup
         set_arr2 = {tuple(row) for row in common_value_check_array}
         set_retain = {tuple(row) for row in retain}
