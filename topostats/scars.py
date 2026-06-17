@@ -391,7 +391,7 @@ def remove_scars(
     first_marked_mask: npt.NDArray
         The scars detected during the first iteration.
     """
-    assert removal_iterations >= 2
+    assert removal_iterations > 0
 
     LOGGER.info(f"[{filename}] : Removing scars")
 
