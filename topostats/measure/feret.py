@@ -14,6 +14,7 @@ import warnings
 from collections.abc import Generator
 from math import sqrt
 from pathlib import Path
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -233,7 +234,7 @@ def triangle_height(base1: npt.NDArray | list, base2: npt.NDArray | list, apex: 
     base1_base2 = np.asarray(base1) - np.asarray(base2)
     base1_apex = np.asarray(base1) - np.asarray(apex)
     # Ensure arrays are 3-D see note in https://numpy.org/doc/2.0/reference/generated/numpy.cross.html
-    return np.linalg.norm(cross2d(base1_base2, base1_apex)) / np.linalg.norm(base1_base2)
+    return np.linalg.norm(cross2d(base1_base2, base1_apex)) / np.linalg.norm(base1_base2).astype(float)
 
 
 def cross2d(x: npt.NDArray, y: npt.NDArray) -> npt.NDArray:
@@ -349,9 +350,7 @@ def sort_clockwise(coordinates: npt.NDArray) -> npt.NDArray:
     return coordinates[order]
 
 
-def min_max_feret(
-    points: npt.NDArray, axis: int = 0, precision: int = 13
-) -> dict[float, tuple[int, int], float, tuple[int, int]]:
+def min_max_feret(points: npt.NDArray, axis: int = 0, precision: int = 13) -> dict[str, Any]:
     """
     Given a list of 2-D points, returns the minimum and maximum feret diameters.
 
@@ -368,8 +367,8 @@ def min_max_feret(
 
     Returns
     -------
-    dictionary
-        Tuple of the minimum feret distance and its coordinates and the maximum feret distance and  its coordinates.
+    dict
+        Dictionary containing the minimum and maximum feret diameters of the grain and their corresponding coordinates of contact with the calipers.
     """
     caliper_min_feret = list(rotating_calipers(points, axis))
     min_ferets, calipers, min_feret_coords = zip(*caliper_min_feret)
@@ -394,7 +393,7 @@ def min_max_feret(
     }
 
 
-def get_feret_from_mask(mask_im: npt.NDArray, axis: int = 0) -> tuple[float, tuple[int, int], float, tuple[int, int]]:
+def get_feret_from_mask(mask_im: npt.NDArray, axis: int = 0) -> dict[str, Any]:
     """
     Calculate the minimum and maximum feret diameter of the foreground object of a binary mask.
 
@@ -409,8 +408,8 @@ def get_feret_from_mask(mask_im: npt.NDArray, axis: int = 0) -> tuple[float, tup
 
     Returns
     -------
-    Tuple[float, Tuple[int, int], float, Tuple[int, int]]
-        Returns a tuple of the minimum feret and its coordinates and the maximum feret and its coordinates.
+    dict
+        Dictionary containing the minimum and maximum feret diameters of the grain and their corresponding coordinates of contact with the calipers.
     """
     eroded = skimage.morphology.erosion(mask_im)
     outline = mask_im ^ eroded

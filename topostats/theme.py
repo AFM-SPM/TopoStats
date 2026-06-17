@@ -1,6 +1,8 @@
 """Custom Bruker Nanoscope colorscale."""
 
 import logging
+from collections.abc import Sequence
+from typing import Literal
 
 import matplotlib as mpl
 import matplotlib.cm
@@ -68,13 +70,13 @@ class Colormap:
             self.cmap = mpl.colormaps[name]
         LOGGER.debug(f"[theme] Colormap set to : {name}")
 
-    def get_cmap(self) -> matplotlib.cm:
+    def get_cmap(self) -> mpl.colors.Colormap | None:
         """
         Return the matplotlib.cm colormap object.
 
         Returns
         -------
-        matplotlib.cm
+        matplotlib.colors.Colormap | None
             Matplotlib Color map object.
         """
         return self.cmap
@@ -91,7 +93,7 @@ class Colormap:
         LinearSegmentedColormap
             MatplotLib LinearSegmentedColourmap that replicates Bruker Nanoscope colorscale.
         """
-        cdict = {
+        cdict: dict[Literal["red", "green", "blue", "alpha"], Sequence[tuple[int | float, ...]]] = {
             "red": (
                 (0.0, 0.0, 0.0),
                 (0.124464, 0.0, 0.0),
