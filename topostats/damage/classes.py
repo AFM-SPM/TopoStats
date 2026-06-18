@@ -640,6 +640,8 @@ class GrainModel(UnanalysedGrain):
         turn_in_distance_deg_norm_bounds: tuple[float, float] = (-180, 180),
         turn_in_distance_display_value_interval: int = -1,
         figsize: tuple[float, float] = (5, 5),
+        save_path: str | None = None,
+        show: bool = True,
     ) -> None:
         """Plot the grain image with the mask and molecule data overlaid."""
         fig, ax = plt.subplots(figsize=figsize)
@@ -849,7 +851,12 @@ class GrainModel(UnanalysedGrain):
                 f"defects: {num_curvature_defects} C, {num_height_defects} H"
                 f"\n{self.filename}"
             )
-        plt.show()
+        if save_path is not None:
+            plt.savefig(save_path)
+        if show:
+            plt.show()
+        else:
+            plt.close()
 
 
 class GrainCollection(BaseDamageAnalysis):
