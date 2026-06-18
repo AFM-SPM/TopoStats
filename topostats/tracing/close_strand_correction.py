@@ -11,8 +11,14 @@ from skimage.morphology import binary_dilation
 
 from topostats.classes import TopoStats
 from topostats.logs.logs import LOGGER_NAME
+from topostats.measure.curvature import calculate_discrete_angle_difference_linear
 
 LOGGER = logging.getLogger(LOGGER_NAME)
+
+from pathlib import Path
+import matplotlib.pyplot as plt
+
+tmp_img_dir = Path("/Users/sylvi/topo_data/temp/diagnostic_plots")
 
 
 def get_neighbouring_true_pixels(
@@ -52,7 +58,7 @@ def get_neighbouring_true_pixels(
 
 def get_point_along_branch(
     skeleton: npt.NDArray[np.bool_], start_coord: npt.NDArray[np.integer], distance_px: float
-) -> tuple[npt.NDArray[np.integer], npt.NDArray[np.integer]]:
+) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
     """
     Get the coordinate and path taken of a point along a branch at a specified distance from a starting coordinate.
 
@@ -91,7 +97,7 @@ def get_point_along_branch(
         path_taken.append(current_coord)
         skeleton_tracker[current_coord[0], current_coord[1]] = False
         neighbours = get_neighbouring_true_pixels(skeleton_tracker, current_coord)
-    return current_coord, np.array(path_taken)
+    return np.array(current_coord, dtype=np.int32), np.array(path_taken, dtype=np.int32)
 
 
 def trace_skeleton_better_through_node(
@@ -345,57 +351,106 @@ def correct_close_strands_image(  # noqa: C901
                 if branch_starts.shape[0] != 4:
                     # to fix a false crossing, we need 4 branches - skip this node if not the case.
                     continue
-                point_a, path_a = get_point_along_branch(
-                    mask_branches, branch_starts[0], branch_explore_distance_nm / pixel_to_nm_scaling
-                )
-                proposed_result_corrected_skeleton[path_a[:, 0], path_a[:, 1]] = False
-                point_b, path_b = get_point_along_branch(
-                    mask_branches, branch_starts[1], branch_explore_distance_nm / pixel_to_nm_scaling
-                )
-                proposed_result_corrected_skeleton[path_b[:, 0], path_b[:, 1]] = False
-                point_c, path_c = get_point_along_branch(
-                    mask_branches, branch_starts[2], branch_explore_distance_nm / pixel_to_nm_scaling
-                )
-                proposed_result_corrected_skeleton[path_c[:, 0], path_c[:, 1]] = False
-                point_d, path_d = get_point_along_branch(
-                    mask_branches, branch_starts[3], branch_explore_distance_nm / pixel_to_nm_scaling
-                )
-                proposed_result_corrected_skeleton[path_d[:, 0], path_d[:, 1]] = False
+                mask_branches_paths_removed = np.array(mask_branches, copy=True)
+
+                points_false: list[npt.NDArray[np.int32]] = []
+                paths: list[npt.NDArray[np.int32]] = []
+                paths_extra: list[npt.NDArray[np.int32]] = []
+                points_false_extended: list[npt.NDArray[np.int32]] = []
+                for i in range(4):
+                    point, path = get_point_along_branch(
+                        mask_branches, branch_starts[i], branch_explore_distance_nm / pixel_to_nm_scaling
+                    )
+                    mask_branches_paths_removed[path[:, 0], path[:, 1]] = False
+                    points_false.append(point)
+                    point_extended, path_extra = get_point_along_branch(
+                        mask_branches_paths_removed, point, (branch_explore_distance_nm / pixel_to_nm_scaling) * 2
+                    )
+                    points_false_extended.append(point_extended)
+                    paths.append(path)
+                    paths_extra.append(path_extra)
+                    proposed_result_corrected_skeleton[path[:, 0], path[:, 1]] = False
 
                 # Also remove the node coords from the result skeleton
                 proposed_result_corrected_skeleton[mask_node == 1] = False
 
                 possible_combinations_indexes = [
-                    ((point_a, point_b), (point_c, point_d)),
-                    ((point_a, point_c), (point_b, point_d)),
-                    ((point_a, point_d), (point_b, point_c)),
+                    ((0, 1), (2, 3)),
+                    ((0, 2), (1, 3)),
+                    ((0, 3), (1, 2)),
                 ]
                 best_combination: (
                     tuple[tuple[np.ndarray, np.ndarray, np.ndarray], tuple[np.ndarray, np.ndarray, np.ndarray]] | None
                 ) = None
                 highest_lowest_height_along_paths = -np.inf
                 for combination_indexes in possible_combinations_indexes:
-                    pair_1, pair_2 = combination_indexes
+                    plt.imshow(grain_image, cmap="gray")
                     # get the costs for pathfinding between the pairs
-                    start_1 = pair_1[0]
-                    end_1 = pair_1[1]
-                    start_2 = pair_2[0]
-                    end_2 = pair_2[1]
+                    start_1_point = points_false[combination_indexes[0][0]]
+                    end_1_point = points_false[combination_indexes[0][1]]
+                    start_2_point = points_false[combination_indexes[1][0]]
+                    end_2_point = points_false[combination_indexes[1][1]]
                     path_1_coords, _path_1_cost = route_through_array(
-                        grain_cost_image, start_1, end_1, fully_connected=True
+                        grain_cost_image, start_1_point, end_1_point, fully_connected=True
                     )
                     path_1_coords = np.array(path_1_coords)
                     path_1_heights = grain_image[path_1_coords[:, 0], path_1_coords[:, 1]]
+                    path_1_extra_start = paths_extra[combination_indexes[0][0]]
+                    path_1_extra_end = paths_extra[combination_indexes[0][1]]
+                    path_1_extra_start_flipped = path_1_extra_start[::-1]
+                    path_1_extended_coords = np.concatenate(
+                        (path_1_extra_start_flipped, path_1_coords, path_1_extra_end)
+                    )
+                    path_1_extended_angles = calculate_discrete_angle_difference_linear(
+                        path_1_extended_coords.astype(np.float64)
+                    )
+                    path_1_total_turn = np.sum(path_1_extended_angles)
+                    plt.plot(path_1_extended_coords[:, 1], path_1_extended_coords[:, 0])
+
                     path_2_coords, _path_2_cost = route_through_array(
-                        grain_cost_image, start_2, end_2, fully_connected=True
+                        grain_cost_image, start_2_point, end_2_point, fully_connected=True
                     )
                     path_2_coords = np.array(path_2_coords)
                     path_2_heights = grain_image[path_2_coords[:, 0], path_2_coords[:, 1]]
+                    path_2_extra_start = paths_extra[combination_indexes[1][0]]
+                    path_2_extra_end = paths_extra[combination_indexes[1][1]]
+                    path_2_extra_start_flipped = path_2_extra_start[::-1]
+                    path_2_extended_coords = np.concatenate(
+                        (path_2_extra_start_flipped, path_2_coords, path_2_extra_end)
+                    )
+                    path_2_extended_angles = calculate_discrete_angle_difference_linear(
+                        path_2_extended_coords.astype(np.float64)
+                    )
+                    path_2_total_turn = np.sum(path_2_extended_angles)
+                    plt.plot(path_2_extended_coords[:, 1], path_2_extended_coords[:, 0])
+
+                    # plt.plot(path_1_coords[:, 1], path_1_coords[:, 0], ls="--")
+                    # plt.plot(path_2_coords[:, 1], path_2_coords[:, 0], ls="--")
+
+                    path_1_start_point_extended = points_false_extended[combination_indexes[0][0]]
+                    path_1_end_point_extended = points_false_extended[combination_indexes[0][1]]
+                    path_2_start_point_extended = points_false_extended[combination_indexes[1][0]]
+                    path_2_end_point_extended = points_false_extended[combination_indexes[1][1]]
+
+                    plt.scatter(path_1_start_point_extended[1], path_1_start_point_extended[0])
+                    plt.scatter(path_1_end_point_extended[1], path_1_end_point_extended[0])
+                    plt.scatter(path_2_start_point_extended[1], path_2_start_point_extended[0])
+                    plt.scatter(path_2_end_point_extended[1], path_2_end_point_extended[0])
 
                     lowest_height_along_paths = np.min(np.concatenate([path_1_heights, path_2_heights]))
+                    plt.title(
+                        f"lowest height: {lowest_height_along_paths}"
+                        f"\npath1 total turn: {path_1_total_turn} ({np.rad2deg(path_1_total_turn)})"
+                        f"\npath2 total turn: {path_2_total_turn} ({np.rad2deg(path_2_total_turn)})"
+                    )
+                    plt.savefig(tmp_img_dir / f"extended_paths_{graincrop.filename}_{combination_indexes}.png")
+                    plt.close()
                     if lowest_height_along_paths > highest_lowest_height_along_paths:
                         highest_lowest_height_along_paths = lowest_height_along_paths
-                        best_combination = ((start_1, end_1, path_1_coords), (start_2, end_2, path_2_coords))
+                        best_combination = (
+                            (start_1_point, end_1_point, path_1_coords),
+                            (start_2_point, end_2_point, path_2_coords),
+                        )
                 if best_combination is None:
                     raise ValueError("this should never happen, debug this.")
                 if highest_lowest_height_along_paths < crossing_correction_strand_minimum_height_nm:
