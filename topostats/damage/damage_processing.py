@@ -761,7 +761,8 @@ def find_height_defects(  # noqa: C901
     if height_defect_method == "iqr":
         for global_grain_id, grain_model in grain_collection.items():
             for molecule_id, molecule_data in grain_model.molecule_data_collection.items():
-                heights_nm = molecule_data.spline_coords_heights
+                heights_nm = molecule_data.smoothed_spline_coords_heights
+                assert heights_nm is not None
                 spline_coords_nm = molecule_data.spline_coords_nm
                 assert len(heights_nm) == len(spline_coords_nm), (
                     f"length of heights does not match length of spline coords "
@@ -786,7 +787,8 @@ def find_height_defects(  # noqa: C901
     elif height_defect_method == "absolute":
         for _global_grain_id, grain_model in grain_collection.items():
             for _molecule_id, molecule_data in grain_model.molecule_data_collection.items():
-                heights_nm = molecule_data.spline_coords_heights
+                heights_nm = molecule_data.smoothed_spline_coords_heights
+                assert heights_nm is not None
                 spline_coords_nm = molecule_data.spline_coords_nm
                 height_defects_bool = heights_nm < height_threshold_absolute_nm
 
@@ -805,13 +807,14 @@ def find_height_defects(  # noqa: C901
         for _global_grain_id, grain_model in grain_collection.items():
             all_grain_heights = []
             for _molecule_id, molecule_data in grain_model.molecule_data_collection.items():
-                heights_nm = molecule_data.spline_coords_heights
+                heights_nm = molecule_data.smoothed_spline_coords_heights
+                assert heights_nm is not None
                 all_grain_heights.extend(heights_nm)
             all_grain_heights = np.array(all_grain_heights)
             median_height = np.median(all_grain_heights)
             height_threshold_percentage_of_median_value = median_height * height_threshold_percentage_of_median
             for _molecule_id, molecule_data in grain_model.molecule_data_collection.items():
-                heights_nm = molecule_data.spline_coords_heights
+                heights_nm = molecule_data.smoothed_spline_coords_heights
                 spline_coords_nm = molecule_data.spline_coords_nm
                 height_defects_bool = heights_nm < height_threshold_percentage_of_median_value
 
