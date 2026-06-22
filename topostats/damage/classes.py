@@ -5,6 +5,7 @@ from copy import deepcopy
 from typing import Any
 
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FuncFormatter
 import numpy as np
 import numpy.typing as npt
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
@@ -644,9 +645,12 @@ class GrainModel(UnanalysedGrain):
         show: bool = True,
     ) -> None:
         """Plot the grain image with the mask and molecule data overlaid."""
+
+        def nm_formatter(px, pos):
+            return f"{px * self.pixel_to_nm_scaling:.0f}"
+
         fig, ax = plt.subplots(figsize=figsize)
         ax.imshow(self.image, **IMGPLOTARGS)
-        print(self.image.shape)
         ax.imshow(self.mask[:, :], alpha=mask_alpha, cmap="gray")
         if linemode == "spline":
             for _molecule_id, molecule_data in self.molecule_data_collection.items():
@@ -834,14 +838,16 @@ class GrainModel(UnanalysedGrain):
                         ax.scatter(defect_coords[:, 1], defect_coords[:, 0], color="red", s=10)
 
         # set x ticks to be in nm
-        x_ticks = ax.get_xticks()
-        x_ticks_nm = x_ticks * self.pixel_to_nm_scaling
-        ax.set_xticklabels([f"{x_tick_nm:.0f}" for x_tick_nm in x_ticks_nm])
+        # x_ticks = ax.get_xticks()
+        # x_ticks_nm = x_ticks * self.pixel_to_nm_scaling
+        # ax.set_xticklabels([f"{x_tick_nm:.0f}" for x_tick_nm in x_ticks_nm])
+        ax.xaxis.set_major_formatter(FuncFormatter(nm_formatter))
         ax.set_xlabel("nm")
         # set y ticks to be in nm
-        y_ticks = ax.get_yticks()
-        y_ticks_nm = y_ticks * self.pixel_to_nm_scaling
-        ax.set_yticklabels([f"{y_tick_nm:.0f}" for y_tick_nm in y_ticks_nm])
+        # y_ticks = ax.get_yticks()
+        # y_ticks_nm = y_ticks * self.pixel_to_nm_scaling
+        # ax.set_yticklabels([f"{y_tick_nm:.0f}" for y_tick_nm in y_ticks_nm])
+        ax.yaxis.set_major_formatter(FuncFormatter(nm_formatter))
         ax.set_ylabel("nm")
         if title_mode == "basic":
             num_curvature_defects = self.num_curvature_defects
