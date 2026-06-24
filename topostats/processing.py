@@ -1644,7 +1644,9 @@ def check_run_steps(  # noqa: C901
         LOGGER.info("Configuration run options are consistent, processing can proceed.")
 
 
-def completion_message(config: dict, img_files: list, summary_config: dict, images_processed: int, start_time: datetime) -> None:
+def completion_message(
+    config: dict, img_files: list, summary_config: dict, images_processed: int, start_time: datetime
+) -> None:
     """
     Print a completion message summarising images processed.
 
