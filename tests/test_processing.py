@@ -880,7 +880,8 @@ def test_process_scan_no_grains(process_scan_config: dict, load_scan_data: LoadS
     """Test handling no grains found during grains.find_grains()."""
     topostats_object = load_scan_data.img_dict["minicircle_small.topostats"]
     topostats_object.grain_crops = None
-    process_scan_config["grains"]["threshold_std_dev"]["above"] = 1000
+    process_scan_config["grains"]["threshold_std_dev"] = [1000]
+    process_scan_config["grains"]["threshold_method"] = "std_dev"
     process_scan_config["filter"]["remove_scars"]["run"] = False
     _, _, _, _, _, _, _ = process_scan(
         topostats_object=topostats_object,
@@ -927,10 +928,8 @@ def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
     topostats_object.config = process_scan_config
     grains_config = process_scan_config["grains"]
     grains_config["threshold_method"] = "absolute"
-    grains_config["threshold_absolute"]["above"] = 1.0
-    grains_config["threshold_absolute"]["below"] = -0.4
-    grains_config["area_thresholds"]["above"] = [20, 10000000]
-    grains_config["area_thresholds"]["below"] = [20, 10000000]
+    grains_config["threshold_absolute"] = [-0.4, 1.0]
+    grains_config["area_thresholds"] = [[20, 10000000], [20, 10000000]]
     run_grains(
         topostats_object=topostats_object,
         grain_out_path=tmp_path,
@@ -938,7 +937,7 @@ def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
     )
     assert isinstance(topostats_object.grain_crops, dict)
     # @ns-rse 2025-11-18 - Only getting six above, should be two below
-    assert len(topostats_object.grain_crops) == 6
+    assert len(topostats_object.grain_crops) == 8
     for _, grain_crop in topostats_object.grain_crops.items():
         assert isinstance(grain_crop, GrainCrop)
 

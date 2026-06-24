@@ -93,7 +93,32 @@ def convert_path(path: str | Path) -> Path:
     return Path().cwd() if path == "./" else Path(path).expanduser()
 
 
-def _get_mask(image: npt.NDArray, thresh: float, threshold_direction: str, img_name: str = None) -> npt.NDArray:
+def _get_grain_mask(image: npt.NDArray, thresh: float, img_name: str = None) -> npt.NDArray:
+    """
+    Calculate a mask for pixels that exceed the threshold.
+
+    Parameters
+    ----------
+    image : np.array
+        Numpy array representing image.
+    thresh : float
+        A float representing the threshold.
+    img_name : str
+        Name of image being processed.
+
+    Returns
+    -------
+    npt.NDArray
+        Numpy array of image with objects coloured.
+    """
+    if thresh >= 0:
+        LOGGER.debug(f"[{img_name}] : Masking threshold: {thresh}")
+        return image > thresh
+    LOGGER.debug(f"[{img_name}] : Masking threshold: {thresh}")
+    return image < thresh
+
+
+def _get_filter_mask(image: npt.NDArray, thresh: float, threshold_direction: str, img_name: str = None) -> npt.NDArray:
     """
     Calculate a mask for pixels that exceed the threshold.
 
@@ -118,10 +143,34 @@ def _get_mask(image: npt.NDArray, thresh: float, threshold_direction: str, img_n
         return image > thresh
     LOGGER.debug(f"[{img_name}] : Masking (below) Threshold: {thresh}")
     return image < thresh
-    # LOGGER.fatal(f"[{img_name}] : Threshold direction invalid: {threshold_direction}")
 
 
-def get_mask(image: npt.NDArray, thresholds: dict, img_name: str = None) -> npt.NDArray:
+def get_grain_mask(image: npt.NDArray, thresholds: list, img_name: str = None) -> npt.NDArray:
+    """
+    Mask data that should not be included in flattening.
+
+    Parameters
+    ----------
+    image : npt.NDArray
+        2D Numpy array of the image to have a mask derived for.
+    thresholds : dict
+        Dictionary of thresholds, at a bare minimum must have key 'below' with an associated value, second key is
+        to have an 'above' threshold.
+    img_name : str
+        Image name that is being masked.
+
+    Returns
+    -------
+    npt.NDArray
+        2D Numpy boolean array of points to mask.
+    """
+    mask = np.zeros_like(image)
+    for thresh in thresholds:
+        mask += _get_grain_mask(image, thresh=thresh, img_name=img_name)
+    return mask
+
+
+def get_filter_mask(image: npt.NDArray, thresholds: dict, img_name: str = None) -> npt.NDArray:
     """
     Mask data that should not be included in flattening.
 
@@ -142,19 +191,76 @@ def get_mask(image: npt.NDArray, thresholds: dict, img_name: str = None) -> npt.
     """
     # Both thresholds are applicable
     if "below" in thresholds and "above" in thresholds:
-        mask_above = _get_mask(image, thresh=thresholds["above"], threshold_direction="above", img_name=img_name)
-        mask_below = _get_mask(image, thresh=thresholds["below"], threshold_direction="below", img_name=img_name)
+        mask_above = _get_filter_mask(image, thresh=thresholds["above"], threshold_direction="above", img_name=img_name)
+        mask_below = _get_filter_mask(image, thresh=thresholds["below"], threshold_direction="below", img_name=img_name)
         # Masks are combined to remove both the extreme high and extreme low data points.
         return mask_above + mask_below
     # Only below threshold is applicable
     if "below" in thresholds:
-        return _get_mask(image, thresh=thresholds["below"], threshold_direction="below", img_name=img_name)
+        return _get_filter_mask(image, thresh=thresholds["below"], threshold_direction="below", img_name=img_name)
     # Only above threshold is applicable
-    return _get_mask(image, thresh=thresholds["above"], threshold_direction="above", img_name=img_name)
+    return _get_filter_mask(image, thresh=thresholds["above"], threshold_direction="above", img_name=img_name)
 
 
 # pylint: disable=too-many-branches
-def get_thresholds(  # noqa: C901
+def get_grain_thresholds(  # noqa: C901
+    image: npt.NDArray,
+    threshold_method: str,
+    otsu_threshold_multiplier: float | None = None,
+    threshold_std_dev: list[float] | None = None,
+    absolute: list[float] | None = None,
+) -> dict[str, list[float]]:
+    """
+    Obtain thresholds for masking data points.
+
+    Parameters
+    ----------
+    image : npt.NDArray
+        2D Numpy array of image to be masked.
+    threshold_method : str
+        Method for thresholding, 'otsu', 'std_dev' or 'absolute' are valid options.
+    otsu_threshold_multiplier : float
+        Scaling value for Otsu threshold.
+    threshold_std_dev : list[float]
+        List of thresholds for the standard deviation method.
+    absolute : list[float]
+        List of absolute thresholds.
+
+    Returns
+    -------
+    list[float]
+        Dictionary of thresholds, contains keys 'below' and optionally 'above'.
+    """
+    thresholds: list[float] = []
+    if threshold_method == "otsu":
+        assert (
+            otsu_threshold_multiplier is not None
+        ), "Otsu threshold multiplier must be provided when using 'otsu' thresholding method."
+        thresholds = [threshold(image, method="otsu", otsu_threshold_multiplier=otsu_threshold_multiplier)]
+    elif threshold_method == "std_dev":
+        assert (
+            threshold_std_dev is not None
+        ), "Standard deviation thresholds must be provided when using 'std_dev' thresholding method."
+        thresholds_std_dev = []
+        for thresh in threshold_std_dev:
+            thresholds_std_dev.append(threshold(image, method="mean") + thresh * np.nanstd(image))
+        thresholds = thresholds_std_dev
+    elif threshold_method == "absolute":
+        assert absolute is not None, "Absolute thresholds must be provided when using 'absolute' thresholding method."
+        thresholds = absolute
+    else:
+        if not isinstance(threshold_method, str):
+            raise TypeError(
+                f"threshold_method ({threshold_method}) should be a string. Valid values : 'otsu' 'std_dev' 'absolute'"
+            )
+        raise ValueError(
+            f"threshold_method ({threshold_method}) is invalid. Valid values : 'otsu' 'std_dev' 'absolute'"
+        )
+    return thresholds
+
+
+# pylint: disable=too-many-branches
+def get_filter_thresholds(  # noqa: C901
     image: npt.NDArray,
     threshold_method: str,
     otsu_threshold_multiplier: float | None = None,

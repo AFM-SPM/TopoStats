@@ -35,15 +35,9 @@ grains:
   grain_crop_padding: 1 # Padding to apply to grains. Needs to be at least 1, more padding may help with unets.
   threshold_method: std_dev # Options : std_dev, otsu, absolute, unet
   otsu_threshold_multiplier: 1.0
-  threshold_std_dev:
-    below: [10.0] # Thresholds for grains below the image background. List[float].
-    above: [1.0] # Thresholds for grains above the image background. List[float].
-  threshold_absolute:
-    below: [-1.0] # Thresholds for grains below the image background. List[float].
-    above: [1.0] # Thresholds for grains above the image background. List[float].
-  area_thresholds:
-    above: [300, 3000] # above surface [Low, High] in nm^2 (also takes null)
-    below: [null, null] # below surface [Low, High] in nm^2 (also takes null)
+  threshold_std_dev: [-10, 1] # Thresholds for grains relative to the image background. Negative values are below and positive values are above. List[float].
+  threshold_absolute: [-1.0, 1.0] # Thresholds for grains relative to the image background. Negative values are below and psoitive values are above. List[float].
+  area_thresholds: [[null, null], [300, 3000]] # [Low, High] in nm^2 (also takes null), one set for each threshold
   remove_edge_intersecting_grains: true # Whether or not to remove grains that touch the image border
   endpoint_connection_config:
     run: false # Whether to run the endpoint connection process

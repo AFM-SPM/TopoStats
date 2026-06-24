@@ -2016,10 +2016,7 @@
          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
           0, 0, 0, 0, 0, 0]]),
         'threshold_method': 'std_dev',
-        'thresholds': dict({
-          'above': array([0.90537176]),
-          'below': array([-0.33280886]),
-        }),
+        'thresholds': array([-0.33280886,  0.90537176]),
       }),
       '1': dict({
         'bbox': array([25, 32, 51, 58]),
@@ -3404,10 +3401,7 @@
         'padding': np.int64(1),
         'pixel_to_nm_scaling': np.float64(1.97601171875),
         'threshold_method': 'std_dev',
-        'thresholds': dict({
-          'above': array([0.90537176]),
-          'below': array([-0.33280886]),
-        }),
+        'thresholds': array([-0.33280886,  0.90537176]),
       }),
       '2': dict({
         'bbox': array([29,  8, 53, 32]),
@@ -4754,10 +4748,7 @@
         'padding': np.int64(1),
         'pixel_to_nm_scaling': np.float64(1.97601171875),
         'threshold_method': 'std_dev',
-        'thresholds': dict({
-          'above': array([0.90537176]),
-          'below': array([-0.33280886]),
-        }),
+        'thresholds': array([-0.33280886,  0.90537176]),
       }),
     }),
     'image': array([[ 2.30587304e+00,  2.22820208e+00,  2.17101488e+00, ...,

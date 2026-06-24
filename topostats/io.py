@@ -927,12 +927,25 @@ def dict_to_hdf5(  # noqa: C901 # pylint: disable=too-many-statements
             # Exclude the plotting dictionary configuration, its excessive and users rarely tinker with it
             if key == "plot_dict":
                 continue
-            # Lists need to be converted to numpy arrays
+            # Lists need to be converted to numpy arrays, the method varies slightly
+            # depending on the array's structure/ layout
             if isinstance(item, list):
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 if any(x is None for x in item):
-                    item = np.array([np.nan if x is None else x for x in item])
-                open_hdf5_file.create_dataset(name=group_path + key, data=item, compression="gzip")
+                    item = [np.nan if x is None else x for x in item]
+                arr = np.array(item)
+                if np.issubdtype(arr.dtype, np.str_):
+                    # String arrays need special HDF5 encoding
+                    arr = np.array(arr, dtype=h5py.string_dtype())
+                elif arr.dtype == object:
+                    flat = list(_flatten(item))
+                    # Don't flatten if rows are of equal lengths
+                    try:
+                        arr = np.array([[np.nan if x is None else x for x in row] for row in item], dtype=float)
+                    except (ValueError, TypeError):
+                        # Flatten if rows have uneven lengths
+                        arr = np.array([np.nan if x is None else x for x in flat], dtype=float)
+                open_hdf5_file.create_dataset(name=group_path + key, data=arr, compression="gzip")
             # Strings need to be encoded to bytes, but can not be compressed
             elif isinstance(item, str):
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
@@ -963,6 +976,24 @@ def dict_to_hdf5(  # noqa: C901 # pylint: disable=too-many-statements
                 open_hdf5_file[group_path + key] = item
             except Exception as e:
                 LOGGER.debug(f"Cannot save key '{key}' to HDF5. Item type: {type(item)}. Skipping. {e}")
+
+
+def _flatten(nested: list):
+    """
+    Flatten an arbitrarily nested list into a 1D iterator.
+
+    Parameters
+    ----------
+    nested : list
+        A nested list to be flattened.
+    """
+    stack = [nested]
+    while stack:
+        item = stack.pop()
+        if isinstance(item, (list | np.ndarray)):
+            stack.extend(reversed(item) if isinstance(item, list) else reversed(item.tolist()))
+        else:
+            yield item
 
 
 def hdf5_to_dict(open_hdf5_file: h5py.File, group_path: str) -> dict:

@@ -48,7 +48,7 @@ class GrainCrop:
     filename : str
         Filename of the image from which the crop was taken.
     threshold : str
-        Direction of the molecule from the threshold (above / below).
+        Direction of the molecule from the threshold (+ above / - below).
     skeleton : npt.NDArray[np.bool_]
         3-D Numpy tensor of the skeletonised mask.
     convolved_skeleton : npt.NDArray[np.int32] | None = None
@@ -103,7 +103,7 @@ class GrainCrop:
         filename : str
             Filename of the image from which the crop was taken.
         threshold : str
-            Direction of the molecule from the threshold (above / below).
+            Direction of the molecule from the threshold (+ above / - below).
         skeleton : npt.NDArray[np.bool_]
             3-D Numpy tensor of the skeletonised mask.
         convolved_skeleton : npt.NDArray[np.int32] | None = None
@@ -1116,8 +1116,8 @@ class Molecule:
     """
     Class for Molecules identified during ordered tracing.
 
-    threshold : str
-        Direction from threshold of molecule (above / below)
+    threshold : int
+        Index of threshold used (from list in config).
     molecule_number : int
         Index of the molecule (per grain)
     circular : str, bool, optional
@@ -1146,7 +1146,7 @@ class Molecule:
         Bounding box.
     """
 
-    threshold: str | None = None
+    threshold: int | None = None
     molecule_number: int | None = None
     circular: str | bool | None = None
     processing: str | None = None
