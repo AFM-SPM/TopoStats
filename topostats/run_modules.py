@@ -10,6 +10,7 @@ import logging
 import re
 import sys
 from collections import defaultdict
+from datetime import datetime, timezone
 from functools import partial
 from importlib import resources
 from multiprocessing import Pool
@@ -171,6 +172,8 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     args : None
         Arguments.
     """
+    start_time: datetime = datetime.now(timezone.utc)
+
     config, img_files = _parse_configuration(args)
     processing_function = partial(
         process_scan,
@@ -420,7 +423,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
         summary_config = None
 
     # Update config with plotting defaults for printing
-    completion_message(config, img_files, summary_config, images_processed)
+    completion_message(config, img_files, summary_config, images_processed, start_time=start_time)
 
 
 # WIP these will be added from args once the dictionary keys have been wrangled
@@ -437,6 +440,8 @@ def filters(args: argparse.Namespace | None = None) -> None:
     args : None
         Arguments.
     """
+    start_time: datetime = datetime.now(timezone.utc)
+
     config, img_files = _parse_configuration(args)
     # If loading existing .topostats files the images need filtering again so we need to extract the raw image
     if config["file_ext"] == ".topostats":
@@ -473,7 +478,9 @@ def filters(args: argparse.Namespace | None = None) -> None:
     write_yaml(config, output_dir=config["output_dir"])
     LOGGER.debug(f"Images processed : {len(results)}")
     # Update config with plotting defaults for printing
-    completion_message(config, img_files, summary_config=None, images_processed=sum(results.values()))
+    completion_message(
+        config, img_files, summary_config=None, images_processed=sum(results.values()), start_time=start_time
+    )
 
 
 def grains(args: argparse.Namespace | None = None) -> None:
@@ -485,6 +492,8 @@ def grains(args: argparse.Namespace | None = None) -> None:
     args : None
         Arguments.
     """
+    start_time: datetime = datetime.now(timezone.utc)
+
     config, img_files = _parse_configuration(args)
     # Triggers extraction of filtered images from existing .topostats files
     if config["file_ext"] == ".topostats":
@@ -520,7 +529,9 @@ def grains(args: argparse.Namespace | None = None) -> None:
     write_yaml(config, output_dir=config["output_dir"])
     LOGGER.debug(f"Images processed : {len(results)}")
     # Update config with plotting defaults for printing
-    completion_message(config, img_files, summary_config=None, images_processed=sum(results.values()))
+    completion_message(
+        config, img_files, summary_config=None, images_processed=sum(results.values()), start_time=start_time
+    )
 
 
 def grainstats(args: argparse.Namespace | None = None) -> None:
@@ -532,6 +543,8 @@ def grainstats(args: argparse.Namespace | None = None) -> None:
     args : None
         Arguments.
     """
+    start_time: datetime = datetime.now(timezone.utc)
+
     config, img_files = _parse_configuration(args)  # pylint: disable=unused-variable
     # Triggers extraction of filtered images from existing .topostats files
     if config["file_ext"] == ".topostats":
@@ -581,7 +594,9 @@ def grainstats(args: argparse.Namespace | None = None) -> None:
     write_yaml(config, output_dir=config["output_dir"])
     LOGGER.debug(f"Images processed : {len(grain_stats_all)}")
     # Update config with plotting defaults for printing
-    completion_message(config, img_files, summary_config=None, images_processed=grain_stats_all_df.shape[0])
+    completion_message(
+        config, img_files, summary_config=None, images_processed=grain_stats_all_df.shape[0], start_time=start_time
+    )
 
 
 def disordered_tracing(args: argparse.Namespace | None = None) -> None:
