@@ -1,12 +1,21 @@
 """Functions for processing damage data."""
 
+from scipy.ndimage import distance_transform_edt
+
 from typing import Literal
 
 import numpy as np
 import numpy.typing as npt
 
 from topostats.array_manipulation import calculate_distance_of_region, distances_nm, rolling_average
-from topostats.damage.classes import Defect, Gap, GrainCollection, MoleculeDefectData, OrderedDefectGapList
+from topostats.damage.classes import (
+    Defect,
+    Gap,
+    GrainCollection,
+    MoleculeDefectData,
+    OrderedDefectGapList,
+    MoleculeData,
+)
 from topostats.measure.curvature import (
     angle_diff_signed,
     calculate_discrete_angle_difference_circular,
@@ -731,6 +740,8 @@ def find_height_defects(  # noqa: C901
     height_threshold_absolute_nm: float,
     height_threshold_percentage_of_median: float,
     connect_close_defect_threshold_nm: float | None,
+    find_height_defects_close_to_curvature_defects: bool,
+    curvature_defect_height_defect_search_range_nm: float,
 ) -> set[int]:
     """
     Find height defects for all molecules in all grains in the grain collection.
@@ -773,6 +784,17 @@ def find_height_defects(  # noqa: C901
                 height_threshold_iqr = np.percentile(heights_nm, 50) - height_threshold_iqr_multiplier * iqr
                 height_defects_bool = heights_nm < height_threshold_iqr
 
+                if find_height_defects_close_to_curvature_defects:
+                    height_defects_near_curvature_defects = find_height_defects_near_curvature_defects(
+                        molecule_data=molecule_data,
+                        grain_image=grain_model.image,
+                        grain_mask=grain_model.mask,
+                        height_threshold=float(height_threshold_iqr),
+                        curvature_defect_height_defect_search_range_nm=curvature_defect_height_defect_search_range_nm,
+                        pixel_to_nm_scaling=grain_model.pixel_to_nm_scaling,
+                    )
+                    height_defects_bool = np.logical_or(height_defects_bool, height_defects_near_curvature_defects)
+
                 ordered_defect_gap_list = get_defects_and_gaps_from_bool_array(
                     defects_bool=height_defects_bool,
                     trace_points_nm=spline_coords_nm,
@@ -791,6 +813,17 @@ def find_height_defects(  # noqa: C901
                 assert heights_nm is not None
                 spline_coords_nm = molecule_data.spline_coords_nm
                 height_defects_bool = heights_nm < height_threshold_absolute_nm
+
+                if find_height_defects_close_to_curvature_defects:
+                    height_defects_near_curvature_defects = find_height_defects_near_curvature_defects(
+                        molecule_data=molecule_data,
+                        grain_image=grain_model.image,
+                        grain_mask=grain_model.mask,
+                        height_threshold=height_threshold_absolute_nm,
+                        curvature_defect_height_defect_search_range_nm=curvature_defect_height_defect_search_range_nm,
+                        pixel_to_nm_scaling=grain_model.pixel_to_nm_scaling,
+                    )
+                    height_defects_bool = np.logical_or(height_defects_bool, height_defects_near_curvature_defects)
 
                 ordered_defect_gap_list = get_defects_and_gaps_from_bool_array(
                     defects_bool=height_defects_bool,
@@ -818,6 +851,21 @@ def find_height_defects(  # noqa: C901
                 spline_coords_nm = molecule_data.spline_coords_nm
                 height_defects_bool = heights_nm < height_threshold_percentage_of_median_value
 
+                if find_height_defects_close_to_curvature_defects:
+                    height_defects_near_curvature_defects = find_height_defects_near_curvature_defects(
+                        molecule_data=molecule_data,
+                        grain_image=grain_model.image,
+                        grain_mask=grain_model.mask,
+                        height_threshold=height_threshold_percentage_of_median_value,
+                        curvature_defect_height_defect_search_range_nm=curvature_defect_height_defect_search_range_nm,
+                        pixel_to_nm_scaling=grain_model.pixel_to_nm_scaling,
+                    )
+                    if np.any(height_defects_near_curvature_defects):
+                        print(
+                            f"found height defect near curvature defect for file {grain_model.filename} grain {grain_model.global_grain_id}"
+                        )
+                    height_defects_bool = np.logical_or(height_defects_bool, height_defects_near_curvature_defects)
+
                 ordered_defect_gap_list = get_defects_and_gaps_from_bool_array(
                     defects_bool=height_defects_bool,
                     trace_points_nm=spline_coords_nm,
@@ -829,11 +877,49 @@ def find_height_defects(  # noqa: C901
                 )
 
                 molecule_data.height_defect_data = MoleculeDefectData(ordered_defects_and_gaps=ordered_defect_gap_list)
-
     else:
         raise ValueError(f"Invalid height defect method: {height_defect_method}")
 
     return bad_grains
+
+
+def find_height_defects_near_curvature_defects(
+    molecule_data: MoleculeData,
+    grain_image: npt.NDArray[np.float64],
+    grain_mask: npt.NDArray[np.bool_],
+    height_threshold: float,
+    curvature_defect_height_defect_search_range_nm: float,
+    pixel_to_nm_scaling: float,
+) -> npt.NDArray[np.bool_]:
+    """Find height defects near any curvature defects."""
+    spline_coords_px = molecule_data.spline_coords_px
+    height_defects_near_curvature_defects = np.zeros(len(spline_coords_px)).astype(np.bool_)
+    heights_nm = molecule_data.smoothed_spline_coords_heights
+    assert heights_nm is not None
+    curvature_defect_data = molecule_data.curvature_defect_data
+    assert curvature_defect_data is not None
+    curvature_defects_and_gaps = curvature_defect_data.ordered_defects_and_gaps
+    for defect_or_gap in curvature_defects_and_gaps.defect_gap_list:
+        if isinstance(defect_or_gap, Defect):
+            defect = defect_or_gap
+            defect_position_index = int((defect.start_index + defect.end_index) / 2)
+            spline_coords_px = molecule_data.spline_coords_px
+            defect_position_px = spline_coords_px[defect_position_index]
+
+            # search for local height defect in the mask
+            # get the mask of points within that range
+            distance_mask = np.ones(grain_mask.shape)
+            distance_mask[int(defect_position_px[0]), int(defect_position_px[1])] = 0
+            distance_mask = (
+                distance_transform_edt(distance_mask)
+                < curvature_defect_height_defect_search_range_nm / pixel_to_nm_scaling
+            )
+            masked_image = np.ma.masked_array(data=grain_image, mask=~distance_mask)
+            if np.any(masked_image < height_threshold):
+                # add the index as a defect
+                height_defects_near_curvature_defects[defect_position_index] = True
+
+    return height_defects_near_curvature_defects
 
 
 def find_defects_in_height_and_curvature(
@@ -847,6 +933,8 @@ def find_defects_in_height_and_curvature(
     curvature_threshold_absolute_pernm: float,
     curvature_turn_in_distance_turn_threshold_deg: float,
     connect_close_defect_threshold_nm: float | None,
+    find_height_defects_close_to_curvature_defects: bool,
+    curvature_defect_height_defect_search_range_nm: float,
 ) -> set[int]:
     """
     Find defects in height and curvature for all molecules in all grains in the grain collection.
@@ -878,6 +966,10 @@ def find_defects_in_height_and_curvature(
         in the call to the function that calculates the turn in distance), then it is considered a defect.
     connect_close_defect_threshold_nm : float | None
         The distance in nanometres between defects below which two defects will be connected into one defect
+    find_height_defects_close_to_curvature_defects : bool
+        Whether to search for height defects in the proximity of curvature defects, away from the trace.
+    curvature_defect_height_defect_search_range_nm : bool
+        Distance in nanometres within which to search for height defects from a curvature defect (away from the trace).
 
     Returns
     -------
@@ -904,6 +996,8 @@ def find_defects_in_height_and_curvature(
         height_threshold_absolute_nm=height_threshold_absolute_nm,
         height_threshold_percentage_of_median=height_threshold_percentage_of_median,
         connect_close_defect_threshold_nm=connect_close_defect_threshold_nm,
+        find_height_defects_close_to_curvature_defects=find_height_defects_close_to_curvature_defects,
+        curvature_defect_height_defect_search_range_nm=curvature_defect_height_defect_search_range_nm,
     )
     bad_grains.update(additional_bad_grains)
 
