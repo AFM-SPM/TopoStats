@@ -834,7 +834,7 @@ class GrainModel(UnanalysedGrain):
                         defect_start_index = item.start_index
                         defect_end_index = item.end_index
                         spline_coords = self.molecule_data_collection[molecule_id].spline_coords_px
-                        defect_coords = spline_coords[defect_start_index:defect_end_index]
+                        defect_coords = spline_coords[defect_start_index : defect_end_index + 1]
                         ax.scatter(defect_coords[:, 1], defect_coords[:, 0], color="red", s=10)
 
         # set x ticks to be in nm
