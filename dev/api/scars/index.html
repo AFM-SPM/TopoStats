@@ -2432,7 +2432,7 @@
 
 
 <h2 id="topostats.scars.remove_scars" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">remove_scars</span><span class="p">(</span><span class="n">img</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">removal_iterations</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">threshold_low</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.25</span><span class="p">,</span> <span class="n">threshold_high</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.666</span><span class="p">,</span> <span class="n">max_scar_width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="n">min_scar_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">remove_scars</span><span class="p">(</span><span class="n">img</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">removal_iterations</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">threshold_low</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.25</span><span class="p">,</span> <span class="n">threshold_high</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.666</span><span class="p">,</span> <span class="n">max_scar_width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="n">min_scar_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">]</span></code>
 
 </h2>
 
@@ -2586,19 +2586,29 @@ Note that length here is horizontal, as scars are thin, horizontal features.</p>
     <table>
       <thead>
         <tr>
-          <th>Type</th>
+<th>Name</th>          <th>Type</th>
           <th>Description</th>
         </tr>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td>
-                  <code><span title="self.img">img</span></code>
+<td><code>img</code></td>            <td>
+                  <code><span title="numpy.typing.NDArray">NDArray</span></code>
             </td>
             <td>
               <div class="doc-md-description">
                 <p>The original 2-D image with scars removed, unless the config has run set to False, in which case it
 will not remove the scars.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+<td><code>first_marked_mask</code></td>            <td>
+                  <code><span title="numpy.typing.NDArray">NDArray</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The scars detected during the first iteration.</p>
               </div>
             </td>
           </tr>
@@ -2687,7 +2697,12 @@ will not remove the scars.</p>
 <span class="normal"><a href="#__codelineno-0-419">419</a></span>
 <span class="normal"><a href="#__codelineno-0-420">420</a></span>
 <span class="normal"><a href="#__codelineno-0-421">421</a></span>
-<span class="normal"><a href="#__codelineno-0-422">422</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-343"><a id="__codelineno-0-343" name="__codelineno-0-343"></a><span class="k">def</span><span class="w"> </span><span class="nf">remove_scars</span><span class="p">(</span>
+<span class="normal"><a href="#__codelineno-0-422">422</a></span>
+<span class="normal"><a href="#__codelineno-0-423">423</a></span>
+<span class="normal"><a href="#__codelineno-0-424">424</a></span>
+<span class="normal"><a href="#__codelineno-0-425">425</a></span>
+<span class="normal"><a href="#__codelineno-0-426">426</a></span>
+<span class="normal"><a href="#__codelineno-0-427">427</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-343"><a id="__codelineno-0-343" name="__codelineno-0-343"></a><span class="k">def</span><span class="w"> </span><span class="nf">remove_scars</span><span class="p">(</span>
 </span><span id="__span-0-344"><a id="__codelineno-0-344" name="__codelineno-0-344"></a>    <span class="n">img</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span>
 </span><span id="__span-0-345"><a id="__codelineno-0-345" name="__codelineno-0-345"></a>    <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
 </span><span id="__span-0-346"><a id="__codelineno-0-346" name="__codelineno-0-346"></a>    <span class="n">removal_iterations</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
@@ -2695,7 +2710,7 @@ will not remove the scars.</p>
 </span><span id="__span-0-348"><a id="__codelineno-0-348" name="__codelineno-0-348"></a>    <span class="n">threshold_high</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.666</span><span class="p">,</span>
 </span><span id="__span-0-349"><a id="__codelineno-0-349" name="__codelineno-0-349"></a>    <span class="n">max_scar_width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
 </span><span id="__span-0-350"><a id="__codelineno-0-350" name="__codelineno-0-350"></a>    <span class="n">min_scar_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
-</span><span id="__span-0-351"><a id="__codelineno-0-351" name="__codelineno-0-351"></a><span class="p">):</span>
+</span><span id="__span-0-351"><a id="__codelineno-0-351" name="__codelineno-0-351"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">]:</span>
 </span><span id="__span-0-352"><a id="__codelineno-0-352" name="__codelineno-0-352"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="__span-0-353"><a id="__codelineno-0-353" name="__codelineno-0-353"></a><span class="sd">    Remove scars from an image.</span>
 </span><span id="__span-0-354"><a id="__codelineno-0-354" name="__codelineno-0-354"></a>
@@ -2732,41 +2747,46 @@ will not remove the scars.</p>
 </span><span id="__span-0-385"><a id="__codelineno-0-385" name="__codelineno-0-385"></a>
 </span><span id="__span-0-386"><a id="__codelineno-0-386" name="__codelineno-0-386"></a><span class="sd">    Returns</span>
 </span><span id="__span-0-387"><a id="__codelineno-0-387" name="__codelineno-0-387"></a><span class="sd">    -------</span>
-</span><span id="__span-0-388"><a id="__codelineno-0-388" name="__codelineno-0-388"></a><span class="sd">    self.img</span>
+</span><span id="__span-0-388"><a id="__codelineno-0-388" name="__codelineno-0-388"></a><span class="sd">    img: npt.NDArray</span>
 </span><span id="__span-0-389"><a id="__codelineno-0-389" name="__codelineno-0-389"></a><span class="sd">        The original 2-D image with scars removed, unless the config has run set to False, in which case it</span>
 </span><span id="__span-0-390"><a id="__codelineno-0-390" name="__codelineno-0-390"></a><span class="sd">        will not remove the scars.</span>
-</span><span id="__span-0-391"><a id="__codelineno-0-391" name="__codelineno-0-391"></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="__span-0-392"><a id="__codelineno-0-392" name="__codelineno-0-392"></a>    <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">] : Removing scars&quot;</span><span class="p">)</span>
-</span><span id="__span-0-393"><a id="__codelineno-0-393" name="__codelineno-0-393"></a>
-</span><span id="__span-0-394"><a id="__codelineno-0-394" name="__codelineno-0-394"></a>    <span class="n">first_marked_mask</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="__span-0-395"><a id="__codelineno-0-395" name="__codelineno-0-395"></a>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">removal_iterations</span><span class="p">):</span>
-</span><span id="__span-0-396"><a id="__codelineno-0-396" name="__codelineno-0-396"></a>        <span class="n">marked_positive</span> <span class="o">=</span> <span class="n">_mark_scars</span><span class="p">(</span>
-</span><span id="__span-0-397"><a id="__codelineno-0-397" name="__codelineno-0-397"></a>            <span class="n">img</span><span class="o">=</span><span class="n">img</span><span class="p">,</span>
-</span><span id="__span-0-398"><a id="__codelineno-0-398" name="__codelineno-0-398"></a>            <span class="n">direction</span><span class="o">=</span><span class="s2">&quot;positive&quot;</span><span class="p">,</span>
-</span><span id="__span-0-399"><a id="__codelineno-0-399" name="__codelineno-0-399"></a>            <span class="n">threshold_low</span><span class="o">=</span><span class="n">threshold_low</span><span class="p">,</span>
-</span><span id="__span-0-400"><a id="__codelineno-0-400" name="__codelineno-0-400"></a>            <span class="n">threshold_high</span><span class="o">=</span><span class="n">threshold_high</span><span class="p">,</span>
-</span><span id="__span-0-401"><a id="__codelineno-0-401" name="__codelineno-0-401"></a>            <span class="n">max_scar_width</span><span class="o">=</span><span class="n">max_scar_width</span><span class="p">,</span>
-</span><span id="__span-0-402"><a id="__codelineno-0-402" name="__codelineno-0-402"></a>            <span class="n">min_scar_length</span><span class="o">=</span><span class="n">min_scar_length</span><span class="p">,</span>
-</span><span id="__span-0-403"><a id="__codelineno-0-403" name="__codelineno-0-403"></a>        <span class="p">)</span>
-</span><span id="__span-0-404"><a id="__codelineno-0-404" name="__codelineno-0-404"></a>        <span class="n">marked_negative</span> <span class="o">=</span> <span class="n">_mark_scars</span><span class="p">(</span>
-</span><span id="__span-0-405"><a id="__codelineno-0-405" name="__codelineno-0-405"></a>            <span class="n">img</span><span class="o">=</span><span class="n">img</span><span class="p">,</span>
-</span><span id="__span-0-406"><a id="__codelineno-0-406" name="__codelineno-0-406"></a>            <span class="n">direction</span><span class="o">=</span><span class="s2">&quot;negative&quot;</span><span class="p">,</span>
-</span><span id="__span-0-407"><a id="__codelineno-0-407" name="__codelineno-0-407"></a>            <span class="n">threshold_low</span><span class="o">=</span><span class="n">threshold_low</span><span class="p">,</span>
-</span><span id="__span-0-408"><a id="__codelineno-0-408" name="__codelineno-0-408"></a>            <span class="n">threshold_high</span><span class="o">=</span><span class="n">threshold_high</span><span class="p">,</span>
-</span><span id="__span-0-409"><a id="__codelineno-0-409" name="__codelineno-0-409"></a>            <span class="n">max_scar_width</span><span class="o">=</span><span class="n">max_scar_width</span><span class="p">,</span>
-</span><span id="__span-0-410"><a id="__codelineno-0-410" name="__codelineno-0-410"></a>            <span class="n">min_scar_length</span><span class="o">=</span><span class="n">min_scar_length</span><span class="p">,</span>
-</span><span id="__span-0-411"><a id="__codelineno-0-411" name="__codelineno-0-411"></a>        <span class="p">)</span>
-</span><span id="__span-0-412"><a id="__codelineno-0-412" name="__codelineno-0-412"></a>        <span class="c1"># Combine the upper and lower scar masks</span>
-</span><span id="__span-0-413"><a id="__codelineno-0-413" name="__codelineno-0-413"></a>        <span class="n">marked_both</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bitwise_or</span><span class="p">(</span><span class="n">marked_positive</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">),</span> <span class="n">marked_negative</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">))</span>
-</span><span id="__span-0-414"><a id="__codelineno-0-414" name="__codelineno-0-414"></a>
-</span><span id="__span-0-415"><a id="__codelineno-0-415" name="__codelineno-0-415"></a>        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-</span><span id="__span-0-416"><a id="__codelineno-0-416" name="__codelineno-0-416"></a>            <span class="n">first_marked_mask</span> <span class="o">=</span> <span class="n">marked_both</span>
-</span><span id="__span-0-417"><a id="__codelineno-0-417" name="__codelineno-0-417"></a>
-</span><span id="__span-0-418"><a id="__codelineno-0-418" name="__codelineno-0-418"></a>        <span class="n">_remove_marked_scars</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">marked_both</span><span class="p">))</span>
-</span><span id="__span-0-419"><a id="__codelineno-0-419" name="__codelineno-0-419"></a>
-</span><span id="__span-0-420"><a id="__codelineno-0-420" name="__codelineno-0-420"></a>        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Scars removed&quot;</span><span class="p">)</span>
+</span><span id="__span-0-391"><a id="__codelineno-0-391" name="__codelineno-0-391"></a><span class="sd">    first_marked_mask: npt.NDArray</span>
+</span><span id="__span-0-392"><a id="__codelineno-0-392" name="__codelineno-0-392"></a><span class="sd">        The scars detected during the first iteration.</span>
+</span><span id="__span-0-393"><a id="__codelineno-0-393" name="__codelineno-0-393"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-394"><a id="__codelineno-0-394" name="__codelineno-0-394"></a>    <span class="k">assert</span> <span class="n">removal_iterations</span> <span class="o">&gt;</span> <span class="mi">0</span>
+</span><span id="__span-0-395"><a id="__codelineno-0-395" name="__codelineno-0-395"></a>
+</span><span id="__span-0-396"><a id="__codelineno-0-396" name="__codelineno-0-396"></a>    <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">] : Removing scars&quot;</span><span class="p">)</span>
+</span><span id="__span-0-397"><a id="__codelineno-0-397" name="__codelineno-0-397"></a>
+</span><span id="__span-0-398"><a id="__codelineno-0-398" name="__codelineno-0-398"></a>    <span class="n">first_marked_mask</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="__span-0-399"><a id="__codelineno-0-399" name="__codelineno-0-399"></a>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">removal_iterations</span><span class="p">):</span>
+</span><span id="__span-0-400"><a id="__codelineno-0-400" name="__codelineno-0-400"></a>        <span class="n">marked_positive</span> <span class="o">=</span> <span class="n">_mark_scars</span><span class="p">(</span>
+</span><span id="__span-0-401"><a id="__codelineno-0-401" name="__codelineno-0-401"></a>            <span class="n">img</span><span class="o">=</span><span class="n">img</span><span class="p">,</span>
+</span><span id="__span-0-402"><a id="__codelineno-0-402" name="__codelineno-0-402"></a>            <span class="n">direction</span><span class="o">=</span><span class="s2">&quot;positive&quot;</span><span class="p">,</span>
+</span><span id="__span-0-403"><a id="__codelineno-0-403" name="__codelineno-0-403"></a>            <span class="n">threshold_low</span><span class="o">=</span><span class="n">threshold_low</span><span class="p">,</span>
+</span><span id="__span-0-404"><a id="__codelineno-0-404" name="__codelineno-0-404"></a>            <span class="n">threshold_high</span><span class="o">=</span><span class="n">threshold_high</span><span class="p">,</span>
+</span><span id="__span-0-405"><a id="__codelineno-0-405" name="__codelineno-0-405"></a>            <span class="n">max_scar_width</span><span class="o">=</span><span class="n">max_scar_width</span><span class="p">,</span>
+</span><span id="__span-0-406"><a id="__codelineno-0-406" name="__codelineno-0-406"></a>            <span class="n">min_scar_length</span><span class="o">=</span><span class="n">min_scar_length</span><span class="p">,</span>
+</span><span id="__span-0-407"><a id="__codelineno-0-407" name="__codelineno-0-407"></a>        <span class="p">)</span>
+</span><span id="__span-0-408"><a id="__codelineno-0-408" name="__codelineno-0-408"></a>        <span class="n">marked_negative</span> <span class="o">=</span> <span class="n">_mark_scars</span><span class="p">(</span>
+</span><span id="__span-0-409"><a id="__codelineno-0-409" name="__codelineno-0-409"></a>            <span class="n">img</span><span class="o">=</span><span class="n">img</span><span class="p">,</span>
+</span><span id="__span-0-410"><a id="__codelineno-0-410" name="__codelineno-0-410"></a>            <span class="n">direction</span><span class="o">=</span><span class="s2">&quot;negative&quot;</span><span class="p">,</span>
+</span><span id="__span-0-411"><a id="__codelineno-0-411" name="__codelineno-0-411"></a>            <span class="n">threshold_low</span><span class="o">=</span><span class="n">threshold_low</span><span class="p">,</span>
+</span><span id="__span-0-412"><a id="__codelineno-0-412" name="__codelineno-0-412"></a>            <span class="n">threshold_high</span><span class="o">=</span><span class="n">threshold_high</span><span class="p">,</span>
+</span><span id="__span-0-413"><a id="__codelineno-0-413" name="__codelineno-0-413"></a>            <span class="n">max_scar_width</span><span class="o">=</span><span class="n">max_scar_width</span><span class="p">,</span>
+</span><span id="__span-0-414"><a id="__codelineno-0-414" name="__codelineno-0-414"></a>            <span class="n">min_scar_length</span><span class="o">=</span><span class="n">min_scar_length</span><span class="p">,</span>
+</span><span id="__span-0-415"><a id="__codelineno-0-415" name="__codelineno-0-415"></a>        <span class="p">)</span>
+</span><span id="__span-0-416"><a id="__codelineno-0-416" name="__codelineno-0-416"></a>        <span class="c1"># Combine the upper and lower scar masks</span>
+</span><span id="__span-0-417"><a id="__codelineno-0-417" name="__codelineno-0-417"></a>        <span class="n">marked_both</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bitwise_or</span><span class="p">(</span><span class="n">marked_positive</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">),</span> <span class="n">marked_negative</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">))</span>
+</span><span id="__span-0-418"><a id="__codelineno-0-418" name="__codelineno-0-418"></a>
+</span><span id="__span-0-419"><a id="__codelineno-0-419" name="__codelineno-0-419"></a>        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+</span><span id="__span-0-420"><a id="__codelineno-0-420" name="__codelineno-0-420"></a>            <span class="n">first_marked_mask</span> <span class="o">=</span> <span class="n">marked_both</span>
 </span><span id="__span-0-421"><a id="__codelineno-0-421" name="__codelineno-0-421"></a>
-</span><span id="__span-0-422"><a id="__codelineno-0-422" name="__codelineno-0-422"></a>    <span class="k">return</span> <span class="n">img</span><span class="p">,</span> <span class="n">first_marked_mask</span>
+</span><span id="__span-0-422"><a id="__codelineno-0-422" name="__codelineno-0-422"></a>        <span class="n">_remove_marked_scars</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">marked_both</span><span class="p">))</span>
+</span><span id="__span-0-423"><a id="__codelineno-0-423" name="__codelineno-0-423"></a>
+</span><span id="__span-0-424"><a id="__codelineno-0-424" name="__codelineno-0-424"></a>        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Scars removed&quot;</span><span class="p">)</span>
+</span><span id="__span-0-425"><a id="__codelineno-0-425" name="__codelineno-0-425"></a>    <span class="k">assert</span> <span class="n">first_marked_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+</span><span id="__span-0-426"><a id="__codelineno-0-426" name="__codelineno-0-426"></a>
+</span><span id="__span-0-427"><a id="__codelineno-0-427" name="__codelineno-0-427"></a>    <span class="k">return</span> <span class="n">img</span><span class="p">,</span> <span class="n">first_marked_mask</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
     </div>

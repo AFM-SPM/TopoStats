@@ -2675,13 +2675,13 @@
 
               <details class="mkdocstrings-source">
                 <summary>Source code in <code>topostats/utils.py</code></summary>
-                <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-333">333</a></span>
-<span class="normal"><a href="#__codelineno-0-334">334</a></span>
-<span class="normal"><a href="#__codelineno-0-335">335</a></span>
-<span class="normal"><a href="#__codelineno-0-336">336</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-333"><a id="__codelineno-0-333" name="__codelineno-0-333"></a><span class="k">class</span><span class="w"> </span><span class="nc">ResolutionError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-</span><span id="__span-0-334"><a id="__codelineno-0-334" name="__codelineno-0-334"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Raised when the image resolution is too small for accuurate tracing.&quot;&quot;&quot;</span>
-</span><span id="__span-0-335"><a id="__codelineno-0-335" name="__codelineno-0-335"></a>
-</span><span id="__span-0-336"><a id="__codelineno-0-336" name="__codelineno-0-336"></a>    <span class="k">pass</span>  <span class="c1"># pylint: disable=unnecessary-pass</span>
+                <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-335">335</a></span>
+<span class="normal"><a href="#__codelineno-0-336">336</a></span>
+<span class="normal"><a href="#__codelineno-0-337">337</a></span>
+<span class="normal"><a href="#__codelineno-0-338">338</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-335"><a id="__codelineno-0-335" name="__codelineno-0-335"></a><span class="k">class</span><span class="w"> </span><span class="nc">ResolutionError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+</span><span id="__span-0-336"><a id="__codelineno-0-336" name="__codelineno-0-336"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Raised when the image resolution is too small for accuurate tracing.&quot;&quot;&quot;</span>
+</span><span id="__span-0-337"><a id="__codelineno-0-337" name="__codelineno-0-337"></a>
+</span><span id="__span-0-338"><a id="__codelineno-0-338" name="__codelineno-0-338"></a>    <span class="k">pass</span>  <span class="c1"># pylint: disable=unnecessary-pass</span>
 </span></code></pre></div></td></tr></table></div>
               </details>
 
@@ -2694,7 +2694,7 @@
 
 
 <h2 id="topostats.utils.bound_padded_coordinates_to_image" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">bound_padded_coordinates_to_image</span><span class="p">(</span><span class="n">coordinates</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">padding</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">image_shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span></code>
+            <code class="highlight language-python"><span class="n">bound_padded_coordinates_to_image</span><span class="p">(</span><span class="n">coordinates</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">padding</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">image_shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span></code>
 
 </h2>
 
@@ -2732,7 +2732,7 @@ that the padding will lie on the edge of the image/array.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Coordinates of a point on the mask based skeleton.</p>
+                <p>Coordinates of a point on the mask based skeleton (length = 2).</p>
               </div>
             </td>
             <td>
@@ -2760,7 +2760,7 @@ that the padding will lie on the edge of the image/array.</p>
                 <code>image_shape</code>
             </td>
             <td>
-                  <code><span title="tuple">tuple</span></code>
+                  <code><span title="tuple">tuple</span>[<span title="int">int</span>, <span title="int">int</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2786,7 +2786,7 @@ that the padding will lie on the edge of the image/array.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="tuple">tuple</span></code>
+                  <code><span title="tuple">tuple</span>[<span title="int">int</span>, <span title="int">int</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2858,64 +2858,68 @@ subsequent calculations it will not be outside of the image shape.</p>
 <span class="normal"><a href="#__codelineno-0-303">303</a></span>
 <span class="normal"><a href="#__codelineno-0-304">304</a></span>
 <span class="normal"><a href="#__codelineno-0-305">305</a></span>
-<span class="normal"><a href="#__codelineno-0-306">306</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-249"><a id="__codelineno-0-249" name="__codelineno-0-249"></a><span class="k">def</span><span class="w"> </span><span class="nf">bound_padded_coordinates_to_image</span><span class="p">(</span><span class="n">coordinates</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">padding</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">image_shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
-</span><span id="__span-0-250"><a id="__codelineno-0-250" name="__codelineno-0-250"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="__span-0-251"><a id="__codelineno-0-251" name="__codelineno-0-251"></a><span class="sd">    Ensure the padding of coordinates points does not fall outside of the image shape.</span>
-</span><span id="__span-0-252"><a id="__codelineno-0-252" name="__codelineno-0-252"></a>
-</span><span id="__span-0-253"><a id="__codelineno-0-253" name="__codelineno-0-253"></a><span class="sd">    This function is primarily used in the dnaTrace.get_fitted_traces() method which aims to adjust the points of a</span>
-</span><span id="__span-0-254"><a id="__codelineno-0-254" name="__codelineno-0-254"></a><span class="sd">    skeleton to sit on the highest points of a traced molecule. In order to do so it takes the ordered skeleton, which</span>
-</span><span id="__span-0-255"><a id="__codelineno-0-255" name="__codelineno-0-255"></a><span class="sd">    may not lie on the highest points as it is generated from a binary mask that is unaware of the heights, and then</span>
-</span><span id="__span-0-256"><a id="__codelineno-0-256" name="__codelineno-0-256"></a><span class="sd">    defines a padded boundary of 3nm profile perpendicular to the backbone of the DNA (which at this point is the</span>
-</span><span id="__span-0-257"><a id="__codelineno-0-257" name="__codelineno-0-257"></a><span class="sd">    skeleton based on a mask). Each point along the skeleton therefore needs padding by a minimum of 2 pixels (in this</span>
-</span><span id="__span-0-258"><a id="__codelineno-0-258" name="__codelineno-0-258"></a><span class="sd">    case each pixel equates to a cell in a NumPy array). If a point is within 2 pixels (i.e. 2 cells) of the border then</span>
-</span><span id="__span-0-259"><a id="__codelineno-0-259" name="__codelineno-0-259"></a><span class="sd">    we can not pad beyond this region, we have to stop at the edge of the image and so the coordinates is adjusted such</span>
-</span><span id="__span-0-260"><a id="__codelineno-0-260" name="__codelineno-0-260"></a><span class="sd">    that the padding will lie on the edge of the image/array.</span>
-</span><span id="__span-0-261"><a id="__codelineno-0-261" name="__codelineno-0-261"></a>
-</span><span id="__span-0-262"><a id="__codelineno-0-262" name="__codelineno-0-262"></a><span class="sd">    Parameters</span>
-</span><span id="__span-0-263"><a id="__codelineno-0-263" name="__codelineno-0-263"></a><span class="sd">    ----------</span>
-</span><span id="__span-0-264"><a id="__codelineno-0-264" name="__codelineno-0-264"></a><span class="sd">    coordinates : npt.NDArray</span>
-</span><span id="__span-0-265"><a id="__codelineno-0-265" name="__codelineno-0-265"></a><span class="sd">        Coordinates of a point on the mask based skeleton.</span>
-</span><span id="__span-0-266"><a id="__codelineno-0-266" name="__codelineno-0-266"></a><span class="sd">    padding : int</span>
-</span><span id="__span-0-267"><a id="__codelineno-0-267" name="__codelineno-0-267"></a><span class="sd">        Number of pixels/cells to pad around the point.</span>
-</span><span id="__span-0-268"><a id="__codelineno-0-268" name="__codelineno-0-268"></a><span class="sd">    image_shape : tuple</span>
-</span><span id="__span-0-269"><a id="__codelineno-0-269" name="__codelineno-0-269"></a><span class="sd">        The shape of the original image from which the pixel is obtained.</span>
-</span><span id="__span-0-270"><a id="__codelineno-0-270" name="__codelineno-0-270"></a>
-</span><span id="__span-0-271"><a id="__codelineno-0-271" name="__codelineno-0-271"></a><span class="sd">    Returns</span>
-</span><span id="__span-0-272"><a id="__codelineno-0-272" name="__codelineno-0-272"></a><span class="sd">    -------</span>
-</span><span id="__span-0-273"><a id="__codelineno-0-273" name="__codelineno-0-273"></a><span class="sd">    tuple</span>
-</span><span id="__span-0-274"><a id="__codelineno-0-274" name="__codelineno-0-274"></a><span class="sd">        Returns a tuple of coordinates that ensure that when the point is padded by the noted padding width in</span>
-</span><span id="__span-0-275"><a id="__codelineno-0-275" name="__codelineno-0-275"></a><span class="sd">        subsequent calculations it will not be outside of the image shape.</span>
-</span><span id="__span-0-276"><a id="__codelineno-0-276" name="__codelineno-0-276"></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="__span-0-277"><a id="__codelineno-0-277" name="__codelineno-0-277"></a>    <span class="c1"># Calculate the maximum row and column indexes</span>
-</span><span id="__span-0-278"><a id="__codelineno-0-278" name="__codelineno-0-278"></a>    <span class="n">max_row</span> <span class="o">=</span> <span class="n">image_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
-</span><span id="__span-0-279"><a id="__codelineno-0-279" name="__codelineno-0-279"></a>    <span class="n">max_col</span> <span class="o">=</span> <span class="n">image_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
-</span><span id="__span-0-280"><a id="__codelineno-0-280" name="__codelineno-0-280"></a>    <span class="n">row_coord</span><span class="p">,</span> <span class="n">col_coord</span> <span class="o">=</span> <span class="n">coordinates</span>
-</span><span id="__span-0-281"><a id="__codelineno-0-281" name="__codelineno-0-281"></a>
-</span><span id="__span-0-282"><a id="__codelineno-0-282" name="__codelineno-0-282"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">check</span><span class="p">(</span><span class="n">coord</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">max_val</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">padding</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">:</span>
-</span><span id="__span-0-283"><a id="__codelineno-0-283" name="__codelineno-0-283"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="__span-0-284"><a id="__codelineno-0-284" name="__codelineno-0-284"></a><span class="sd">        Check coordinates are within the bounds of the padding.</span>
-</span><span id="__span-0-285"><a id="__codelineno-0-285" name="__codelineno-0-285"></a>
-</span><span id="__span-0-286"><a id="__codelineno-0-286" name="__codelineno-0-286"></a><span class="sd">        Parameters</span>
-</span><span id="__span-0-287"><a id="__codelineno-0-287" name="__codelineno-0-287"></a><span class="sd">        ----------</span>
-</span><span id="__span-0-288"><a id="__codelineno-0-288" name="__codelineno-0-288"></a><span class="sd">        coord : npt.NDArray</span>
-</span><span id="__span-0-289"><a id="__codelineno-0-289" name="__codelineno-0-289"></a><span class="sd">            Coordinates (length = 2).</span>
-</span><span id="__span-0-290"><a id="__codelineno-0-290" name="__codelineno-0-290"></a><span class="sd">        max_val : int</span>
-</span><span id="__span-0-291"><a id="__codelineno-0-291" name="__codelineno-0-291"></a><span class="sd">            Maximum width in the dimension being checked (max_row or max_col).</span>
-</span><span id="__span-0-292"><a id="__codelineno-0-292" name="__codelineno-0-292"></a><span class="sd">        padding : int</span>
-</span><span id="__span-0-293"><a id="__codelineno-0-293" name="__codelineno-0-293"></a><span class="sd">            Padding used in the image.</span>
-</span><span id="__span-0-294"><a id="__codelineno-0-294" name="__codelineno-0-294"></a>
-</span><span id="__span-0-295"><a id="__codelineno-0-295" name="__codelineno-0-295"></a><span class="sd">        Returns</span>
-</span><span id="__span-0-296"><a id="__codelineno-0-296" name="__codelineno-0-296"></a><span class="sd">        -------</span>
-</span><span id="__span-0-297"><a id="__codelineno-0-297" name="__codelineno-0-297"></a><span class="sd">        npt.NDArray</span>
-</span><span id="__span-0-298"><a id="__codelineno-0-298" name="__codelineno-0-298"></a><span class="sd">            Coordinates adjusted for padding.</span>
-</span><span id="__span-0-299"><a id="__codelineno-0-299" name="__codelineno-0-299"></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="__span-0-300"><a id="__codelineno-0-300" name="__codelineno-0-300"></a>        <span class="k">if</span> <span class="n">coord</span> <span class="o">-</span> <span class="n">padding</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-</span><span id="__span-0-301"><a id="__codelineno-0-301" name="__codelineno-0-301"></a>            <span class="n">coord</span> <span class="o">=</span> <span class="n">padding</span>
-</span><span id="__span-0-302"><a id="__codelineno-0-302" name="__codelineno-0-302"></a>        <span class="k">elif</span> <span class="n">coord</span> <span class="o">+</span> <span class="n">padding</span> <span class="o">&gt;</span> <span class="n">max_val</span><span class="p">:</span>
-</span><span id="__span-0-303"><a id="__codelineno-0-303" name="__codelineno-0-303"></a>            <span class="n">coord</span> <span class="o">=</span> <span class="n">max_val</span> <span class="o">-</span> <span class="n">padding</span>
-</span><span id="__span-0-304"><a id="__codelineno-0-304" name="__codelineno-0-304"></a>        <span class="k">return</span> <span class="n">coord</span>
-</span><span id="__span-0-305"><a id="__codelineno-0-305" name="__codelineno-0-305"></a>
-</span><span id="__span-0-306"><a id="__codelineno-0-306" name="__codelineno-0-306"></a>    <span class="k">return</span> <span class="n">check</span><span class="p">(</span><span class="n">row_coord</span><span class="p">,</span> <span class="n">max_row</span><span class="p">,</span> <span class="n">padding</span><span class="p">),</span> <span class="n">check</span><span class="p">(</span><span class="n">col_coord</span><span class="p">,</span> <span class="n">max_col</span><span class="p">,</span> <span class="n">padding</span><span class="p">)</span>
+<span class="normal"><a href="#__codelineno-0-306">306</a></span>
+<span class="normal"><a href="#__codelineno-0-307">307</a></span>
+<span class="normal"><a href="#__codelineno-0-308">308</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-249"><a id="__codelineno-0-249" name="__codelineno-0-249"></a><span class="k">def</span><span class="w"> </span><span class="nf">bound_padded_coordinates_to_image</span><span class="p">(</span>
+</span><span id="__span-0-250"><a id="__codelineno-0-250" name="__codelineno-0-250"></a>    <span class="n">coordinates</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">padding</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">image_shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
+</span><span id="__span-0-251"><a id="__codelineno-0-251" name="__codelineno-0-251"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+</span><span id="__span-0-252"><a id="__codelineno-0-252" name="__codelineno-0-252"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-253"><a id="__codelineno-0-253" name="__codelineno-0-253"></a><span class="sd">    Ensure the padding of coordinates points does not fall outside of the image shape.</span>
+</span><span id="__span-0-254"><a id="__codelineno-0-254" name="__codelineno-0-254"></a>
+</span><span id="__span-0-255"><a id="__codelineno-0-255" name="__codelineno-0-255"></a><span class="sd">    This function is primarily used in the dnaTrace.get_fitted_traces() method which aims to adjust the points of a</span>
+</span><span id="__span-0-256"><a id="__codelineno-0-256" name="__codelineno-0-256"></a><span class="sd">    skeleton to sit on the highest points of a traced molecule. In order to do so it takes the ordered skeleton, which</span>
+</span><span id="__span-0-257"><a id="__codelineno-0-257" name="__codelineno-0-257"></a><span class="sd">    may not lie on the highest points as it is generated from a binary mask that is unaware of the heights, and then</span>
+</span><span id="__span-0-258"><a id="__codelineno-0-258" name="__codelineno-0-258"></a><span class="sd">    defines a padded boundary of 3nm profile perpendicular to the backbone of the DNA (which at this point is the</span>
+</span><span id="__span-0-259"><a id="__codelineno-0-259" name="__codelineno-0-259"></a><span class="sd">    skeleton based on a mask). Each point along the skeleton therefore needs padding by a minimum of 2 pixels (in this</span>
+</span><span id="__span-0-260"><a id="__codelineno-0-260" name="__codelineno-0-260"></a><span class="sd">    case each pixel equates to a cell in a NumPy array). If a point is within 2 pixels (i.e. 2 cells) of the border then</span>
+</span><span id="__span-0-261"><a id="__codelineno-0-261" name="__codelineno-0-261"></a><span class="sd">    we can not pad beyond this region, we have to stop at the edge of the image and so the coordinates is adjusted such</span>
+</span><span id="__span-0-262"><a id="__codelineno-0-262" name="__codelineno-0-262"></a><span class="sd">    that the padding will lie on the edge of the image/array.</span>
+</span><span id="__span-0-263"><a id="__codelineno-0-263" name="__codelineno-0-263"></a>
+</span><span id="__span-0-264"><a id="__codelineno-0-264" name="__codelineno-0-264"></a><span class="sd">    Parameters</span>
+</span><span id="__span-0-265"><a id="__codelineno-0-265" name="__codelineno-0-265"></a><span class="sd">    ----------</span>
+</span><span id="__span-0-266"><a id="__codelineno-0-266" name="__codelineno-0-266"></a><span class="sd">    coordinates : npt.NDArray</span>
+</span><span id="__span-0-267"><a id="__codelineno-0-267" name="__codelineno-0-267"></a><span class="sd">        Coordinates of a point on the mask based skeleton (length = 2).</span>
+</span><span id="__span-0-268"><a id="__codelineno-0-268" name="__codelineno-0-268"></a><span class="sd">    padding : int</span>
+</span><span id="__span-0-269"><a id="__codelineno-0-269" name="__codelineno-0-269"></a><span class="sd">        Number of pixels/cells to pad around the point.</span>
+</span><span id="__span-0-270"><a id="__codelineno-0-270" name="__codelineno-0-270"></a><span class="sd">    image_shape : tuple[int, int]</span>
+</span><span id="__span-0-271"><a id="__codelineno-0-271" name="__codelineno-0-271"></a><span class="sd">        The shape of the original image from which the pixel is obtained.</span>
+</span><span id="__span-0-272"><a id="__codelineno-0-272" name="__codelineno-0-272"></a>
+</span><span id="__span-0-273"><a id="__codelineno-0-273" name="__codelineno-0-273"></a><span class="sd">    Returns</span>
+</span><span id="__span-0-274"><a id="__codelineno-0-274" name="__codelineno-0-274"></a><span class="sd">    -------</span>
+</span><span id="__span-0-275"><a id="__codelineno-0-275" name="__codelineno-0-275"></a><span class="sd">    tuple[int, int]</span>
+</span><span id="__span-0-276"><a id="__codelineno-0-276" name="__codelineno-0-276"></a><span class="sd">        Returns a tuple of coordinates that ensure that when the point is padded by the noted padding width in</span>
+</span><span id="__span-0-277"><a id="__codelineno-0-277" name="__codelineno-0-277"></a><span class="sd">        subsequent calculations it will not be outside of the image shape.</span>
+</span><span id="__span-0-278"><a id="__codelineno-0-278" name="__codelineno-0-278"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-279"><a id="__codelineno-0-279" name="__codelineno-0-279"></a>    <span class="c1"># Calculate the maximum row and column indexes</span>
+</span><span id="__span-0-280"><a id="__codelineno-0-280" name="__codelineno-0-280"></a>    <span class="n">max_row</span> <span class="o">=</span> <span class="n">image_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
+</span><span id="__span-0-281"><a id="__codelineno-0-281" name="__codelineno-0-281"></a>    <span class="n">max_col</span> <span class="o">=</span> <span class="n">image_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
+</span><span id="__span-0-282"><a id="__codelineno-0-282" name="__codelineno-0-282"></a>    <span class="n">row_coord</span><span class="p">,</span> <span class="n">col_coord</span> <span class="o">=</span> <span class="n">coordinates</span>
+</span><span id="__span-0-283"><a id="__codelineno-0-283" name="__codelineno-0-283"></a>
+</span><span id="__span-0-284"><a id="__codelineno-0-284" name="__codelineno-0-284"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">check</span><span class="p">(</span><span class="n">coord</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_val</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">padding</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+</span><span id="__span-0-285"><a id="__codelineno-0-285" name="__codelineno-0-285"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-286"><a id="__codelineno-0-286" name="__codelineno-0-286"></a><span class="sd">        Check coordinates are within the bounds of the padding.</span>
+</span><span id="__span-0-287"><a id="__codelineno-0-287" name="__codelineno-0-287"></a>
+</span><span id="__span-0-288"><a id="__codelineno-0-288" name="__codelineno-0-288"></a><span class="sd">        Parameters</span>
+</span><span id="__span-0-289"><a id="__codelineno-0-289" name="__codelineno-0-289"></a><span class="sd">        ----------</span>
+</span><span id="__span-0-290"><a id="__codelineno-0-290" name="__codelineno-0-290"></a><span class="sd">        coord : int</span>
+</span><span id="__span-0-291"><a id="__codelineno-0-291" name="__codelineno-0-291"></a><span class="sd">            Coordinate (row_coord or col coord).</span>
+</span><span id="__span-0-292"><a id="__codelineno-0-292" name="__codelineno-0-292"></a><span class="sd">        max_val : int</span>
+</span><span id="__span-0-293"><a id="__codelineno-0-293" name="__codelineno-0-293"></a><span class="sd">            Maximum width in the dimension being checked (max_row or max_col).</span>
+</span><span id="__span-0-294"><a id="__codelineno-0-294" name="__codelineno-0-294"></a><span class="sd">        padding : int</span>
+</span><span id="__span-0-295"><a id="__codelineno-0-295" name="__codelineno-0-295"></a><span class="sd">            Padding used in the image.</span>
+</span><span id="__span-0-296"><a id="__codelineno-0-296" name="__codelineno-0-296"></a>
+</span><span id="__span-0-297"><a id="__codelineno-0-297" name="__codelineno-0-297"></a><span class="sd">        Returns</span>
+</span><span id="__span-0-298"><a id="__codelineno-0-298" name="__codelineno-0-298"></a><span class="sd">        -------</span>
+</span><span id="__span-0-299"><a id="__codelineno-0-299" name="__codelineno-0-299"></a><span class="sd">        int</span>
+</span><span id="__span-0-300"><a id="__codelineno-0-300" name="__codelineno-0-300"></a><span class="sd">            Coordinate adjusted for padding.</span>
+</span><span id="__span-0-301"><a id="__codelineno-0-301" name="__codelineno-0-301"></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="__span-0-302"><a id="__codelineno-0-302" name="__codelineno-0-302"></a>        <span class="k">if</span> <span class="n">coord</span> <span class="o">-</span> <span class="n">padding</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+</span><span id="__span-0-303"><a id="__codelineno-0-303" name="__codelineno-0-303"></a>            <span class="n">coord</span> <span class="o">=</span> <span class="n">padding</span>
+</span><span id="__span-0-304"><a id="__codelineno-0-304" name="__codelineno-0-304"></a>        <span class="k">elif</span> <span class="n">coord</span> <span class="o">+</span> <span class="n">padding</span> <span class="o">&gt;</span> <span class="n">max_val</span><span class="p">:</span>
+</span><span id="__span-0-305"><a id="__codelineno-0-305" name="__codelineno-0-305"></a>            <span class="n">coord</span> <span class="o">=</span> <span class="n">max_val</span> <span class="o">-</span> <span class="n">padding</span>
+</span><span id="__span-0-306"><a id="__codelineno-0-306" name="__codelineno-0-306"></a>        <span class="k">return</span> <span class="n">coord</span>
+</span><span id="__span-0-307"><a id="__codelineno-0-307" name="__codelineno-0-307"></a>
+</span><span id="__span-0-308"><a id="__codelineno-0-308" name="__codelineno-0-308"></a>    <span class="k">return</span> <span class="n">check</span><span class="p">(</span><span class="n">row_coord</span><span class="p">,</span> <span class="n">max_row</span><span class="p">,</span> <span class="n">padding</span><span class="p">),</span> <span class="n">check</span><span class="p">(</span><span class="n">col_coord</span><span class="p">,</span> <span class="n">max_col</span><span class="p">,</span> <span class="n">padding</span><span class="p">)</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -3008,9 +3012,7 @@ subsequent calculations it will not be outside of the image shape.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>topostats/utils.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-411">411</a></span>
-<span class="normal"><a href="#__codelineno-0-412">412</a></span>
-<span class="normal"><a href="#__codelineno-0-413">413</a></span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-413">413</a></span>
 <span class="normal"><a href="#__codelineno-0-414">414</a></span>
 <span class="normal"><a href="#__codelineno-0-415">415</a></span>
 <span class="normal"><a href="#__codelineno-0-416">416</a></span>
@@ -3045,44 +3047,46 @@ subsequent calculations it will not be outside of the image shape.</p>
 <span class="normal"><a href="#__codelineno-0-445">445</a></span>
 <span class="normal"><a href="#__codelineno-0-446">446</a></span>
 <span class="normal"><a href="#__codelineno-0-447">447</a></span>
-<span class="normal"><a href="#__codelineno-0-448">448</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-411"><a id="__codelineno-0-411" name="__codelineno-0-411"></a><span class="k">def</span><span class="w"> </span><span class="nf">construct_full_mask_from_graincrops</span><span class="p">(</span>
-</span><span id="__span-0-412"><a id="__codelineno-0-412" name="__codelineno-0-412"></a>    <span class="n">graincrops</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">image_shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
-</span><span id="__span-0-413"><a id="__codelineno-0-413" name="__codelineno-0-413"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">]:</span>
-</span><span id="__span-0-414"><a id="__codelineno-0-414" name="__codelineno-0-414"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="__span-0-415"><a id="__codelineno-0-415" name="__codelineno-0-415"></a><span class="sd">    Construct a full mask tensor from the grain crops.</span>
-</span><span id="__span-0-416"><a id="__codelineno-0-416" name="__codelineno-0-416"></a>
-</span><span id="__span-0-417"><a id="__codelineno-0-417" name="__codelineno-0-417"></a><span class="sd">    Parameters</span>
-</span><span id="__span-0-418"><a id="__codelineno-0-418" name="__codelineno-0-418"></a><span class="sd">    ----------</span>
-</span><span id="__span-0-419"><a id="__codelineno-0-419" name="__codelineno-0-419"></a><span class="sd">    graincrops : dict[int, GrainCrop]</span>
-</span><span id="__span-0-420"><a id="__codelineno-0-420" name="__codelineno-0-420"></a><span class="sd">        Dictionary of grain crops.</span>
-</span><span id="__span-0-421"><a id="__codelineno-0-421" name="__codelineno-0-421"></a><span class="sd">    image_shape : tuple[int, int, int]</span>
-</span><span id="__span-0-422"><a id="__codelineno-0-422" name="__codelineno-0-422"></a><span class="sd">        Shape of the original image.</span>
-</span><span id="__span-0-423"><a id="__codelineno-0-423" name="__codelineno-0-423"></a>
-</span><span id="__span-0-424"><a id="__codelineno-0-424" name="__codelineno-0-424"></a><span class="sd">    Returns</span>
-</span><span id="__span-0-425"><a id="__codelineno-0-425" name="__codelineno-0-425"></a><span class="sd">    -------</span>
-</span><span id="__span-0-426"><a id="__codelineno-0-426" name="__codelineno-0-426"></a><span class="sd">    npt.NDArray[np.bool_]</span>
-</span><span id="__span-0-427"><a id="__codelineno-0-427" name="__codelineno-0-427"></a><span class="sd">        HxWxC Numpy array of the full mask tensor (H = height, W = width, C = class &gt;= 2).</span>
-</span><span id="__span-0-428"><a id="__codelineno-0-428" name="__codelineno-0-428"></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="__span-0-429"><a id="__codelineno-0-429" name="__codelineno-0-429"></a>    <span class="c1"># Calculate the number of classes from the first grain crop</span>
-</span><span id="__span-0-430"><a id="__codelineno-0-430" name="__codelineno-0-430"></a>    <span class="c1"># Check if graincrops is empty</span>
-</span><span id="__span-0-431"><a id="__codelineno-0-431" name="__codelineno-0-431"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">graincrops</span><span class="p">:</span>
-</span><span id="__span-0-432"><a id="__codelineno-0-432" name="__codelineno-0-432"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No grain crops provided to construct the full mask tensor.&quot;</span><span class="p">)</span>
-</span><span id="__span-0-433"><a id="__codelineno-0-433" name="__codelineno-0-433"></a>    <span class="n">num_classes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">graincrops</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-</span><span id="__span-0-434"><a id="__codelineno-0-434" name="__codelineno-0-434"></a>    <span class="n">full_mask_tensor</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">image_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">image_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">num_classes</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">)</span>
-</span><span id="__span-0-435"><a id="__codelineno-0-435" name="__codelineno-0-435"></a>    <span class="k">for</span> <span class="n">_grain_number</span><span class="p">,</span> <span class="n">graincrop</span> <span class="ow">in</span> <span class="n">graincrops</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-</span><span id="__span-0-436"><a id="__codelineno-0-436" name="__codelineno-0-436"></a>        <span class="n">bounding_box</span> <span class="o">=</span> <span class="n">graincrop</span><span class="o">.</span><span class="n">bbox</span>
-</span><span id="__span-0-437"><a id="__codelineno-0-437" name="__codelineno-0-437"></a>        <span class="n">crop_tensor</span> <span class="o">=</span> <span class="n">graincrop</span><span class="o">.</span><span class="n">mask</span>
-</span><span id="__span-0-438"><a id="__codelineno-0-438" name="__codelineno-0-438"></a>
-</span><span id="__span-0-439"><a id="__codelineno-0-439" name="__codelineno-0-439"></a>        <span class="c1"># Add the crop to the full mask tensor without overriding anything else, for all classes</span>
-</span><span id="__span-0-440"><a id="__codelineno-0-440" name="__codelineno-0-440"></a>        <span class="k">for</span> <span class="n">class_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">crop_tensor</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]):</span>
-</span><span id="__span-0-441"><a id="__codelineno-0-441" name="__codelineno-0-441"></a>            <span class="n">full_mask_tensor</span><span class="p">[</span>
-</span><span id="__span-0-442"><a id="__codelineno-0-442" name="__codelineno-0-442"></a>                <span class="n">bounding_box</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">bounding_box</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
-</span><span id="__span-0-443"><a id="__codelineno-0-443" name="__codelineno-0-443"></a>                <span class="n">bounding_box</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">:</span> <span class="n">bounding_box</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
-</span><span id="__span-0-444"><a id="__codelineno-0-444" name="__codelineno-0-444"></a>                <span class="n">class_index</span><span class="p">,</span>
-</span><span id="__span-0-445"><a id="__codelineno-0-445" name="__codelineno-0-445"></a>            <span class="p">]</span> <span class="o">+=</span> <span class="n">crop_tensor</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">class_index</span><span class="p">]</span>
-</span><span id="__span-0-446"><a id="__codelineno-0-446" name="__codelineno-0-446"></a>
-</span><span id="__span-0-447"><a id="__codelineno-0-447" name="__codelineno-0-447"></a>    <span class="c1"># Update background class and return</span>
-</span><span id="__span-0-448"><a id="__codelineno-0-448" name="__codelineno-0-448"></a>    <span class="k">return</span> <span class="n">update_background_class</span><span class="p">(</span><span class="n">full_mask_tensor</span><span class="p">)</span>
+<span class="normal"><a href="#__codelineno-0-448">448</a></span>
+<span class="normal"><a href="#__codelineno-0-449">449</a></span>
+<span class="normal"><a href="#__codelineno-0-450">450</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-413"><a id="__codelineno-0-413" name="__codelineno-0-413"></a><span class="k">def</span><span class="w"> </span><span class="nf">construct_full_mask_from_graincrops</span><span class="p">(</span>
+</span><span id="__span-0-414"><a id="__codelineno-0-414" name="__codelineno-0-414"></a>    <span class="n">graincrops</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">image_shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
+</span><span id="__span-0-415"><a id="__codelineno-0-415" name="__codelineno-0-415"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">]:</span>
+</span><span id="__span-0-416"><a id="__codelineno-0-416" name="__codelineno-0-416"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-417"><a id="__codelineno-0-417" name="__codelineno-0-417"></a><span class="sd">    Construct a full mask tensor from the grain crops.</span>
+</span><span id="__span-0-418"><a id="__codelineno-0-418" name="__codelineno-0-418"></a>
+</span><span id="__span-0-419"><a id="__codelineno-0-419" name="__codelineno-0-419"></a><span class="sd">    Parameters</span>
+</span><span id="__span-0-420"><a id="__codelineno-0-420" name="__codelineno-0-420"></a><span class="sd">    ----------</span>
+</span><span id="__span-0-421"><a id="__codelineno-0-421" name="__codelineno-0-421"></a><span class="sd">    graincrops : dict[int, GrainCrop]</span>
+</span><span id="__span-0-422"><a id="__codelineno-0-422" name="__codelineno-0-422"></a><span class="sd">        Dictionary of grain crops.</span>
+</span><span id="__span-0-423"><a id="__codelineno-0-423" name="__codelineno-0-423"></a><span class="sd">    image_shape : tuple[int, int, int]</span>
+</span><span id="__span-0-424"><a id="__codelineno-0-424" name="__codelineno-0-424"></a><span class="sd">        Shape of the original image.</span>
+</span><span id="__span-0-425"><a id="__codelineno-0-425" name="__codelineno-0-425"></a>
+</span><span id="__span-0-426"><a id="__codelineno-0-426" name="__codelineno-0-426"></a><span class="sd">    Returns</span>
+</span><span id="__span-0-427"><a id="__codelineno-0-427" name="__codelineno-0-427"></a><span class="sd">    -------</span>
+</span><span id="__span-0-428"><a id="__codelineno-0-428" name="__codelineno-0-428"></a><span class="sd">    npt.NDArray[np.bool_]</span>
+</span><span id="__span-0-429"><a id="__codelineno-0-429" name="__codelineno-0-429"></a><span class="sd">        HxWxC Numpy array of the full mask tensor (H = height, W = width, C = class &gt;= 2).</span>
+</span><span id="__span-0-430"><a id="__codelineno-0-430" name="__codelineno-0-430"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-431"><a id="__codelineno-0-431" name="__codelineno-0-431"></a>    <span class="c1"># Calculate the number of classes from the first grain crop</span>
+</span><span id="__span-0-432"><a id="__codelineno-0-432" name="__codelineno-0-432"></a>    <span class="c1"># Check if graincrops is empty</span>
+</span><span id="__span-0-433"><a id="__codelineno-0-433" name="__codelineno-0-433"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">graincrops</span><span class="p">:</span>
+</span><span id="__span-0-434"><a id="__codelineno-0-434" name="__codelineno-0-434"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No grain crops provided to construct the full mask tensor.&quot;</span><span class="p">)</span>
+</span><span id="__span-0-435"><a id="__codelineno-0-435" name="__codelineno-0-435"></a>    <span class="n">num_classes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">graincrops</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+</span><span id="__span-0-436"><a id="__codelineno-0-436" name="__codelineno-0-436"></a>    <span class="n">full_mask_tensor</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">image_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">image_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">num_classes</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">)</span>
+</span><span id="__span-0-437"><a id="__codelineno-0-437" name="__codelineno-0-437"></a>    <span class="k">for</span> <span class="n">_grain_number</span><span class="p">,</span> <span class="n">graincrop</span> <span class="ow">in</span> <span class="n">graincrops</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+</span><span id="__span-0-438"><a id="__codelineno-0-438" name="__codelineno-0-438"></a>        <span class="n">bounding_box</span> <span class="o">=</span> <span class="n">graincrop</span><span class="o">.</span><span class="n">bbox</span>
+</span><span id="__span-0-439"><a id="__codelineno-0-439" name="__codelineno-0-439"></a>        <span class="n">crop_tensor</span> <span class="o">=</span> <span class="n">graincrop</span><span class="o">.</span><span class="n">mask</span>
+</span><span id="__span-0-440"><a id="__codelineno-0-440" name="__codelineno-0-440"></a>
+</span><span id="__span-0-441"><a id="__codelineno-0-441" name="__codelineno-0-441"></a>        <span class="c1"># Add the crop to the full mask tensor without overriding anything else, for all classes</span>
+</span><span id="__span-0-442"><a id="__codelineno-0-442" name="__codelineno-0-442"></a>        <span class="k">for</span> <span class="n">class_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">crop_tensor</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]):</span>
+</span><span id="__span-0-443"><a id="__codelineno-0-443" name="__codelineno-0-443"></a>            <span class="n">full_mask_tensor</span><span class="p">[</span>
+</span><span id="__span-0-444"><a id="__codelineno-0-444" name="__codelineno-0-444"></a>                <span class="n">bounding_box</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">bounding_box</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+</span><span id="__span-0-445"><a id="__codelineno-0-445" name="__codelineno-0-445"></a>                <span class="n">bounding_box</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">:</span> <span class="n">bounding_box</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+</span><span id="__span-0-446"><a id="__codelineno-0-446" name="__codelineno-0-446"></a>                <span class="n">class_index</span><span class="p">,</span>
+</span><span id="__span-0-447"><a id="__codelineno-0-447" name="__codelineno-0-447"></a>            <span class="p">]</span> <span class="o">+=</span> <span class="n">crop_tensor</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">class_index</span><span class="p">]</span>
+</span><span id="__span-0-448"><a id="__codelineno-0-448" name="__codelineno-0-448"></a>
+</span><span id="__span-0-449"><a id="__codelineno-0-449" name="__codelineno-0-449"></a>    <span class="c1"># Update background class and return</span>
+</span><span id="__span-0-450"><a id="__codelineno-0-450" name="__codelineno-0-450"></a>    <span class="k">return</span> <span class="n">update_background_class</span><span class="p">(</span><span class="n">full_mask_tensor</span><span class="p">)</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -3266,9 +3270,7 @@ pixels at nodes as '3'.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>topostats/utils.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-309">309</a></span>
-<span class="normal"><a href="#__codelineno-0-310">310</a></span>
-<span class="normal"><a href="#__codelineno-0-311">311</a></span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-311">311</a></span>
 <span class="normal"><a href="#__codelineno-0-312">312</a></span>
 <span class="normal"><a href="#__codelineno-0-313">313</a></span>
 <span class="normal"><a href="#__codelineno-0-314">314</a></span>
@@ -3287,28 +3289,30 @@ pixels at nodes as '3'.</p>
 <span class="normal"><a href="#__codelineno-0-327">327</a></span>
 <span class="normal"><a href="#__codelineno-0-328">328</a></span>
 <span class="normal"><a href="#__codelineno-0-329">329</a></span>
-<span class="normal"><a href="#__codelineno-0-330">330</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-309"><a id="__codelineno-0-309" name="__codelineno-0-309"></a><span class="k">def</span><span class="w"> </span><span class="nf">convolve_skeleton</span><span class="p">(</span><span class="n">skeleton</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">:</span>
-</span><span id="__span-0-310"><a id="__codelineno-0-310" name="__codelineno-0-310"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="__span-0-311"><a id="__codelineno-0-311" name="__codelineno-0-311"></a><span class="sd">    Convolve skeleton with a 3x3 kernel.</span>
-</span><span id="__span-0-312"><a id="__codelineno-0-312" name="__codelineno-0-312"></a>
-</span><span id="__span-0-313"><a id="__codelineno-0-313" name="__codelineno-0-313"></a><span class="sd">    This produces an array where the branches of the skeleton are denoted with &#39;1&#39;, endpoints are denoted as &#39;2&#39;, and</span>
-</span><span id="__span-0-314"><a id="__codelineno-0-314" name="__codelineno-0-314"></a><span class="sd">    pixels at nodes as &#39;3&#39;.</span>
-</span><span id="__span-0-315"><a id="__codelineno-0-315" name="__codelineno-0-315"></a>
-</span><span id="__span-0-316"><a id="__codelineno-0-316" name="__codelineno-0-316"></a><span class="sd">    Parameters</span>
-</span><span id="__span-0-317"><a id="__codelineno-0-317" name="__codelineno-0-317"></a><span class="sd">    ----------</span>
-</span><span id="__span-0-318"><a id="__codelineno-0-318" name="__codelineno-0-318"></a><span class="sd">    skeleton : npt.NDArray</span>
-</span><span id="__span-0-319"><a id="__codelineno-0-319" name="__codelineno-0-319"></a><span class="sd">        Single pixel thick binary trace(s) within an array.</span>
-</span><span id="__span-0-320"><a id="__codelineno-0-320" name="__codelineno-0-320"></a>
-</span><span id="__span-0-321"><a id="__codelineno-0-321" name="__codelineno-0-321"></a><span class="sd">    Returns</span>
-</span><span id="__span-0-322"><a id="__codelineno-0-322" name="__codelineno-0-322"></a><span class="sd">    -------</span>
-</span><span id="__span-0-323"><a id="__codelineno-0-323" name="__codelineno-0-323"></a><span class="sd">    npt.NDArray</span>
-</span><span id="__span-0-324"><a id="__codelineno-0-324" name="__codelineno-0-324"></a><span class="sd">        The skeleton (=1) with endpoints (=2), and crossings (=3) highlighted.</span>
-</span><span id="__span-0-325"><a id="__codelineno-0-325" name="__codelineno-0-325"></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="__span-0-326"><a id="__codelineno-0-326" name="__codelineno-0-326"></a>    <span class="n">conv</span> <span class="o">=</span> <span class="n">convolve</span><span class="p">(</span><span class="n">skeleton</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span>
-</span><span id="__span-0-327"><a id="__codelineno-0-327" name="__codelineno-0-327"></a>    <span class="n">conv</span><span class="p">[</span><span class="n">skeleton</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># remove non-skeleton points</span>
-</span><span id="__span-0-328"><a id="__codelineno-0-328" name="__codelineno-0-328"></a>    <span class="n">conv</span><span class="p">[</span><span class="n">conv</span> <span class="o">==</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># skelly = 1</span>
-</span><span id="__span-0-329"><a id="__codelineno-0-329" name="__codelineno-0-329"></a>    <span class="n">conv</span><span class="p">[</span><span class="n">conv</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1"># nodes = 3</span>
-</span><span id="__span-0-330"><a id="__codelineno-0-330" name="__codelineno-0-330"></a>    <span class="k">return</span> <span class="n">conv</span>
+<span class="normal"><a href="#__codelineno-0-330">330</a></span>
+<span class="normal"><a href="#__codelineno-0-331">331</a></span>
+<span class="normal"><a href="#__codelineno-0-332">332</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-311"><a id="__codelineno-0-311" name="__codelineno-0-311"></a><span class="k">def</span><span class="w"> </span><span class="nf">convolve_skeleton</span><span class="p">(</span><span class="n">skeleton</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">:</span>
+</span><span id="__span-0-312"><a id="__codelineno-0-312" name="__codelineno-0-312"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-313"><a id="__codelineno-0-313" name="__codelineno-0-313"></a><span class="sd">    Convolve skeleton with a 3x3 kernel.</span>
+</span><span id="__span-0-314"><a id="__codelineno-0-314" name="__codelineno-0-314"></a>
+</span><span id="__span-0-315"><a id="__codelineno-0-315" name="__codelineno-0-315"></a><span class="sd">    This produces an array where the branches of the skeleton are denoted with &#39;1&#39;, endpoints are denoted as &#39;2&#39;, and</span>
+</span><span id="__span-0-316"><a id="__codelineno-0-316" name="__codelineno-0-316"></a><span class="sd">    pixels at nodes as &#39;3&#39;.</span>
+</span><span id="__span-0-317"><a id="__codelineno-0-317" name="__codelineno-0-317"></a>
+</span><span id="__span-0-318"><a id="__codelineno-0-318" name="__codelineno-0-318"></a><span class="sd">    Parameters</span>
+</span><span id="__span-0-319"><a id="__codelineno-0-319" name="__codelineno-0-319"></a><span class="sd">    ----------</span>
+</span><span id="__span-0-320"><a id="__codelineno-0-320" name="__codelineno-0-320"></a><span class="sd">    skeleton : npt.NDArray</span>
+</span><span id="__span-0-321"><a id="__codelineno-0-321" name="__codelineno-0-321"></a><span class="sd">        Single pixel thick binary trace(s) within an array.</span>
+</span><span id="__span-0-322"><a id="__codelineno-0-322" name="__codelineno-0-322"></a>
+</span><span id="__span-0-323"><a id="__codelineno-0-323" name="__codelineno-0-323"></a><span class="sd">    Returns</span>
+</span><span id="__span-0-324"><a id="__codelineno-0-324" name="__codelineno-0-324"></a><span class="sd">    -------</span>
+</span><span id="__span-0-325"><a id="__codelineno-0-325" name="__codelineno-0-325"></a><span class="sd">    npt.NDArray</span>
+</span><span id="__span-0-326"><a id="__codelineno-0-326" name="__codelineno-0-326"></a><span class="sd">        The skeleton (=1) with endpoints (=2), and crossings (=3) highlighted.</span>
+</span><span id="__span-0-327"><a id="__codelineno-0-327" name="__codelineno-0-327"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-328"><a id="__codelineno-0-328" name="__codelineno-0-328"></a>    <span class="n">conv</span> <span class="o">=</span> <span class="n">convolve</span><span class="p">(</span><span class="n">skeleton</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span>
+</span><span id="__span-0-329"><a id="__codelineno-0-329" name="__codelineno-0-329"></a>    <span class="n">conv</span><span class="p">[</span><span class="n">skeleton</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># remove non-skeleton points</span>
+</span><span id="__span-0-330"><a id="__codelineno-0-330" name="__codelineno-0-330"></a>    <span class="n">conv</span><span class="p">[</span><span class="n">conv</span> <span class="o">==</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># skelly = 1</span>
+</span><span id="__span-0-331"><a id="__codelineno-0-331" name="__codelineno-0-331"></a>    <span class="n">conv</span><span class="p">[</span><span class="n">conv</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1"># nodes = 3</span>
+</span><span id="__span-0-332"><a id="__codelineno-0-332" name="__codelineno-0-332"></a>    <span class="k">return</span> <span class="n">conv</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -3417,9 +3421,7 @@ pixels at nodes as '3'.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>topostats/utils.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-339">339</a></span>
-<span class="normal"><a href="#__codelineno-0-340">340</a></span>
-<span class="normal"><a href="#__codelineno-0-341">341</a></span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-341">341</a></span>
 <span class="normal"><a href="#__codelineno-0-342">342</a></span>
 <span class="normal"><a href="#__codelineno-0-343">343</a></span>
 <span class="normal"><a href="#__codelineno-0-344">344</a></span>
@@ -3443,33 +3445,35 @@ pixels at nodes as '3'.</p>
 <span class="normal"><a href="#__codelineno-0-362">362</a></span>
 <span class="normal"><a href="#__codelineno-0-363">363</a></span>
 <span class="normal"><a href="#__codelineno-0-364">364</a></span>
-<span class="normal"><a href="#__codelineno-0-365">365</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-339"><a id="__codelineno-0-339" name="__codelineno-0-339"></a><span class="k">def</span><span class="w"> </span><span class="nf">coords_2_img</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-</span><span id="__span-0-340"><a id="__codelineno-0-340" name="__codelineno-0-340"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="__span-0-341"><a id="__codelineno-0-341" name="__codelineno-0-341"></a><span class="sd">    Convert coordinates to a binary image.</span>
-</span><span id="__span-0-342"><a id="__codelineno-0-342" name="__codelineno-0-342"></a>
-</span><span id="__span-0-343"><a id="__codelineno-0-343" name="__codelineno-0-343"></a><span class="sd">    Parameters</span>
-</span><span id="__span-0-344"><a id="__codelineno-0-344" name="__codelineno-0-344"></a><span class="sd">    ----------</span>
-</span><span id="__span-0-345"><a id="__codelineno-0-345" name="__codelineno-0-345"></a><span class="sd">    coords : np.ndarray</span>
-</span><span id="__span-0-346"><a id="__codelineno-0-346" name="__codelineno-0-346"></a><span class="sd">        An array of 2xN integer coordinates.</span>
-</span><span id="__span-0-347"><a id="__codelineno-0-347" name="__codelineno-0-347"></a><span class="sd">    image : np.ndarray</span>
-</span><span id="__span-0-348"><a id="__codelineno-0-348" name="__codelineno-0-348"></a><span class="sd">        An MxL array to assign the above coordinates onto.</span>
-</span><span id="__span-0-349"><a id="__codelineno-0-349" name="__codelineno-0-349"></a><span class="sd">    ordered : bool, optional</span>
-</span><span id="__span-0-350"><a id="__codelineno-0-350" name="__codelineno-0-350"></a><span class="sd">        If True, increments the value of each coord to show order.</span>
-</span><span id="__span-0-351"><a id="__codelineno-0-351" name="__codelineno-0-351"></a>
-</span><span id="__span-0-352"><a id="__codelineno-0-352" name="__codelineno-0-352"></a><span class="sd">    Returns</span>
-</span><span id="__span-0-353"><a id="__codelineno-0-353" name="__codelineno-0-353"></a><span class="sd">    -------</span>
-</span><span id="__span-0-354"><a id="__codelineno-0-354" name="__codelineno-0-354"></a><span class="sd">    np.ndarray</span>
-</span><span id="__span-0-355"><a id="__codelineno-0-355" name="__codelineno-0-355"></a><span class="sd">        An array the same shape as &#39;image&#39; with the coordinates highlighted.</span>
-</span><span id="__span-0-356"><a id="__codelineno-0-356" name="__codelineno-0-356"></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="__span-0-357"><a id="__codelineno-0-357" name="__codelineno-0-357"></a>    <span class="n">comb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
-</span><span id="__span-0-358"><a id="__codelineno-0-358" name="__codelineno-0-358"></a>    <span class="k">if</span> <span class="n">ordered</span><span class="p">:</span>
-</span><span id="__span-0-359"><a id="__codelineno-0-359" name="__codelineno-0-359"></a>        <span class="n">comb</span><span class="p">[</span><span class="n">coords</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span> <span class="n">coords</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-</span><span id="__span-0-360"><a id="__codelineno-0-360" name="__codelineno-0-360"></a>    <span class="k">else</span><span class="p">:</span>
-</span><span id="__span-0-361"><a id="__codelineno-0-361" name="__codelineno-0-361"></a>        <span class="n">coords</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span>
-</span><span id="__span-0-362"><a id="__codelineno-0-362" name="__codelineno-0-362"></a>            <span class="p">(</span><span class="n">coords</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">coords</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">coords</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">coords</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
-</span><span id="__span-0-363"><a id="__codelineno-0-363" name="__codelineno-0-363"></a>        <span class="p">]</span>
-</span><span id="__span-0-364"><a id="__codelineno-0-364" name="__codelineno-0-364"></a>        <span class="n">comb</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">coords</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">coords</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">1</span>
-</span><span id="__span-0-365"><a id="__codelineno-0-365" name="__codelineno-0-365"></a>    <span class="k">return</span> <span class="n">comb</span>
+<span class="normal"><a href="#__codelineno-0-365">365</a></span>
+<span class="normal"><a href="#__codelineno-0-366">366</a></span>
+<span class="normal"><a href="#__codelineno-0-367">367</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-341"><a id="__codelineno-0-341" name="__codelineno-0-341"></a><span class="k">def</span><span class="w"> </span><span class="nf">coords_2_img</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="__span-0-342"><a id="__codelineno-0-342" name="__codelineno-0-342"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-343"><a id="__codelineno-0-343" name="__codelineno-0-343"></a><span class="sd">    Convert coordinates to a binary image.</span>
+</span><span id="__span-0-344"><a id="__codelineno-0-344" name="__codelineno-0-344"></a>
+</span><span id="__span-0-345"><a id="__codelineno-0-345" name="__codelineno-0-345"></a><span class="sd">    Parameters</span>
+</span><span id="__span-0-346"><a id="__codelineno-0-346" name="__codelineno-0-346"></a><span class="sd">    ----------</span>
+</span><span id="__span-0-347"><a id="__codelineno-0-347" name="__codelineno-0-347"></a><span class="sd">    coords : np.ndarray</span>
+</span><span id="__span-0-348"><a id="__codelineno-0-348" name="__codelineno-0-348"></a><span class="sd">        An array of 2xN integer coordinates.</span>
+</span><span id="__span-0-349"><a id="__codelineno-0-349" name="__codelineno-0-349"></a><span class="sd">    image : np.ndarray</span>
+</span><span id="__span-0-350"><a id="__codelineno-0-350" name="__codelineno-0-350"></a><span class="sd">        An MxL array to assign the above coordinates onto.</span>
+</span><span id="__span-0-351"><a id="__codelineno-0-351" name="__codelineno-0-351"></a><span class="sd">    ordered : bool, optional</span>
+</span><span id="__span-0-352"><a id="__codelineno-0-352" name="__codelineno-0-352"></a><span class="sd">        If True, increments the value of each coord to show order.</span>
+</span><span id="__span-0-353"><a id="__codelineno-0-353" name="__codelineno-0-353"></a>
+</span><span id="__span-0-354"><a id="__codelineno-0-354" name="__codelineno-0-354"></a><span class="sd">    Returns</span>
+</span><span id="__span-0-355"><a id="__codelineno-0-355" name="__codelineno-0-355"></a><span class="sd">    -------</span>
+</span><span id="__span-0-356"><a id="__codelineno-0-356" name="__codelineno-0-356"></a><span class="sd">    np.ndarray</span>
+</span><span id="__span-0-357"><a id="__codelineno-0-357" name="__codelineno-0-357"></a><span class="sd">        An array the same shape as &#39;image&#39; with the coordinates highlighted.</span>
+</span><span id="__span-0-358"><a id="__codelineno-0-358" name="__codelineno-0-358"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-359"><a id="__codelineno-0-359" name="__codelineno-0-359"></a>    <span class="n">comb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+</span><span id="__span-0-360"><a id="__codelineno-0-360" name="__codelineno-0-360"></a>    <span class="k">if</span> <span class="n">ordered</span><span class="p">:</span>
+</span><span id="__span-0-361"><a id="__codelineno-0-361" name="__codelineno-0-361"></a>        <span class="n">comb</span><span class="p">[</span><span class="n">coords</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span> <span class="n">coords</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+</span><span id="__span-0-362"><a id="__codelineno-0-362" name="__codelineno-0-362"></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-0-363"><a id="__codelineno-0-363" name="__codelineno-0-363"></a>        <span class="n">coords</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span>
+</span><span id="__span-0-364"><a id="__codelineno-0-364" name="__codelineno-0-364"></a>            <span class="p">(</span><span class="n">coords</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">coords</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">coords</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">coords</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+</span><span id="__span-0-365"><a id="__codelineno-0-365" name="__codelineno-0-365"></a>        <span class="p">]</span>
+</span><span id="__span-0-366"><a id="__codelineno-0-366" name="__codelineno-0-366"></a>        <span class="n">comb</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">coords</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">coords</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span id="__span-0-367"><a id="__codelineno-0-367" name="__codelineno-0-367"></a>    <span class="k">return</span> <span class="n">comb</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -3653,9 +3657,7 @@ pixels at nodes as '3'.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>topostats/utils.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-390">390</a></span>
-<span class="normal"><a href="#__codelineno-0-391">391</a></span>
-<span class="normal"><a href="#__codelineno-0-392">392</a></span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-392">392</a></span>
 <span class="normal"><a href="#__codelineno-0-393">393</a></span>
 <span class="normal"><a href="#__codelineno-0-394">394</a></span>
 <span class="normal"><a href="#__codelineno-0-395">395</a></span>
@@ -3671,25 +3673,27 @@ pixels at nodes as '3'.</p>
 <span class="normal"><a href="#__codelineno-0-405">405</a></span>
 <span class="normal"><a href="#__codelineno-0-406">406</a></span>
 <span class="normal"><a href="#__codelineno-0-407">407</a></span>
-<span class="normal"><a href="#__codelineno-0-408">408</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-390"><a id="__codelineno-0-390" name="__codelineno-0-390"></a><span class="k">def</span><span class="w"> </span><span class="nf">flatten_multi_class_tensor</span><span class="p">(</span><span class="n">grain_mask_tensor</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">:</span>
-</span><span id="__span-0-391"><a id="__codelineno-0-391" name="__codelineno-0-391"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="__span-0-392"><a id="__codelineno-0-392" name="__codelineno-0-392"></a><span class="sd">    Flatten a multi-class image tensor to a single binary mask.</span>
-</span><span id="__span-0-393"><a id="__codelineno-0-393" name="__codelineno-0-393"></a>
-</span><span id="__span-0-394"><a id="__codelineno-0-394" name="__codelineno-0-394"></a><span class="sd">    The returned tensor is of boolean type in case there are multiple hits in the same pixel. We dont want to have</span>
-</span><span id="__span-0-395"><a id="__codelineno-0-395" name="__codelineno-0-395"></a><span class="sd">    2s, 3s etc because this would cause issues in labelling and cause erroneous grains within grains.</span>
-</span><span id="__span-0-396"><a id="__codelineno-0-396" name="__codelineno-0-396"></a>
-</span><span id="__span-0-397"><a id="__codelineno-0-397" name="__codelineno-0-397"></a><span class="sd">    Parameters</span>
-</span><span id="__span-0-398"><a id="__codelineno-0-398" name="__codelineno-0-398"></a><span class="sd">    ----------</span>
-</span><span id="__span-0-399"><a id="__codelineno-0-399" name="__codelineno-0-399"></a><span class="sd">    grain_mask_tensor : npt.NDArray</span>
-</span><span id="__span-0-400"><a id="__codelineno-0-400" name="__codelineno-0-400"></a><span class="sd">        Multi class grain mask tensor tensor of shape (N, N, C).</span>
-</span><span id="__span-0-401"><a id="__codelineno-0-401" name="__codelineno-0-401"></a>
-</span><span id="__span-0-402"><a id="__codelineno-0-402" name="__codelineno-0-402"></a><span class="sd">    Returns</span>
-</span><span id="__span-0-403"><a id="__codelineno-0-403" name="__codelineno-0-403"></a><span class="sd">    -------</span>
-</span><span id="__span-0-404"><a id="__codelineno-0-404" name="__codelineno-0-404"></a><span class="sd">    npt.NDArray</span>
-</span><span id="__span-0-405"><a id="__codelineno-0-405" name="__codelineno-0-405"></a><span class="sd">        Combined binary mask of all but the background class (:, :, 0).</span>
-</span><span id="__span-0-406"><a id="__codelineno-0-406" name="__codelineno-0-406"></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="__span-0-407"><a id="__codelineno-0-407" name="__codelineno-0-407"></a>    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">grain_mask_tensor</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Tensor not 3D: </span><span class="si">{</span><span class="n">grain_mask_tensor</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-0-408"><a id="__codelineno-0-408" name="__codelineno-0-408"></a>    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">grain_mask_tensor</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">:],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+<span class="normal"><a href="#__codelineno-0-408">408</a></span>
+<span class="normal"><a href="#__codelineno-0-409">409</a></span>
+<span class="normal"><a href="#__codelineno-0-410">410</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-392"><a id="__codelineno-0-392" name="__codelineno-0-392"></a><span class="k">def</span><span class="w"> </span><span class="nf">flatten_multi_class_tensor</span><span class="p">(</span><span class="n">grain_mask_tensor</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">:</span>
+</span><span id="__span-0-393"><a id="__codelineno-0-393" name="__codelineno-0-393"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-394"><a id="__codelineno-0-394" name="__codelineno-0-394"></a><span class="sd">    Flatten a multi-class image tensor to a single binary mask.</span>
+</span><span id="__span-0-395"><a id="__codelineno-0-395" name="__codelineno-0-395"></a>
+</span><span id="__span-0-396"><a id="__codelineno-0-396" name="__codelineno-0-396"></a><span class="sd">    The returned tensor is of boolean type in case there are multiple hits in the same pixel. We dont want to have</span>
+</span><span id="__span-0-397"><a id="__codelineno-0-397" name="__codelineno-0-397"></a><span class="sd">    2s, 3s etc because this would cause issues in labelling and cause erroneous grains within grains.</span>
+</span><span id="__span-0-398"><a id="__codelineno-0-398" name="__codelineno-0-398"></a>
+</span><span id="__span-0-399"><a id="__codelineno-0-399" name="__codelineno-0-399"></a><span class="sd">    Parameters</span>
+</span><span id="__span-0-400"><a id="__codelineno-0-400" name="__codelineno-0-400"></a><span class="sd">    ----------</span>
+</span><span id="__span-0-401"><a id="__codelineno-0-401" name="__codelineno-0-401"></a><span class="sd">    grain_mask_tensor : npt.NDArray</span>
+</span><span id="__span-0-402"><a id="__codelineno-0-402" name="__codelineno-0-402"></a><span class="sd">        Multi class grain mask tensor tensor of shape (N, N, C).</span>
+</span><span id="__span-0-403"><a id="__codelineno-0-403" name="__codelineno-0-403"></a>
+</span><span id="__span-0-404"><a id="__codelineno-0-404" name="__codelineno-0-404"></a><span class="sd">    Returns</span>
+</span><span id="__span-0-405"><a id="__codelineno-0-405" name="__codelineno-0-405"></a><span class="sd">    -------</span>
+</span><span id="__span-0-406"><a id="__codelineno-0-406" name="__codelineno-0-406"></a><span class="sd">    npt.NDArray</span>
+</span><span id="__span-0-407"><a id="__codelineno-0-407" name="__codelineno-0-407"></a><span class="sd">        Combined binary mask of all but the background class (:, :, 0).</span>
+</span><span id="__span-0-408"><a id="__codelineno-0-408" name="__codelineno-0-408"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-409"><a id="__codelineno-0-409" name="__codelineno-0-409"></a>    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">grain_mask_tensor</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Tensor not 3D: </span><span class="si">{</span><span class="n">grain_mask_tensor</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="__span-0-410"><a id="__codelineno-0-410" name="__codelineno-0-410"></a>    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">grain_mask_tensor</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">:],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -4219,9 +4223,7 @@ to have an 'above' threshold.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>topostats/utils.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-368">368</a></span>
-<span class="normal"><a href="#__codelineno-0-369">369</a></span>
-<span class="normal"><a href="#__codelineno-0-370">370</a></span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-370">370</a></span>
 <span class="normal"><a href="#__codelineno-0-371">371</a></span>
 <span class="normal"><a href="#__codelineno-0-372">372</a></span>
 <span class="normal"><a href="#__codelineno-0-373">373</a></span>
@@ -4238,26 +4240,28 @@ to have an 'above' threshold.</p>
 <span class="normal"><a href="#__codelineno-0-384">384</a></span>
 <span class="normal"><a href="#__codelineno-0-385">385</a></span>
 <span class="normal"><a href="#__codelineno-0-386">386</a></span>
-<span class="normal"><a href="#__codelineno-0-387">387</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-368"><a id="__codelineno-0-368" name="__codelineno-0-368"></a><span class="k">def</span><span class="w"> </span><span class="nf">update_background_class</span><span class="p">(</span>
-</span><span id="__span-0-369"><a id="__codelineno-0-369" name="__codelineno-0-369"></a>    <span class="n">grain_mask_tensor</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span>
-</span><span id="__span-0-370"><a id="__codelineno-0-370" name="__codelineno-0-370"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">]:</span>
-</span><span id="__span-0-371"><a id="__codelineno-0-371" name="__codelineno-0-371"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="__span-0-372"><a id="__codelineno-0-372" name="__codelineno-0-372"></a><span class="sd">    Update the background class to reflect the other classes.</span>
-</span><span id="__span-0-373"><a id="__codelineno-0-373" name="__codelineno-0-373"></a>
-</span><span id="__span-0-374"><a id="__codelineno-0-374" name="__codelineno-0-374"></a><span class="sd">    Parameters</span>
-</span><span id="__span-0-375"><a id="__codelineno-0-375" name="__codelineno-0-375"></a><span class="sd">    ----------</span>
-</span><span id="__span-0-376"><a id="__codelineno-0-376" name="__codelineno-0-376"></a><span class="sd">    grain_mask_tensor : npt.NDArray</span>
-</span><span id="__span-0-377"><a id="__codelineno-0-377" name="__codelineno-0-377"></a><span class="sd">        3-D Numpy array of the grain mask tensor.</span>
-</span><span id="__span-0-378"><a id="__codelineno-0-378" name="__codelineno-0-378"></a>
-</span><span id="__span-0-379"><a id="__codelineno-0-379" name="__codelineno-0-379"></a><span class="sd">    Returns</span>
-</span><span id="__span-0-380"><a id="__codelineno-0-380" name="__codelineno-0-380"></a><span class="sd">    -------</span>
-</span><span id="__span-0-381"><a id="__codelineno-0-381" name="__codelineno-0-381"></a><span class="sd">    npt.NDArray</span>
-</span><span id="__span-0-382"><a id="__codelineno-0-382" name="__codelineno-0-382"></a><span class="sd">        3-D Numpy array of image tensor with updated background class.</span>
-</span><span id="__span-0-383"><a id="__codelineno-0-383" name="__codelineno-0-383"></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="__span-0-384"><a id="__codelineno-0-384" name="__codelineno-0-384"></a>    <span class="n">flattened_mask</span> <span class="o">=</span> <span class="n">flatten_multi_class_tensor</span><span class="p">(</span><span class="n">grain_mask_tensor</span><span class="p">)</span>
-</span><span id="__span-0-385"><a id="__codelineno-0-385" name="__codelineno-0-385"></a>    <span class="n">new_background</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">flattened_mask</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-</span><span id="__span-0-386"><a id="__codelineno-0-386" name="__codelineno-0-386"></a>    <span class="n">grain_mask_tensor</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_background</span>
-</span><span id="__span-0-387"><a id="__codelineno-0-387" name="__codelineno-0-387"></a>    <span class="k">return</span> <span class="n">grain_mask_tensor</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+<span class="normal"><a href="#__codelineno-0-387">387</a></span>
+<span class="normal"><a href="#__codelineno-0-388">388</a></span>
+<span class="normal"><a href="#__codelineno-0-389">389</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-370"><a id="__codelineno-0-370" name="__codelineno-0-370"></a><span class="k">def</span><span class="w"> </span><span class="nf">update_background_class</span><span class="p">(</span>
+</span><span id="__span-0-371"><a id="__codelineno-0-371" name="__codelineno-0-371"></a>    <span class="n">grain_mask_tensor</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span>
+</span><span id="__span-0-372"><a id="__codelineno-0-372" name="__codelineno-0-372"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">]:</span>
+</span><span id="__span-0-373"><a id="__codelineno-0-373" name="__codelineno-0-373"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-374"><a id="__codelineno-0-374" name="__codelineno-0-374"></a><span class="sd">    Update the background class to reflect the other classes.</span>
+</span><span id="__span-0-375"><a id="__codelineno-0-375" name="__codelineno-0-375"></a>
+</span><span id="__span-0-376"><a id="__codelineno-0-376" name="__codelineno-0-376"></a><span class="sd">    Parameters</span>
+</span><span id="__span-0-377"><a id="__codelineno-0-377" name="__codelineno-0-377"></a><span class="sd">    ----------</span>
+</span><span id="__span-0-378"><a id="__codelineno-0-378" name="__codelineno-0-378"></a><span class="sd">    grain_mask_tensor : npt.NDArray</span>
+</span><span id="__span-0-379"><a id="__codelineno-0-379" name="__codelineno-0-379"></a><span class="sd">        3-D Numpy array of the grain mask tensor.</span>
+</span><span id="__span-0-380"><a id="__codelineno-0-380" name="__codelineno-0-380"></a>
+</span><span id="__span-0-381"><a id="__codelineno-0-381" name="__codelineno-0-381"></a><span class="sd">    Returns</span>
+</span><span id="__span-0-382"><a id="__codelineno-0-382" name="__codelineno-0-382"></a><span class="sd">    -------</span>
+</span><span id="__span-0-383"><a id="__codelineno-0-383" name="__codelineno-0-383"></a><span class="sd">    npt.NDArray</span>
+</span><span id="__span-0-384"><a id="__codelineno-0-384" name="__codelineno-0-384"></a><span class="sd">        3-D Numpy array of image tensor with updated background class.</span>
+</span><span id="__span-0-385"><a id="__codelineno-0-385" name="__codelineno-0-385"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-386"><a id="__codelineno-0-386" name="__codelineno-0-386"></a>    <span class="n">flattened_mask</span> <span class="o">=</span> <span class="n">flatten_multi_class_tensor</span><span class="p">(</span><span class="n">grain_mask_tensor</span><span class="p">)</span>
+</span><span id="__span-0-387"><a id="__codelineno-0-387" name="__codelineno-0-387"></a>    <span class="n">new_background</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">flattened_mask</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+</span><span id="__span-0-388"><a id="__codelineno-0-388" name="__codelineno-0-388"></a>    <span class="n">grain_mask_tensor</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_background</span>
+</span><span id="__span-0-389"><a id="__codelineno-0-389" name="__codelineno-0-389"></a>    <span class="k">return</span> <span class="n">grain_mask_tensor</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
     </div>
