@@ -31,11 +31,20 @@ def resize_images_in_directory(
     resized_dir.mkdir(parents=True, exist_ok=True)
 
     for image_path in directory.rglob("*.npy"):
+        # make the sub-folder structure in the resized directory
+        relative_path = image_path.relative_to(directory)
+        resized_subdirectory = resized_dir / relative_path.parent
+        resized_subdirectory.mkdir(parents=True, exist_ok=True)
         image = np.load(image_path)
         resized_image = resize(image, target_size, anti_aliasing=False, preserve_range=True)
-        resized_image_path = resized_dir / image_path.name
-        np.save(resized_image_path, resized_image)
-        plt.imsave(resized_image_path.with_suffix(".png"), resized_image, cmap=CMAP, vmin=VMIN, vmax=VMAX)
+        np.save(resized_subdirectory / image_path.name, resized_image)
+        plt.imsave(
+            resized_subdirectory / f"{image_path.stem}.png",
+            resized_image,
+            cmap=CMAP,
+            vmin=VMIN,
+            vmax=VMAX,
+        )
 
 
 if __name__ == "__main__":
