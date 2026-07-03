@@ -1,9 +1,55 @@
 """Script to collate the labels of labelled data into single npy files from disparate files."""
 
+import re
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
+
+
+def sort_filenames(filenames: list[Path]) -> list[Path]:
+    """
+    Sort a list of filenames, but with underscores being treated as being less than numbers.
+
+    Parameters
+    ----------
+    filenames : list[Path]
+        The list of filenames to sort.
+
+    Returns
+    -------
+    list[Path]
+        The sorted list of filenames.
+    """
+
+    # try to treat underscores as being less than numbers, so "TE_5_" comes before "TE_50"
+    def sort_key(path: Path):
+        # split the filename into parts where each is either a number of a non-number string
+        parts = re.split(r"(\d+|)", path.name)
+        # create a key that is a list of tuples, where each tuple is like (0, ""), (1, 5), (2, "TE") etc
+        key = []
+        for part in parts:
+            # if empty, skip
+            if not part:
+                continue
+            # blank has lowest priority
+            if part == "":
+                key.append((0, ""))
+            # digits have next priority, converted to int for sorting
+            elif part.isdigit():
+                key.append((1, int(part)))
+            # everything else has higher priority, so that will be underscores, or letters etc. hopefully this
+            # doesn't mess up the sorting if letters are prioritised wrongly over numbers?
+            else:
+                # casefold makes it case insensitive, so that "TE" and "te" are treated the same
+                key.append((2, part.casefold()))
+        return key
+
+    # sorted can take a key function, where each element of form (0, ""), (1, 5), (2, "TE") etc is compared in order
+    # so that the first element of the tuple is compared first, then the second, etc. This means that underscores
+    # will be treated as being less than numbers, and numbers will be treated as being less than letters, and
+    # letters will be treated as being less than other characters
+    return sorted(filenames, key=sort_key)
 
 
 def get_class_name_from_filename(filename: str, classes: list[str]) -> str | None:
@@ -38,7 +84,7 @@ if __name__ == "__main__":
     always_all_classes = True  # ensure each image has all classes
 
     # grab all label files
-    label_files_npy = sorted(input_labels_dir.glob("*.npy"))
+    label_files_npy = sort_filenames(sorted(input_labels_dir.glob("*.npy")))
 
     # for each set of files that are the same except containing different label classes, merge the labels into one
     # numpy file
@@ -96,7 +142,10 @@ if __name__ == "__main__":
     # rename the merged label files to match the original image names
 
     image_files_npy = sorted(images_dir.glob("*.npy"))
+    image_files_npy = sort_filenames(image_files_npy)
     merged_label_files_npy = sorted(output_labels_dir.glob("*.npy"))
+    # sort the merged label files by the task number in the filename, pattern: "task-xxx-"
+    merged_label_files_npy = sort_filenames(merged_label_files_npy)
 
     assert len(image_files_npy) == len(
         merged_label_files_npy
@@ -118,3 +167,11 @@ if __name__ == "__main__":
         plt.suptitle(f"Image: {image_file_npy.name} | Merged Labels: {new_merged_label_file_npy.name}")
         plt.savefig(output_labels_dir / f"{image_file_npy.stem}_merged_labels.png")
         plt.close()
+
+    print("order of images:")
+    for image_file_npy in image_files_npy:
+        print(f" | {image_file_npy.name}")
+
+    print("order of merged label files:")
+    for merged_label_file_npy in merged_label_files_npy:
+        print(f" | {merged_label_file_npy.name}")
