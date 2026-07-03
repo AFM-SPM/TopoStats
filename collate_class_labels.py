@@ -29,6 +29,7 @@ def get_class_name_from_filename(filename: str, classes: list[str]) -> str | Non
 
 
 if __name__ == "__main__":
+    images_dir = Path("/Users/sylvi/topo_data/crossings_net/dataset_false_true_slot/images_true_slot")
     input_labels_dir = Path("/Users/sylvi/topo_data/crossings_net/dataset_false_true_slot/labels_true_slot")
     output_labels_dir = input_labels_dir.parent / f"{input_labels_dir.name}_combined"
     output_labels_dir.mkdir(parents=True, exist_ok=True)
@@ -87,18 +88,33 @@ if __name__ == "__main__":
         merged_label_file_npy = output_labels_dir / label_filename_without_class
         np.save(merged_label_file_npy, label_tensor)
 
-        # save the merged label tensor as a png image
-        merged_label_file_png = output_labels_dir / label_filename_without_class.replace(".npy", ".png")
-        fig, ax = plt.subplots(1, len(classes), figsize=(len(classes) * 3, 3))
-        for i, class_name in enumerate(classes):
-            ax[i].imshow(label_tensor[i, :, :], cmap="viridis")
-            ax[i].set_title(class_name)
-            ax[i].axis("off")
-        plt.tight_layout()
-        plt.savefig(merged_label_file_png)
-        plt.close()
-
         # mark the partner files as processed
         processed_files.update(partner_files)
 
-        print(f"Processed {len(partner_files)} files into {merged_label_file_npy} and {merged_label_file_png}")
+        print(f"Processed {len(partner_files)} files into {merged_label_file_npy}")
+
+    # rename the merged label files to match the original image names
+
+    image_files_npy = sorted(images_dir.glob("*.npy"))
+    merged_label_files_npy = sorted(output_labels_dir.glob("*.npy"))
+
+    assert len(image_files_npy) == len(
+        merged_label_files_npy
+    ), f"Number of image files and merged label files do not match: {len(image_files_npy)} != {len(merged_label_files_npy)}"
+
+    for image_file_npy, merged_label_file_npy in zip(image_files_npy, merged_label_files_npy):
+        image = np.load(image_file_npy)
+        merged_labels = np.load(merged_label_file_npy)
+
+        new_merged_label_file_npy = merged_label_file_npy.with_name(f"{image_file_npy.name}_labels.npy")
+        merged_label_file_npy.rename(new_merged_label_file_npy)
+
+        # plot the image and merged labels for visual inspection
+        fig, axes = plt.subplots(1, len(classes) + 1)
+        axes[0].imshow(image, cmap="gray")
+        for i, class_name in enumerate(classes):
+            axes[i + 1].imshow(merged_labels[i, :, :], cmap="gray")
+            axes[i + 1].set_title(class_name)
+        plt.suptitle(f"Image: {image_file_npy.name} | Merged Labels: {new_merged_label_file_npy.name}")
+        plt.savefig(output_labels_dir / f"{image_file_npy.stem}_merged_labels.png")
+        plt.close()
