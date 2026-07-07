@@ -5,9 +5,9 @@ from copy import deepcopy
 from typing import Any
 
 import matplotlib.pyplot as plt
-from matplotlib.ticker import FuncFormatter
 import numpy as np
 import numpy.typing as npt
+from matplotlib.ticker import FuncFormatter
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 
 from topostats.array_manipulation import calculate_distance_of_region, distances_nm
@@ -806,10 +806,20 @@ class GrainModel(UnanalysedGrain):
                     height_defect_start_index = height_defect.start_index
                     height_defect_end_index = height_defect.end_index
                     spline_coords = self.molecule_data_collection[molecule_id].spline_coords_px
-                    curvature_defect_coords = spline_coords[
-                        curvature_defect_start_index : curvature_defect_end_index + 1
-                    ]
-                    height_defect_coords = spline_coords[height_defect_start_index : height_defect_end_index + 1]
+                    if curvature_defect_start_index > curvature_defect_end_index:
+                        curvature_defect_indexes = list(range(0, curvature_defect_end_index + 1)).extend(
+                            range(curvature_defect_start_index, len(spline_coords) + 1)
+                        )
+                    else:
+                        curvature_defect_indexes = range(curvature_defect_start_index, curvature_defect_end_index + 1)
+                    curvature_defect_coords = spline_coords[curvature_defect_indexes]
+                    if height_defect_start_index > height_defect_end_index:
+                        height_defect_indexes = list(range(0, height_defect_end_index + 1)).extend(
+                            range(height_defect_start_index, len(spline_coords) + 1)
+                        )
+                    else:
+                        height_defect_indexes = range(height_defect_start_index, height_defect_end_index + 1)
+                    height_defect_coords = spline_coords[height_defect_indexes]
                     # calculate the mean of the coords of the two defects to get a single point to plot
                     mean_curvature_defect_coords = np.mean(curvature_defect_coords, axis=0)
                     mean_height_defect_coords = np.mean(height_defect_coords, axis=0)
