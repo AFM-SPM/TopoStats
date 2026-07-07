@@ -1,20 +1,19 @@
 """Functions for processing damage data."""
 
-from scipy.ndimage import distance_transform_edt
-
 from typing import Literal
 
 import numpy as np
 import numpy.typing as npt
+from scipy.ndimage import distance_transform_edt
 
 from topostats.array_manipulation import calculate_distance_of_region, distances_nm, rolling_average
 from topostats.damage.classes import (
     Defect,
     Gap,
     GrainCollection,
+    MoleculeData,
     MoleculeDefectData,
     OrderedDefectGapList,
-    MoleculeData,
 )
 from topostats.measure.curvature import (
     angle_diff_signed,
@@ -254,6 +253,7 @@ def connect_close_defects(  # noqa: C901
 def get_defects_and_gaps_from_bool_array(
     defects_bool: npt.NDArray[np.bool_],
     trace_points_nm: npt.NDArray[np.float64],
+    trace_heights_nm: npt.NDArray[np.float64],
     circular: bool,
     distance_to_previous_points_nm: npt.NDArray[np.float64],
     connect_close_defect_threshold_nm: float | None,
@@ -319,6 +319,11 @@ def get_defects_and_gaps_from_bool_array(
     for defect_or_gap in defect_gap_list_with_turns:
         type_of_region, start_index, end_index, length_nm, position_along_trace_nm, total_turn_radians = defect_or_gap
         if type_of_region == "defect":
+            defect_depth_nm = calculate_defect_depth(
+                start_index=start_index,
+                end_index=end_index,
+                trace_heights_nm=trace_heights_nm,
+            )
             ordered_defect_gap_list.add_item(
                 Defect(
                     start_index=start_index,
@@ -326,6 +331,7 @@ def get_defects_and_gaps_from_bool_array(
                     length_nm=length_nm,
                     position_along_trace_nm=position_along_trace_nm,
                     total_turn_radians=total_turn_radians,
+                    depth_nm=defect_depth_nm,
                 )
             )
         elif type_of_region == "gap":
@@ -636,6 +642,8 @@ def find_curvature_defects(  # noqa: C901
         for global_grain_id, grain_model in grain_collection.items():
             for molecule_id, molecule_data in grain_model.molecule_data_collection.items():
                 molecule_data_curvature_data = molecule_data.curvature_data
+                trace_heights_nm = molecule_data.smoothed_spline_coords_heights
+                assert trace_heights_nm is not None
                 if molecule_data_curvature_data is None:
                     print(
                         f"no curvature data for grain {global_grain_id} molecule {molecule_id}, skipping curvature defect detection for this molecule"
@@ -655,6 +663,7 @@ def find_curvature_defects(  # noqa: C901
                 ordered_defect_gap_list = get_defects_and_gaps_from_bool_array(
                     defects_bool=curvature_defects_bool,
                     trace_points_nm=molecule_data.spline_coords_nm,
+                    trace_heights_nm=trace_heights_nm,
                     distance_to_previous_points_nm=distances_nm(
                         molecule_data.spline_coords_nm, circular=molecule_data.circular
                     ),
@@ -669,6 +678,8 @@ def find_curvature_defects(  # noqa: C901
         for global_grain_id, grain_model in grain_collection.items():
             for molecule_id, molecule_data in grain_model.molecule_data_collection.items():
                 molecule_data_curvature_data = molecule_data.curvature_data
+                heights_nm = molecule_data.smoothed_spline_coords_heights
+                assert heights_nm is not None
                 if molecule_data_curvature_data is None:
                     print(
                         f"no curvature data for grain {global_grain_id} molecule {molecule_id}, skipping curvature defect detection for this molecule"
@@ -686,6 +697,7 @@ def find_curvature_defects(  # noqa: C901
                 ordered_defect_gap_list = get_defects_and_gaps_from_bool_array(
                     defects_bool=curvature_defects_bool,
                     trace_points_nm=molecule_data.spline_coords_nm,
+                    trace_heights_nm=heights_nm,
                     distance_to_previous_points_nm=distances_nm(
                         molecule_data.spline_coords_nm, circular=molecule_data.circular
                     ),
@@ -700,6 +712,8 @@ def find_curvature_defects(  # noqa: C901
         for global_grain_id, grain_model in grain_collection.items():
             for molecule_id, molecule_data in grain_model.molecule_data_collection.items():
                 molecule_data_curvature_data = molecule_data.curvature_data
+                heights_nm = molecule_data.smoothed_spline_coords_heights
+                assert heights_nm is not None
                 if molecule_data_curvature_data is None:
                     print(
                         f"no curvature data for grain {global_grain_id} molecule {molecule_id}, skipping curvature defect detection for this molecule"
@@ -717,6 +731,7 @@ def find_curvature_defects(  # noqa: C901
                 ordered_defect_gap_list = get_defects_and_gaps_from_bool_array(
                     defects_bool=curvature_defects_bool,
                     trace_points_nm=molecule_data.spline_coords_nm,
+                    trace_heights_nm=heights_nm,
                     distance_to_previous_points_nm=distances_nm(
                         molecule_data.spline_coords_nm, circular=molecule_data.circular
                     ),
@@ -798,6 +813,7 @@ def find_height_defects(  # noqa: C901
                 ordered_defect_gap_list = get_defects_and_gaps_from_bool_array(
                     defects_bool=height_defects_bool,
                     trace_points_nm=spline_coords_nm,
+                    trace_heights_nm=heights_nm,
                     distance_to_previous_points_nm=distances_nm(
                         coords_nm=spline_coords_nm, circular=molecule_data.circular
                     ),
@@ -828,6 +844,7 @@ def find_height_defects(  # noqa: C901
                 ordered_defect_gap_list = get_defects_and_gaps_from_bool_array(
                     defects_bool=height_defects_bool,
                     trace_points_nm=spline_coords_nm,
+                    trace_heights_nm=heights_nm,
                     distance_to_previous_points_nm=distances_nm(
                         coords_nm=spline_coords_nm, circular=molecule_data.circular
                     ),
@@ -848,6 +865,7 @@ def find_height_defects(  # noqa: C901
             height_threshold_percentage_of_median_value = median_height * height_threshold_percentage_of_median
             for _molecule_id, molecule_data in grain_model.molecule_data_collection.items():
                 heights_nm = molecule_data.smoothed_spline_coords_heights
+                assert heights_nm is not None
                 spline_coords_nm = molecule_data.spline_coords_nm
                 height_defects_bool = heights_nm < height_threshold_percentage_of_median_value
 
@@ -869,6 +887,7 @@ def find_height_defects(  # noqa: C901
                 ordered_defect_gap_list = get_defects_and_gaps_from_bool_array(
                     defects_bool=height_defects_bool,
                     trace_points_nm=spline_coords_nm,
+                    trace_heights_nm=heights_nm,
                     distance_to_previous_points_nm=distances_nm(
                         coords_nm=spline_coords_nm, circular=molecule_data.circular
                     ),
@@ -1198,3 +1217,16 @@ def smooth_height_traces(
                     raise e
             molecule_data.smoothed_spline_coords_heights = smoothed_heights_nm
     return bad_grains
+
+
+def calculate_defect_depth(
+    start_index: int,
+    end_index: int,
+    trace_heights_nm: npt.NDArray[np.float64],
+) -> float:
+    """Calculate the depth of a defect."""
+    if start_index <= end_index:
+        defect_heights = trace_heights_nm[start_index : end_index + 1]
+    else:
+        defect_heights = np.concatenate((trace_heights_nm[start_index:], trace_heights_nm[: end_index + 1]))
+    return float(np.min(defect_heights))

@@ -78,6 +78,7 @@ class Gap(BaseDamageAnalysis):
     length_nm: float
     position_along_trace_nm: float
     total_turn_radians: tuple[float, float]
+    depth_nm: float
 
 
 class OrderedDefectGapList(BaseDamageAnalysis):
