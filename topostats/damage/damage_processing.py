@@ -324,6 +324,13 @@ def get_defects_and_gaps_from_bool_array(
                 end_index=end_index,
                 trace_heights_nm=trace_heights_nm,
             )
+            # convert distances to previous points to absolute distances
+            defect_volume_nm3 = calculate_defect_volume(
+                start_index=start_index,
+                end_index=end_index,
+                trace_heights_nm=trace_heights_nm,
+                trace_distances_to_previous_points_nm=distance_to_previous_points_nm,
+            )
             ordered_defect_gap_list.add_item(
                 Defect(
                     start_index=start_index,
@@ -332,6 +339,7 @@ def get_defects_and_gaps_from_bool_array(
                     position_along_trace_nm=position_along_trace_nm,
                     total_turn_radians=total_turn_radians,
                     depth_nm=defect_depth_nm,
+                    volume_nm3=defect_volume_nm3,
                 )
             )
         elif type_of_region == "gap":
@@ -1230,3 +1238,29 @@ def calculate_defect_depth(
     else:
         defect_heights = np.concatenate((trace_heights_nm[start_index:], trace_heights_nm[: end_index + 1]))
     return float(np.min(defect_heights))
+
+
+def calculate_defect_volume(
+    start_index: int,
+    end_index: int,
+    trace_heights_nm: npt.NDArray[np.float64],
+    trace_distances_to_previous_points_nm: npt.NDArray[np.float64],
+) -> float:
+    """Calculate the volume of a defect."""
+    if start_index <= end_index:
+        defect_heights = trace_heights_nm[start_index : end_index + 1]
+        defect_distances_to_previous_points_nm = trace_distances_to_previous_points_nm[start_index : end_index + 1]
+        defect_distances_nm = np.cumsum(defect_distances_to_previous_points_nm)
+    else:
+        defect_heights = np.concatenate((trace_heights_nm[start_index:], trace_heights_nm[: end_index + 1]))
+        defect_distances_to_previous_points_nm = np.concatenate(
+            (
+                trace_distances_to_previous_points_nm[start_index:],
+                trace_distances_to_previous_points_nm[: end_index + 1],
+            )
+        )
+        defect_distances_nm = np.cumsum(defect_distances_to_previous_points_nm)
+    # calculate the volume of the defect by integrating the area under the curve of the defect heights
+    defect_volume = np.trapezoid(defect_heights, x=defect_distances_nm)
+    assert defect_volume >= 0, f"defect volume is negative: {defect_volume}"
+    return float(defect_volume)

@@ -54,6 +54,7 @@ class Defect(BaseDamageAnalysis):
     position_along_trace_nm: float
     total_turn_radians: tuple[float, float]
     depth_nm: float
+    volume_nm3: float
 
 
 class Gap(BaseDamageAnalysis):
