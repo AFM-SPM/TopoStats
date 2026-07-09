@@ -75,7 +75,8 @@ The `image_stats.csv` summarises the metrics for a processed image as a whole. T
 
 ## `branch_statistics.csv`
 
-The `branch_statistics.csv` file contains details on each branch that has been detected and traced and has the following fields:
+The `branch_statistics.csv` file contains details on each branch that has been detected and traced and has the
+following fields:
 
 | Column / field / feature | Description                                                                                                                | Type    | Units |
 | ------------------------ | -------------------------------------------------------------------------------------------------------------------------- | ------- | ----- |
@@ -91,7 +92,8 @@ The `branch_statistics.csv` file contains details on each branch that has been d
 | `median_value`           | Median value of all pixels across the branch.                                                                              | `float` | nm    |
 | `basename`               | Directory in which images was found.                                                                                       | `str`   | N/A   |
 
-The `matched_branch_statistics.csv` file contains data about matched branches that have been detected and has the following fields:
+The `matched_branch_statistics.csv` file contains data about matched branches that have been detected and has the
+following fields:
 
 | Column / field / feature | Description                              | Type          | Units |
 | ------------------------ | ---------------------------------------- | ------------- | ----- |
