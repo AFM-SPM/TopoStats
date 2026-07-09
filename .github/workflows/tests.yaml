@@ -26,6 +26,7 @@ jobs:
     name: Ex1 (${{ matrix.python-version }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
         python-version: ["3.10", "3.11"]
@@ -45,7 +46,7 @@ jobs:
           pip install -e .[tests]
       - name: Test with pytest
         run: |
-          pytest --cov=topostats --mpl --numprocesses=logical
+          pytest --maxfail=5 --cov=topostats --mpl --numprocesses=logical 
       - name: Determine coverage
         run: |
           coverage xml
