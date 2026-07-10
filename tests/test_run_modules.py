@@ -6,6 +6,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 from AFMReader import topostats
+from AFMReader.data_classes import AFMLoad
 from syrupy.matchers import path_type
 
 from topostats.classes import GrainCrop, TopoStats
@@ -127,7 +128,11 @@ def test_filters(attributes: dict, caplog) -> None:
     assert "Looking for images with extension   : .topostats" in caplog.text
     assert "[minicircle_small] Filtering completed." in caplog.text
     # Load the output file with AFMReader check its a dictionary and convert to TopoStats
-    data = topostats.load_topostats("output/processed/minicircle_small.topostats")
+    afm_load = topostats.load_topostats("output/processed/minicircle_small.topostats", channel="image_original")
+    assert isinstance(afm_load, AFMLoad)
+    data = afm_load.metadata
+    data["image_original"] = afm_load.image
+    data["pixel_to_nm_scaling"] = afm_load.pixel_to_nanometre_scaling
     assert isinstance(data, dict)
     topostats_object = dict_to_topostats(dictionary=data)
     assert isinstance(topostats_object, TopoStats)
@@ -176,7 +181,13 @@ def test_grains(attributes: dict, caplog, tmp_path: Path) -> None:
     assert "Looking for images with extension   : .topostats" in caplog.text
     assert "[minicircle_small] Grain detection completed (NB - Filtering was *not* re-run)." in caplog.text
     # Load the output file with AFMReader check its a dictionary and convert to TopoStats
-    data = topostats.load_topostats(tmp_path / "output/processed/minicircle_small.topostats")
+    afm_load = topostats.load_topostats(
+        tmp_path / "output/processed/minicircle_small.topostats", channel="image_original"
+    )
+    assert isinstance(afm_load, AFMLoad)
+    data = afm_load.metadata
+    data["image_original"] = afm_load.image
+    data["pixel_to_nm_scaling"] = afm_load.pixel_to_nanometre_scaling
     assert isinstance(data, dict)
     topostats_object = dict_to_topostats(dictionary=data)
     assert isinstance(topostats_object, TopoStats)

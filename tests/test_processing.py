@@ -61,9 +61,12 @@ def test_process_scan(tmp_path, process_scan_config: dict, load_scan_data: LoadS
     assert Path.exists(tmp_path / "tests/resources/test_image/processed/minicircle_small.topostats")
     # Load the results, note that we use AFMReader.topostats.load_topostats() here which simply loads the data as
     # dictionaries and means it is easy to compare to syrupy snapshots
-    saved_topostats = load_topostats(
-        file_path=tmp_path / "tests/resources/test_image/processed/minicircle_small.topostats"
+    afm_load = load_topostats(
+        file_path=tmp_path / "tests/resources/test_image/processed/minicircle_small.topostats", channel="image_original"
     )
+    saved_topostats: dict[str, Any] = afm_load.metadata
+    saved_topostats["image_original"] = afm_load.image
+    saved_topostats["pixel_to_nm_scaling"] = afm_load.pixel_to_nanometre_scaling
     # Drop the config, img_path and topostats_version from top level of dictionary and and basename from
     # disorded_trace.stats_dict) as we don't want to compare configuration nor test absolute paths.
     saved_topostats.pop("config")
