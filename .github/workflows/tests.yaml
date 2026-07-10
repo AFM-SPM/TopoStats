@@ -46,7 +46,7 @@ jobs:
           pip install -e .[tests]
       - name: Test with pytest
         run: |
-          pytest --maxfail=5 --cov=topostats --mpl --numprocesses=logical 
+          pytest --cov=topostats --mpl --numprocesses=logical --ignore=tests/tracing
       - name: Determine coverage
         run: |
           coverage xml

@@ -233,3 +233,5 @@ pytest-debug.ini
 
 # tmp directory
 tmp/
+
+prof/
