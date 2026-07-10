@@ -31,7 +31,7 @@ dependencies = [
   "AFMReader",
   "h5py",
   "keras",
-  "matplotlib",
+  "matplotlib~=3.10.0",
   "numpy~=2.0.0",   # Until TensorFlow supports newer versions
   "numpyencoder",
   "pandas",
