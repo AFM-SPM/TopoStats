@@ -41,4 +41,5 @@ def log_topostats_version() -> None:
     LOGGER.info(f"TopoStats version : {TOPOSTATS_VERSION}")
     LOGGER.info(f"Commit            : {TOPOSTATS_COMMIT}")
 
+
 print("testing")
