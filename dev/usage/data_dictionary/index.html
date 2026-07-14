@@ -567,10 +567,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#all_statisticscsv" class="md-nav__link">
+  <a href="#grain_statisticscsv" class="md-nav__link">
     <span class="md-ellipsis">
       
-        all_statistics.csv
+        grain_statistics.csv
       
     </span>
   </a>
@@ -589,10 +589,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#all_disordered_segment_statisticscsv" class="md-nav__link">
+  <a href="#branch_statisticscsv" class="md-nav__link">
     <span class="md-ellipsis">
       
-        all_disordered_segment_statistics.csv
+        branch_statistics.csv
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#molecule_statisticscsv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        molecule_statistics.csv
       
     </span>
   </a>
@@ -2366,10 +2377,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#all_statisticscsv" class="md-nav__link">
+  <a href="#grain_statisticscsv" class="md-nav__link">
     <span class="md-ellipsis">
       
-        all_statistics.csv
+        grain_statistics.csv
       
     </span>
   </a>
@@ -2388,10 +2399,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#all_disordered_segment_statisticscsv" class="md-nav__link">
+  <a href="#branch_statisticscsv" class="md-nav__link">
     <span class="md-ellipsis">
       
-        all_disordered_segment_statistics.csv
+        branch_statistics.csv
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#molecule_statisticscsv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        molecule_statistics.csv
       
     </span>
   </a>
@@ -2421,8 +2443,9 @@
 <h1 id="data-dictionary">Data Dictionary</h1>
 <p>Output from TopoStats includes two sets of statistics in ASCII text <code>.csv</code> files. The tables below detail the columns of
 these files, the data types, a description and their units where appropriate.</p>
-<h2 id="all_statisticscsv"><code>all_statistics.csv</code></h2>
-<p>The <code>all_statistics.csv</code> file contains details on each grain that has been detected and traced and has the following fields.</p>
+<p><strong>Note:</strong> If a field's values are all <code>None</code> or <code>NaN</code> the field will be omitted from its relevant <code>.csv</code>.</p>
+<h2 id="grain_statisticscsv"><code>grain_statistics.csv</code></h2>
+<p>The <code>grain_statistics.csv</code> file contains details on each grain that has been detected and traced and has the following fields:</p>
 <table>
 <thead>
 <tr>
@@ -2440,14 +2463,14 @@ these files, the data types, a description and their units where appropriate.</p
 <td>N/A</td>
 </tr>
 <tr>
-<td><code>threshold</code></td>
-<td>Whether grain is <code>above</code> or <code>below</code> a threshold.</td>
-<td><code>str</code></td>
+<td><code>grain_number</code></td>
+<td>Number of found grain (starts at <code>0</code>)</td>
+<td><code>int</code></td>
 <td>N/A</td>
 </tr>
 <tr>
-<td><code>grain_number</code></td>
-<td>Number of found grain (starts at <code>0</code>)</td>
+<td><code>class</code></td>
+<td>Id of the grain the branch is a part of.</td>
 <td><code>int</code></td>
 <td>N/A</td>
 </tr>
@@ -2692,7 +2715,7 @@ these files, the data types, a description and their units where appropriate.</p
 <td>m</td>
 </tr>
 <tr>
-<td><code>average_end_to_end_distance</code></td>
+<td><code>mean_end_to_end_distance</code></td>
 <td>The average distance from two endpoints of the spline of all identified linear molecules.</td>
 <td><code>float</code></td>
 <td>m</td>
@@ -2700,7 +2723,7 @@ these files, the data types, a description and their units where appropriate.</p
 </tbody>
 </table>
 <h2 id="image_statscsv"><code>image_stats.csv</code></h2>
-<p>The <code>image_stats.csv</code> summarises the metrics</p>
+<p>The <code>image_stats.csv</code> summarises the metrics for a processed image as a whole. The fields are as follows:</p>
 <table>
 <thead>
 <tr>
@@ -2754,26 +2777,14 @@ these files, the data types, a description and their units where appropriate.</p
 <td>N/A</td>
 </tr>
 <tr>
-<td><code>grains_number_above</code></td>
-<td>Number of grains found above threshold.</td>
+<td><code>grains_number</code></td>
+<td>Number of grains found.</td>
 <td><code>int</code></td>
 <td>N/A</td>
 </tr>
 <tr>
-<td><code>grains_per_m2_above</code></td>
-<td>Density of grains above upper threshold.</td>
-<td><code>int</code></td>
-<td>N/A</td>
-</tr>
-<tr>
-<td><code>grains_number_below</code></td>
-<td>Number of grains found below threshold.</td>
-<td><code>int</code></td>
-<td>N/A</td>
-</tr>
-<tr>
-<td><code>grains_per_m2_below</code></td>
-<td>Density of grains below lower threshold.</td>
+<td><code>grains_per_m2</code></td>
+<td>Density of grains below.</td>
 <td><code>int</code></td>
 <td>N/A</td>
 </tr>
@@ -2785,11 +2796,271 @@ these files, the data types, a description and their units where appropriate.</p
 </tr>
 </tbody>
 </table>
-<h2 id="all_disordered_segment_statisticscsv"><code>all_disordered_segment_statistics.csv</code></h2>
-<p>Please refer to the specific sections on output from running <a href="../../advanced/disordered_tracing/#disordered-segment-statistics">Disordered Segment Statistics
-Tracing</a> section of the <a href="../../advanced/disordered_tracing/">Disordered
-Tracing</a> page for the data dictionary of the <code>all_disordered_segment_statistics.csv</code>
-output.</p>
+<h2 id="branch_statisticscsv"><code>branch_statistics.csv</code></h2>
+<p>The <code>branch_statistics.csv</code> file contains details on each branch that has been detected and traced and has the
+following fields:</p>
+<table>
+<thead>
+<tr>
+<th>Column / field / feature</th>
+<th>Description</th>
+<th>Type</th>
+<th>Units</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>image</code></td>
+<td>Filename (minus extension) of scan.</td>
+<td><code>str</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>grain_number</code></td>
+<td>Id of the grain the branch is a part of.</td>
+<td><code>int</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>index</code></td>
+<td>Index of the branch within the grain.</td>
+<td><code>int</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>branch_distance</code></td>
+<td>Distance of the branch from end to end.</td>
+<td><code>float</code></td>
+<td>nm</td>
+</tr>
+<tr>
+<td><code>branch_type</code></td>
+<td>Branch classification of endpoint-to-endpoint (0), endpoint-to-junction (1), junction-to-junction (2), isolated cycle (3).</td>
+<td><code>int</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>connected_segments</code></td>
+<td>The index of the branch segments that this current branch is connected to via a junction point.</td>
+<td><code>list</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>mean_pixel_value</code></td>
+<td>Average pixel value across the branch.</td>
+<td><code>float</code></td>
+<td>nm</td>
+</tr>
+<tr>
+<td><code>std_pixel_value</code></td>
+<td>Std pixel value across the branch.</td>
+<td><code>float</code></td>
+<td>nm</td>
+</tr>
+<tr>
+<td><code>min_value</code></td>
+<td>Minimum value of all pixels across the branch.</td>
+<td><code>float</code></td>
+<td>nm</td>
+</tr>
+<tr>
+<td><code>median_value</code></td>
+<td>Median value of all pixels across the branch.</td>
+<td><code>float</code></td>
+<td>nm</td>
+</tr>
+<tr>
+<td><code>basename</code></td>
+<td>Directory in which images was found.</td>
+<td><code>str</code></td>
+<td>N/A</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>matched_branch_statistics.csv</code> file contains data about matched branches that have been detected and has the
+following fields:</p>
+<table>
+<thead>
+<tr>
+<th>Column / field / feature</th>
+<th>Description</th>
+<th>Type</th>
+<th>Units</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>image</code></td>
+<td>Filename (minus extension) of scan.</td>
+<td><code>str</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>grain_number</code></td>
+<td>Id of the grain the branch is a part of.</td>
+<td><code>int</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>node</code></td>
+<td>Id of the node.</td>
+<td><code>int</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>branch</code></td>
+<td>Id of the branch.</td>
+<td><code>int</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>fwhm</code></td>
+<td>Full-width half maximum.</td>
+<td><code>float</code></td>
+<td>nm</td>
+</tr>
+<tr>
+<td><code>fwhm_half_maxs</code></td>
+<td>Half-maximums from a matched branch.</td>
+<td><code>list[float]</code></td>
+<td>nm</td>
+</tr>
+<tr>
+<td><code>fwhm_peaks</code></td>
+<td>Pea s from a matched branch.</td>
+<td><code>list[float]</code></td>
+<td>nm</td>
+</tr>
+<tr>
+<td><code>basename</code></td>
+<td>D rectory in which images was found.</td>
+<td><code>str</code></td>
+<td>N/A</td>
+</tr>
+</tbody>
+</table>
+<h2 id="molecule_statisticscsv"><code>molecule_statistics.csv</code></h2>
+<p>The <code>molecule_statistics.csv</code> file contains data about molecules that have been detected and has the following fields:</p>
+<table>
+<thead>
+<tr>
+<th>Column / field / feature</th>
+<th>Description</th>
+<th>Type</th>
+<th>Units</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>image</code></td>
+<td>Filename (minus extension) of scan.</td>
+<td><code>str</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>grain_number</code></td>
+<td>Id of the grain the molecule is a part of.</td>
+<td><code>int</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>molecule_number</code></td>
+<td>Id of the molecule within its grain.</td>
+<td><code>int</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>circular</code></td>
+<td>If the molecule is circular, meaning it has no endpoints.</td>
+<td><code>bool</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>contour_length</code></td>
+<td>Length of the contour</td>
+<td><code>float</code></td>
+<td>nm</td>
+</tr>
+<tr>
+<td><code>curvature_num_turns</code></td>
+<td>The number of turns in the molecule calculated from the curvature.</td>
+<td><code>int</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>curvature_mean</code></td>
+<td>The mean curvature for the molecule.</td>
+<td><code>float</code></td>
+<td>1/nm</td>
+</tr>
+<tr>
+<td><code>curvature_max</code></td>
+<td>The maximum curvature for the molecule.</td>
+<td><code>float</code></td>
+<td>1/nm</td>
+</tr>
+<tr>
+<td><code>curvature_min</code></td>
+<td>The minimum curvature for the molecule.</td>
+<td><code>float</code></td>
+<td>1/nm</td>
+</tr>
+<tr>
+<td><code>curvature_std</code></td>
+<td>The standard deviation of curvatures for the molecule.</td>
+<td><code>float</code></td>
+<td>1/nm</td>
+</tr>
+<tr>
+<td><code>curvature_var</code></td>
+<td>The variance of curvatures for the molecule.</td>
+<td><code>float</code></td>
+<td>1/nm^2</td>
+</tr>
+<tr>
+<td><code>curvature_total</code></td>
+<td>The total curvature for the molecule.</td>
+<td><code>float</code></td>
+<td>1/nm</td>
+</tr>
+<tr>
+<td><code>curvature_median</code></td>
+<td>The median curvature for the molecule.</td>
+<td><code>float</code></td>
+<td>1/nm</td>
+</tr>
+<tr>
+<td><code>curvature_iqr</code></td>
+<td>Interquartile range of curvatures for the molecule.</td>
+<td><code>float</code></td>
+<td>1/nm</td>
+</tr>
+<tr>
+<td><code>curvature_90th</code></td>
+<td>The 90th percentile curvature for the molecule.</td>
+<td><code>float</code></td>
+<td>1/nm</td>
+</tr>
+<tr>
+<td><code>end_to_end_distance</code></td>
+<td>Distance between start and end points of a molecule, if circular this value is 0.</td>
+<td><code>float</code></td>
+<td>nm</td>
+</tr>
+<tr>
+<td><code>topology</code></td>
+<td>Topological classification of the molecule.</td>
+<td><code>str</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>topology</code></td>
+<td>Reverse of the topological classification of the molecule.</td>
+<td><code>str</code></td>
+<td>N/A</td>
+</tr>
+</tbody>
+</table>
 
 
 

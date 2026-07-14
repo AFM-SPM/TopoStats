@@ -2618,8 +2618,8 @@ ordering worked successfully, and whether the skeleton matches the underlying sa
 <p><img alt="ordered trace to spline" src="../../_static/images/splining/overview.png" /></p>
 <p>This smooths the ordered trace by using an average of splines through the ordered coordinates (<code>spline</code> method) or using
 the mean coordinate of a rolling window (<code>rolling_window</code> method), helping to resolve length errors in jagged in the
-skeletons. It adds the contour length and end-to-end euclidean distance to the <code>all_mol_statistics.csv</code> and the sum and
-average of these respectively to the <code>all_statistics.csv</code>.</p>
+skeletons. It adds the contour length and end-to-end euclidean distance to the <code>molecule_statistics.csv</code> and the sum and
+average of these respectively to the <code>grain_statistics.csv</code>.</p>
 <p>Some quick FYI's:</p>
 <ul>
 <li><strong>Constricted Traces</strong> - Using the <code>rolling_window</code> method with a rolling window size that is not far below the

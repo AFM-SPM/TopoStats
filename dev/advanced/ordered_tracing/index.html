@@ -2686,7 +2686,7 @@ NodeStats.</p>
 <p>This module orders the disordered trace pixel-by-pixel (<code>topostats</code> method) or segment-by-segment (<code>nodestats</code> method),
 giving direction to the trace and creating a path to follow. It adds the number of identified molecules (found by
 restarting the trace when using the <code>nodestats</code> method) and whether the trace contains endpoints and is therefore
-circular or not to the <code>all_statistics.csv</code>.</p>
+circular or not to the <code>grain_statistics.csv</code>.</p>
 <p>Some quick FYI's:</p>
 <ul>
 <li><strong>Multiple molecules</strong> - By design the <code>topostats</code> ordering method will only produce a single ordered trace per grain,
@@ -2810,18 +2810,18 @@ pixel which has the lowest angular change.</p>
 <tbody>
 <tr>
 <td><code>circular</code></td>
-<td>The number of molecules found by following the tracing paths. Note: This will always be 1 for the TopoStats method.</td>
-<td><code>integer</code></td>
-</tr>
-<tr>
-<td><code>topology</code></td>
 <td>Whether the disordered trace contains an endpoint.</td>
 <td><code>bool</code></td>
 </tr>
 <tr>
+<td><code>topology</code></td>
+<td>Topological classification of the molecule.</td>
+<td><code>str</code></td>
+</tr>
+<tr>
 <td><code>topology_flip</code></td>
-<td>The number of molecules found by following the tracing paths. Note: This will always be 1 for the TopoStats method.</td>
-<td><code>integer</code></td>
+<td>Reverse of the topological classification of the molecule.</td>
+<td><code>str</code></td>
 </tr>
 <tr>
 <td><code>processing</code></td>
