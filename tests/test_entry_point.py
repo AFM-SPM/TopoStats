@@ -9,6 +9,7 @@ from topostats import run_modules
 from topostats.config import write_config_with_comments
 from topostats.entry_point import (
     entry_point,
+    pair_float,
 )
 from topostats.plotting import run_toposum
 
@@ -693,3 +694,29 @@ def test_entry_point_create_config_file(config: str, target_file: str, tmp_path:
             ]
         )
     assert Path(f"{tmp_path}/{target_file}").is_file()
+
+
+@pytest.mark.parametrize(
+    ("list_str", "expected"),
+    [
+        pytest.param("1.0,2.0", [1.0, 2.0], id="correct format"),
+        pytest.param(
+            "1.0,2.0,3.0,4.0",
+            None,
+            id="incorrect format",
+            marks=pytest.mark.xfail(reason="Incorrect format used."),
+        ),
+        pytest.param(
+            [1.0, 2.0],
+            None,
+            id="incorrect datatype",
+            marks=pytest.mark.xfail(reason="Incorrect type used."),
+        ),
+    ],
+)
+def test_pair_float(list_str: str, expected: list[float]) -> None:
+    """Method for checking that a valid string is returned correctly from pair_float()."""
+    assert isinstance(list_str, str)
+    new_list = pair_float(list_str)
+
+    assert new_list == expected

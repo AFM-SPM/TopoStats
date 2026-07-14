@@ -493,7 +493,7 @@ class Grains:
         for i, threshold in enumerate(self.thresholds):
             LOGGER.debug(f"[{self.filename}] : Finding grains, threshold: ({threshold})")
             self.mask_images[i] = {}
-            # iterate over the thresholds for the current direction
+            # iterate over the thresholds
             traditional_full_mask_tensor = Grains.multi_class_thresholding(
                 image=self.image,
                 thresholds=[threshold],

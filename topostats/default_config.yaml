@@ -37,7 +37,7 @@ grains:
   otsu_threshold_multiplier: 1.0
   threshold_std_dev: [-10, 1] # Thresholds for grains relative to the image background. Negative values are below and positive values are above. List[float].
   threshold_absolute: [-1.0, 1.0] # Thresholds for grains relative to the image background. Negative values are below and psoitive values are above. List[float].
-  area_thresholds: [[null, null], [300, 3000]] # [Low, High] in nm^2 (also takes null), one set for each threshold
+  area_thresholds: [[null, null], [300, 3000]] # [[Low, High], [Low, High]] in nm^2 (also takes null), one set for each threshold
   remove_edge_intersecting_grains: true # Whether or not to remove grains that touch the image border
   endpoint_connection_config:
     run: false # Whether to run the endpoint connection process

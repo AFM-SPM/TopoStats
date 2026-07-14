@@ -16,9 +16,9 @@ from topostats.plotting import run_toposum
 # pylint: disable=too-many-statements
 
 
-def pair_float(flat_list: list):
+def pair_float(list_str: str):
     """
-    Organise multiple floats into a list.
+    Organise multiple floats as a string into a list.
 
     "x,y" -> [x, y]
 
@@ -26,7 +26,7 @@ def pair_float(flat_list: list):
 
     Parameters
     ----------
-    flat_list : list
+    list_str : list
         A list to be split into 2d.
 
     Returns
@@ -34,9 +34,8 @@ def pair_float(flat_list: list):
     list[float]
         A 2d list.
     """
-    print(flat_list)
     try:
-        a, b = flat_list.split(",")
+        a, b = list_str.split(",")
         return [float(a), float(b)]
     except ValueError as err:
         raise arg.ArgumentTypeError("Each pair must be 'low,high' (e.g. 1.0,2.0)") from err

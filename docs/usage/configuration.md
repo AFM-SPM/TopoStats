@@ -42,10 +42,8 @@ filter:
     run: true
 grains:
   threshold_method: absolute
-  threshold_absolute:
-    above: 1.2
-  absolute_area_threshold:
-    above: [400, 1000]
+  threshold_absolute: [1.2]
+  absolute_area_threshold: [[], [400, 1000]]
 ```
 
 ## Using a custom configuration
