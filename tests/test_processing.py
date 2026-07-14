@@ -936,7 +936,6 @@ def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
         core_out_path=tmp_path,
     )
     assert isinstance(topostats_object.grain_crops, dict)
-    # @ns-rse 2025-11-18 - Only getting six above, should be two below
     assert len(topostats_object.grain_crops) == 8
     for _, grain_crop in topostats_object.grain_crops.items():
         assert isinstance(grain_crop, GrainCrop)

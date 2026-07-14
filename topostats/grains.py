@@ -658,9 +658,8 @@ class Grains:
                     self.grain_crops = graincrops_merged_classes
                 else:
                     # If graincrops have already been found in a previous threshold iteration
-                    # Assign unused key values to new graincrops to avoid replacing existing data
-                    # FMT - add axis rather than adding together multiple boolean arrays?
-                    full_mask_tensor_merged_classes += full_mask_tensor_merged_classes
+                    # assign unused key values to new graincrops to avoid replacing existing data
+                    self.topostats_object.full_mask_tensor += full_mask_tensor_merged_classes
                     curr_crops = len(self.grain_crops)
                     for graincrop_id, graincrop in graincrops_merged_classes.items():
                         new_k = int(graincrop_id) + curr_crops

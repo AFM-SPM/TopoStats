@@ -18,9 +18,11 @@ from topostats.plotting import run_toposum
 
 def pair_float(flat_list: list):
     """
-    Organise multiple floats into 2d lists.
+    Organise multiple floats into a list.
 
-    [w, x, y, z] -> [[w, x], [y, z]].
+    "x,y" -> [x, y]
+
+    Used to parse values given in an area_threshold command line argument.
 
     Parameters
     ----------
@@ -32,6 +34,7 @@ def pair_float(flat_list: list):
     list[float]
         A 2d list.
     """
+    print(flat_list)
     try:
         a, b = flat_list.split(",")
         return [float(a), float(b)]
