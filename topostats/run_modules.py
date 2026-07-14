@@ -356,7 +356,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
 
     else:
         LOGGER.info(
-            "Writing 'molecule_statistics.csv', 'branch_statistics.csv' and'matched_branch_statistics.csv' skipped"
+            "Writing 'molecule_statistics.csv', 'branch_statistics.csv' and 'matched_branch_statistics.csv' skipped"
         )
 
     # Write config to file

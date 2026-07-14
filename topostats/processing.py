@@ -1011,7 +1011,7 @@ def get_out_paths(
     return core_out_path, filter_out_path, grain_out_path, tracing_out_path
 
 
-def process_scan(
+def process_scan(  # noqa: C901
     topostats_object: TopoStats,
     base_dir: str | Path,
     filter_config: dict,
@@ -1171,6 +1171,7 @@ def process_scan(
     if topostats_object.grain_crops is not None and len(topostats_object.grain_crops) > 0:
         molecule_stats = {}
         disordered_tracing_stats = {}
+        disordered_traces = {}
         # Loop over grains pulling out...
         #
         # - tracing statistics from disordered traces
@@ -1179,7 +1180,14 @@ def process_scan(
         # Saving to a dictionary which we then flatten
         for grain_number, grain_crop in topostats_object.grain_crops.items():
             if grain_crop.disordered_trace is not None:
-                disordered_tracing_stats[grain_number] = grain_crop.disordered_trace.stats
+                dis_trace = grain_crop.disordered_trace
+                disordered_tracing_stats[grain_number] = dis_trace.stats
+                disordered_traces[grain_number] = {
+                    "grain_endpoints": dis_trace.grain_endpoints,
+                    "grain_junctions": dis_trace.grain_junctions,
+                    "total_branch_length": dis_trace.total_branch_length,
+                    "grain_width_mean": dis_trace.grain_width_mean,
+                }
             if grain_crop.ordered_trace is not None and grain_crop.ordered_trace.molecule_data is not None:
                 molecule_stats[grain_number] = grain_crop.ordered_trace.collate_molecule_statistics()
         # Molecule Statistics - convert nested dictionary to DataFrame
@@ -1232,12 +1240,25 @@ def process_scan(
         grain_stats = {
             grain_number: grain_crop.stats for grain_number, grain_crop in topostats_object.grain_crops.items()
         }
+        # Add top level statistics from a grain's disordered trace to the grain_stats dictionary
+        combined_grain_stats = {}
+        for grain_number in grain_stats:
+            combined_grain_stats[grain_number] = {}
+            for class_type in grain_stats[grain_number]:
+                combined_grain_stats[grain_number][class_type] = {}
+                for subgrain_number in grain_stats[grain_number][class_type]:
+                    combined_grain_stats[grain_number][class_type][subgrain_number] = {
+                        **grain_stats[grain_number][class_type][subgrain_number],
+                        **disordered_traces[grain_number],
+                    }
         grain_stats_df = pd.DataFrame.from_dict(
             {
-                (grain_number, class_type, subgrain_number): grain_stats[grain_number][class_type][subgrain_number]
-                for grain_number, _ in grain_stats.items()
-                for class_type, _ in grain_stats[grain_number].items()
-                for subgrain_number, _ in grain_stats[grain_number][class_type].items()
+                (grain_number, class_type, subgrain_number): combined_grain_stats[grain_number][class_type][
+                    subgrain_number
+                ]
+                for grain_number, _ in combined_grain_stats.items()
+                for class_type, _ in combined_grain_stats[grain_number].items()
+                for subgrain_number, _ in combined_grain_stats[grain_number][class_type].items()
             },
             orient="index",
         )
@@ -1436,7 +1457,7 @@ def process_grainstats(
     Returns
     -------
     tuple[str | None, TopoStats, pd.DataFrame | None]
-        A tuple of the image name, the updated TopoStats object, and the grain statistics DataFrame or None.```
+        A tuple of the image name, the updated TopoStats object, and the grain statistics DataFrame or None.
     """
     # Setup configuration, we use that from the topostats_object.config if not explicitly given an option
     config = topostats_object.config.copy()
