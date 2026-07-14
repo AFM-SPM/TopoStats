@@ -130,6 +130,7 @@ class nodeStats:
         self.mol_coords = {}
         self.visuals = {}
         self.all_visuals_img = None
+        self.num_nodes = 0
 
     def get_node_stats(self) -> dict[int, npt.NDArray]:
         """
@@ -164,13 +165,17 @@ class nodeStats:
                 self.connected_nodes, node_extend_dist=self.node_extend_dist
             )
             # obtain a mask of node centers and their count
-            self.node_centre_mask = self.highlight_node_centres(self.connected_nodes)
+            self.node_centre_mask, self.num_nodes = self.highlight_node_centres(self.connected_nodes)
             # Begin the hefty crossing analysis
             LOGGER.debug(f"[{self.filename}] : Nodestats - {self.n_grain} analysing found crossings.")
             self.analyse_nodes(max_branch_length=self.branch_pairing_length)
             self.compile_metrics()
         else:
             LOGGER.debug(f"[{self.filename}] : Nodestats - {self.n_grain} has no crossings.")
+        # Add the number of nodes to the grain's stats
+        # ISSUE: what numbers/ loops do I use for the keys here?
+        # they're for class_number and subgrain_number
+        self.grain_crop.stats[1][0]["num_nodes"] = self.num_nodes
         # Add the node dictionary
         return self.image_dict
 
@@ -359,11 +364,13 @@ class nodeStats:
         big_nodes = np.where(mask == 3, 1, 0)  # remove non-nodes & set nodes to 1
         big_node_mask = label(big_nodes)
 
+        num_nodes = len(np.unique(big_node_mask))
+
         for i in np.delete(np.unique(big_node_mask), 0):  # get node indices
             centre = np.unravel_index((self.image * (big_node_mask == i).astype(int)).argmax(), self.image.shape)
             small_node_mask[centre] = 3
 
-        return small_node_mask
+        return small_node_mask, num_nodes
 
     def connect_extended_nodes_nearest(
         self, connected_nodes: npt.NDArray, node_extend_dist: float = -1
