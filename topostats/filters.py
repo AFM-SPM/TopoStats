@@ -66,9 +66,9 @@ class Filters:
         otsu_threshold_multiplier: float = 1.7,
         threshold_std_dev: dict | None = None,
         threshold_absolute: dict | None = None,
-        gaussian_size: float = None,
+        gaussian_size: float | None = None,
         gaussian_mode: str = "nearest",
-        remove_scars: dict = None,
+        remove_scars: dict | None = None,
     ):
         """
         Initialise the class.
@@ -153,7 +153,7 @@ class Filters:
         }
 
     def median_flatten(
-        self, image: npt.NDArray, mask: npt.NDArray = None, row_alignment_quantile: float = 0.5
+        self, image: npt.NDArray, mask: npt.NDArray | None = None, row_alignment_quantile: float = 0.5
     ) -> npt.NDArray:
         """
         Flatten images using median differences.
@@ -167,7 +167,7 @@ class Filters:
         ----------
         image : npt.NDArray
             2-D image of the data to align the rows of.
-        mask : npt.NDArray
+        mask : npt.NDArray, optional
             Boolean array of points to mask (ignore).
         row_alignment_quantile : float
             Quantile (in the range 0.0 to 1.0) used for defining the average background.
@@ -196,7 +196,7 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
 
         return image
 
-    def remove_tilt(self, image: npt.NDArray, mask: npt.NDArray = None) -> npt.NDArray:
+    def remove_tilt(self, image: npt.NDArray, mask: npt.NDArray | None = None) -> npt.NDArray:
         """
         Remove the planar tilt from an image (linear in 2D spaces).
 
@@ -207,7 +207,7 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
         ----------
         image : npt.NDArray
             2-D image of the data to remove the planar tilt from.
-        mask : npt.NDArray
+        mask : npt.NDArray, optional
             Boolean array of points to mask (ignore).
 
         Returns
@@ -361,7 +361,7 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
 
         return image
 
-    def remove_quadratic(self, image: npt.NDArray, mask: npt.NDArray = None) -> npt.NDArray:
+    def remove_quadratic(self, image: npt.NDArray, mask: npt.NDArray | None = None) -> npt.NDArray:
         """
         Remove the quadratic bowing that can be seen in some large-scale AFM images.
 
@@ -372,7 +372,7 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
         ----------
         image : npt.NDArray
             2-D image of the data to remove the quadratic from.
-        mask : npt.NDArray
+        mask : npt.NDArray, optional
             Boolean array of points to mask (ignore).
 
         Returns
@@ -445,7 +445,7 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
         """
         return self.calc_diff(array) / shape
 
-    def average_background(self, image: npt.NDArray, mask: npt.NDArray = None) -> npt.NDArray:
+    def average_background(self, image: npt.NDArray, mask: npt.NDArray | None = None) -> npt.NDArray:
         """
         Zero the background by subtracting the non-masked mean from all pixels.
 
@@ -453,7 +453,7 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
         ----------
         image : npt.NDArray
             Numpy array representing the image.
-        mask : npt.NDArray
+        mask : npt.NDArray, optional
             Mask of the array, should have the same dimensions as image.
 
         Returns
@@ -515,17 +515,22 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
         ...             threshold_method='otsu')
         filter.filter_image()
         """
-        self.images["initial_median_flatten"] = self.median_flatten(
+        self.images["initial_median_flatten"]: npt.NDArray = self.median_flatten(
             self.images["pixels"], mask=None, row_alignment_quantile=self.row_alignment_quantile
         )
-        self.images["initial_tilt_removal"] = self.remove_tilt(self.images["initial_median_flatten"], mask=None)
-        self.images["initial_quadratic_removal"] = self.remove_quadratic(self.images["initial_tilt_removal"], mask=None)
-        self.images["initial_nonlinear_polynomial_removal"] = self.remove_nonlinear_polynomial(
+        self.images["initial_tilt_removal"]: npt.NDArray = self.remove_tilt(
+            self.images["initial_median_flatten"], mask=None
+        )
+        self.images["initial_quadratic_removal"]: npt.NDArray = self.remove_quadratic(
+            self.images["initial_tilt_removal"], mask=None
+        )
+        self.images["initial_nonlinear_polynomial_removal"]: npt.NDArray = self.remove_nonlinear_polynomial(
             self.images["initial_quadratic_removal"], mask=None
         )
 
         # Remove scars
         run_scar_removal = self.remove_scars_config.pop("run")
+        self.images["initial_scar_removal"]: npt.NDArray
         if run_scar_removal:
             LOGGER.debug(f"[{self.filename}] : Initial scar removal")
             self.images["initial_scar_removal"], _ = scars.remove_scars(
@@ -538,7 +543,7 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
             self.images["initial_scar_removal"] = self.images["initial_nonlinear_polynomial_removal"]
 
         # Zero the data before thresholding, helps with absolute thresholding
-        self.images["initial_zero_average_background"] = self.average_background(
+        self.images["initial_zero_average_background"]: npt.NDArray = self.average_background(
             self.images["initial_scar_removal"], mask=None
         )
 
@@ -558,19 +563,22 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
             thresholds=self.thresholds,
             img_name=self.filename,
         )
-        self.images["masked_median_flatten"] = self.median_flatten(
+        self.images["masked_median_flatten"]: npt.NDArray = self.median_flatten(
             self.images["initial_tilt_removal"],
             self.images["mask"],
             row_alignment_quantile=self.row_alignment_quantile,
         )
-        self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_median_flatten"], self.images["mask"])
-        self.images["masked_quadratic_removal"] = self.remove_quadratic(
+        self.images["masked_tilt_removal"]: npt.NDArray = self.remove_tilt(
+            self.images["masked_median_flatten"], self.images["mask"]
+        )
+        self.images["masked_quadratic_removal"]: npt.NDArray = self.remove_quadratic(
             self.images["masked_tilt_removal"], self.images["mask"]
         )
-        self.images["masked_nonlinear_polynomial_removal"] = self.remove_nonlinear_polynomial(
+        self.images["masked_nonlinear_polynomial_removal"]: npt.NDArray = self.remove_nonlinear_polynomial(
             self.images["masked_quadratic_removal"], self.images["mask"]
         )
         # Remove scars
+        self.images["secondary_scar_removal"]: npt.NDArray
         if run_scar_removal:
             LOGGER.debug(f"[{self.filename}] : Secondary scar removal")
             self.images["secondary_scar_removal"], scar_mask = scars.remove_scars(
@@ -582,7 +590,7 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
         else:
             LOGGER.debug(f"[{self.filename}] : Skipping scar removal as requested from config")
             self.images["secondary_scar_removal"] = self.images["masked_nonlinear_polynomial_removal"]
-        self.images["final_zero_average_background"] = self.average_background(
+        self.images["final_zero_average_background"]: npt.NDArray = self.average_background(
             self.images["secondary_scar_removal"], self.images["mask"]
         )
         self.images["gaussian_filtered"] = self.gaussian_filter(self.images["final_zero_average_background"])

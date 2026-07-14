@@ -56,7 +56,7 @@ The `all_statistics.csv` file contains details on each grain that has been detec
 
 ## `image_stats.csv`
 
-The `image_stats.csv` summarises the metrics
+The `image_stats.csv` summarises the metrics for a processed image as a whole. The fields are as follows:
 
 | Column / field / feature | Description                                                                                                                                                                                                                                                                  | Type    | Units |
 | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ----- |
@@ -71,9 +71,60 @@ The `image_stats.csv` summarises the metrics
 | `grains_per_m2`          | Density of grains above/ below the threshold.                                                                                                                                                                                                                                | `int`   | N/A   |
 | `rms_roughness`          | Root Mean Square Roughness, the square root of the mean squared heights across the surface ([Surface Roughness](https://www.sciencedirect.com/topics/materials-science/surface-roughness); [Surface roughness (Wikipedia)](https://en.wikipedia.org/wiki/Surface_roughness)) | `float` | N/A   |
 
-## `all_disordered_segment_statistics.csv`
+## `branch_statistics.csv`
 
-Please refer to the specific sections on output from running [Disordered Segment Statistics
-Tracing](../advanced/disordered_tracing.md#disordered-segment-statistics) section of the [Disordered
-Tracing](../advanced/disordered_tracing.md) page for the data dictionary of the `all_disordered_segment_statistics.csv`
-output.
+The `branch_statistics.csv` file contains details on each branch that has been detected and traced and has the
+following fields:
+
+| Column / field / feature | Description                                                                                                                | Type    | Units |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------- | ------- | ----- |
+| `image`                  | Filename (minus extension) of scan.                                                                                        | `str`   | N/A   |
+| `grain_number`           | Id of the grain the branch is a part of.                                                                                   | `int`   | N/A   |
+| `index`                  | Index of the branch within the grain.                                                                                      | `int`   | N/A   |
+| `branch_distance`        | Distance of the branch from end to end.                                                                                    | `float` | nm    |
+| `branch_type`            | Branch classification of endpoint-to-endpoint (0), endpoint-to-junction (1), junction-to-junction (2), isolated cycle (3). | `int`   | N/A   |
+| `connected_segments`     | The index of the branch segments that this current branch is connected to via a junction point.                            | `list`  | N/A   |
+| `mean_pixel_value`       | Average pixel value across the branch.                                                                                     | `float` | nm    |
+| `std_pixel_value`        | Std pixel value across the branch.                                                                                         | `float` | nm    |
+| `min_value`              | Minimum value of all pixels across the branch.                                                                             | `float` | nm    |
+| `median_value`           | Median value of all pixels across the branch.                                                                              | `float` | nm    |
+| `basename`               | Directory in which images was found.                                                                                       | `str`   | N/A   |
+
+The `matched_branch_statistics.csv` file contains data about matched branches that have been detected and has the
+following fields:
+
+| Column / field / feature | Description                              | Type          | Units |
+| ------------------------ | ---------------------------------------- | ------------- | ----- |
+| `image`                  | Filename (minus extension) of scan.      | `str`         | N/A   |
+| `grain_number`           | Id of the grain the branch is a part of. | `int`         | N/A   |
+| `node`                   | Id of the node.                          | `int`         | N/A   |
+| `branch`                 | Id of the branch.                        | `int`         | N/A   |
+| `fwhm`                   | Full-width half maximum.                 | `float`       | nm    |
+| `fwhm_half_maxs`         | Half-maximums from a matched branch.     | `list[float]` | nm    |
+| `fwhm_peaks`             | Pea s from a matched branch.             | `list[float]` | nm    |
+| `basename`               | D rectory in which images was found.     | `str`         | N/A   |
+
+## `molecule_statistics.csv`
+
+The `molecule_statistics.csv` file contains data about molecules that have been detected and has the following fields:
+
+| Column / field / feature | Description                                                                       | Type    | Units  |
+| ------------------------ | --------------------------------------------------------------------------------- | ------- | ------ |
+| `image`                  | Filename (minus extension) of scan.                                               | `str`   | N/A    |
+| `grain_number`           | Id of the grain the molecule is a part of.                                        | `int`   | N/A    |
+| `molecule_number`        | Id of the molecule within its grain.                                              | `int`   | N/A    |
+| `circular`               | If the molecule is circular, meaning it has no endpoints.                         | `bool`  | N/A    |
+| `contour_length`         | Length of the contour                                                             | `float` | nm     |
+| `curvature_num_turns`    | The number of turns in the molecule calculated from the curvature.                | `int`   | N/A    |
+| `curvature_mean`         | The mean curvature for the molecule.                                              | `float` | 1/nm   |
+| `curvature_max`          | The maximum curvature for the molecule.                                           | `float` | 1/nm   |
+| `curvature_min`          | The minimum curvature for the molecule.                                           | `float` | 1/nm   |
+| `curvature_std`          | The standard deviation of curvatures for the molecule.                            | `float` | 1/nm   |
+| `curvature_var`          | The variance of curvatures for the molecule.                                      | `float` | 1/nm^2 |
+| `curvature_total`        | The total curvature for the molecule.                                             | `float` | 1/nm   |
+| `curvature_median`       | The median curvature for the molecule.                                            | `float` | 1/nm   |
+| `curvature_iqr`          | Interquartile range of curvatures for the molecule.                               | `float` | 1/nm   |
+| `curvature_90th`         | The 90th percentile curvature for the molecule.                                   | `float` | 1/nm   |
+| `end_to_end_distance`    | Distance between start and end points of a molecule, if circular this value is 0. | `float` | nm     |
+| `topology`               | Topological classification of the molecule.                                       | `str`   | N/A    |
+| `topology`               | Reverse of the topological classification of the molecule.                        | `str`   | N/A    |

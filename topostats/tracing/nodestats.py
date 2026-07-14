@@ -1700,6 +1700,8 @@ class nodeStats:
         """Add number of crossings, mean and minimum crossing confidence to the ``grain_crops.stats`` dictionary."""
         # Add Node Statistics to GrainCrop.stats for each class and subgrain
         num_crossings = (self.node_centre_mask == 3).sum()
+        # Avoid NaN values
+        num_crossings = 0 if num_crossings is None else num_crossings
         mean_conf, min_conf = self.crossing_confidence_statistics()
         for class_number, stats in self.grain_crop.stats.items():
             for subgrain_index, _ in stats.items():

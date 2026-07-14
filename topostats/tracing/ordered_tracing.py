@@ -213,8 +213,8 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
 
     @staticmethod
     def remove_common_values(
-        ordered_array: npt.NDArray, common_value_check_array: npt.NDArray, retain: list = ()
-    ) -> np.array:
+        ordered_array: npt.NDArray, common_value_check_array: npt.NDArray, retain: list | None = None
+    ) -> npt.NDArray:
         """
         Remove common values in common_value_check_array from ordered_array while retaining specified coordinates.
 
@@ -225,13 +225,16 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         common_value_check_array : npt.NDArray
             Coordinate array containing any common values to be removed from ordered_array.
         retain : list, optional
-            List of possible coordinates to keep, by default ().
+            List of possible coordinates to keep.
 
         Returns
         -------
-        np.array
+        npt.NDArray
             Unique ordered_array values and retained coordinates. Retains the order of ordered_array.
         """
+        if retain is None:
+            retain = []
+
         # Convert the arrays to sets for faster common value lookup
         set_arr2 = {tuple(row) for row in common_value_check_array}
         set_retain = {tuple(row) for row in retain}
@@ -442,7 +445,7 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         return ordered_segment_coords[coord_idx][::-1]  # end is endpoint
 
     @staticmethod
-    def order_from_end(last_segment_coord: npt.NDArray, current_segment: npt.NDArray) -> npt.NDArray:
+    def order_from_end(last_segment_coord: npt.NDArray, current_segment: npt.NDArray) -> tuple[npt.NDArray, bool]:
         """
         Order the current segment to follow from the end of the previous one.
 
@@ -587,14 +590,16 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
                 return False
         return True
 
-    def identify_writhes(self) -> str | dict:
+    def identify_writhes(self) -> tuple[str, dict]:
         """
         Identify the writhe topology at each crossing in the image.
 
         Returns
         -------
-        str | dict
-            A string of the whole grain writhe sign, and a dictionary linking each node to it's sign.
+            writhe_string: str
+                A string of the whole grain writhe sign.
+            node_to_writhe: dict
+                A dictionary linking each node to its sign.
         """
         # compile all vectors for each node and their z_idx
         #   - want for each node, ordered vectors according to z_idx
@@ -650,8 +655,8 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
 
         Returns
         -------
-        tuple[list, dict, dict]
-            A list of each molecules ordered trace coordinates, the ordered_tracing stats, and the images.
+        dict[str, npt.NDArray]
+            A dictionary of ordered trace images.
         """
         ordered_traces, topology, cross_add, crossing_coords, fwhms = self.compile_trace(
             reverse_min_conf_crossing=False
@@ -668,8 +673,9 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         # each molecule this is stored along with the original
         topology_flip = self.compile_trace(reverse_min_conf_crossing=True)[1]
 
-        molecule_data = {} if ordered_traces is not None else None
+        molecule_data = None
         if ordered_traces is not None:
+            molecule_data = {}
             for i, mol_trace in enumerate(ordered_traces):
                 if len(mol_trace) > 3:  # if > 4 coords to trace
                     self.mol_tracing_stats["circular"] = linear_or_circular(mol_trace[:, :2])
