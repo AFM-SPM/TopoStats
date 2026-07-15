@@ -186,9 +186,9 @@ class getSkeleton:  # pylint: disable=too-few-public-methods
         npt.NDArray
             Masked array reduced to a single pixel thickness.
         """
-        return topostatsSkeletonize(image, mask, height_bias).do_skeletonising()
+        # return topostatsSkeletonize(image, mask, height_bias).do_skeletonising()
 
-        # return Skeletonisation(image, mask, height_bias).do_skeletonisation()
+        return Skeletonisation(image, mask, height_bias).do_skeletonisation()
 
 
 class Skeletonisation:
@@ -267,8 +267,9 @@ class Skeletonisation:
         img_min, img_max = self.image.min(), self.image.max()
         norm_height = (self.image - img_min) / (img_max - img_min + 1e-8)
 
-        # Combine the two arrays - (1.0 - norm_height to delete lighter pixels)
-        return dist + norm_height * self.height_bias
+        # Combine the two arrays, balanced by the height bias
+        print("Priority chosen:", dist * (1 - self.height_bias) + norm_height * self.height_bias)
+        return dist * (1 - self.height_bias) + norm_height * self.height_bias
 
     def skeletonise_with_bias(self, priority_map):
         """
@@ -277,6 +278,12 @@ class Skeletonisation:
         Loop through pixels in the mask and queue any pixels on a boundary, then loop through the
         created queue and check each for deletability. If so, delete and add its neighbouring pixels
         to the queue as they are now boundary pixels.
+
+        Parameters
+        ----------
+        priority_map : np.ndarray
+            A 2d array of shape self.mask, each value between 0-1 and representing the 'priority' rating
+            of that pixel. The higher the priority, the more it is chosen over other pixels when skeletonising.
         """
         height, width = self.mask.shape
         queue = []
@@ -319,6 +326,13 @@ class Skeletonisation:
         at the end of a skeleton (only 1 neighbour) or that it isn't in the centre of a blob
         (therefore not an edge pixel).
 
+        Parameters
+        ----------
+        row : int
+            The row index of the pixel being analysed.
+        col : int
+            The column index of the pixel being analysed.
+
         Returns
         -------
         bool
@@ -341,7 +355,7 @@ class Skeletonisation:
         # 1 count that as a transition. A central pixel on the edge of a block will always have one
         # single transition.
         transitions = 0
-        for i in range(len(neighbours)):
+        for i, _ in enumerate(neighbours):
             if neighbours[i] == 0 and neighbours[(i + 1) % 8] == 1:
                 transitions += 1
 
