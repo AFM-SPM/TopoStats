@@ -1241,7 +1241,7 @@ def process_scan(  # noqa: C901
             grain_number: grain_crop.stats for grain_number, grain_crop in topostats_object.grain_crops.items()
         }
         # Add top level statistics from a grain's disordered trace to the grain_stats dictionary
-        if len(disordered_traces.keys()) > 0:  # Only if disordered tracing was run
+        if disordered_traces:  # Only if disordered tracing was run
             combined_grain_stats = {}
             for grain_number in grain_stats:
                 combined_grain_stats[grain_number] = {}
