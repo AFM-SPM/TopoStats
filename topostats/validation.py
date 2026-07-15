@@ -220,7 +220,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                     "topostats",
                     error="Invalid value in config for 'grains.endpoint_connection_config.skeletonisation_method', valid values are 'zhang', 'lee', 'thin', 'medial_axis' or 'topostats'",
                 ),
-                "skeletonisation_height_bias": lambda n: 0 < n <= 1,
+                "skeletonisation_height_bias": lambda n: 0 <= n <= 1,
                 "endpoint_connection_distance_nm": lambda n: n > 0.0,
                 "endpoint_connection_cost_map_height_maximum": lambda n: n > 0.0,
                 "pruning_params": {
@@ -356,7 +356,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                     error="Invalid value in config for 'disordered_tracing.skeletonisation_method',"
                     "valid values are 'zhang', 'lee', 'thin', 'medial_axis', 'topostats'",
                 ),
-                "height_bias": lambda n: 0 < n <= 1,
+                "height_bias": lambda n: 0 <= n <= 1,
             },
             "pruning_params": {
                 "method": Or(

@@ -1,11 +1,14 @@
 """Skeletonize molecules."""
 
-import logging
 from collections.abc import Callable
+import heapq
+import logging
 
 import numpy as np
 import numpy.typing as npt
+from scipy.ndimage import distance_transform_edt
 from skimage.morphology import medial_axis, skeletonize, thin
+import skimage as ski
 
 from topostats.logs.logs import LOGGER_NAME
 
@@ -184,6 +187,199 @@ class getSkeleton:  # pylint: disable=too-few-public-methods
             Masked array reduced to a single pixel thickness.
         """
         return topostatsSkeletonize(image, mask, height_bias).do_skeletonising()
+
+        # return Skeletonisation(image, mask, height_bias).do_skeletonisation()
+
+
+
+class Skeletonisation:
+    """
+    Skeletonise a binary array following Zhang's algorithm (Zhang and Suen, 1984).
+
+    Modifications are made to the published algorithm during the removal step to remove a fraction of the smallest pixel
+    values opposed to all of them in the aforementioned algorithm. All operations are performed on the mask entered.
+
+    Parameters
+    ----------
+    image : npt.NDArray
+        Original 2D image containing the height data.
+    mask : npt.NDArray
+        Binary image containing the object to be skeletonised. Dimensions should match those of 'image'.
+    height_bias : float
+        Ratio of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1 is all pixels
+        smiilar to Zhang.
+    """
+
+    def __init__(self, image: np.ndarray, mask: np.ndarray, height_bias: float = 0.6):
+        """
+        Initialise the class.
+
+        Parameters
+        ----------
+        image : npt.NDArray
+            Original 2D image containing the height data.
+        mask : npt.NDArray
+            Binary image containing the object to be skeletonised. Dimensions should match those of 'image'.
+        height_bias : float
+            Ratio of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria.
+        """
+        # Extend the image/ mask by mirroring to avoid edge effects
+        self.image = np.pad(image, pad_width=1, mode='edge')
+        self.mask = np.pad(mask, pad_width=1, mode='edge')
+        self.height_bias = height_bias
+
+
+    def do_skeletonisation(self) -> np.ndarray:
+        """
+        Perform skeletonisation.
+
+        Returns
+        -------
+        npt.NDArray
+            The single pixel thick, skeletonised array.
+        """
+        # Main process, skeletonise the mask
+        priority_map = self.calculate_priority_map()
+        self.skeletonise_with_bias(priority_map)
+
+        # Remove padding added in __init__() to handle edge pixels
+        self.image = self.image[1:-1, 1:-1]
+        self.mask = self.mask[1:-1, 1:-1]
+
+        # Final skeletonisation before returning avoids diagonal lines being too thick
+        return ski.morphology.skeletonize(self.mask)
+
+
+    def calculate_priority_map(self) -> np.ndarray:
+        """
+        Create an array of size mask.shape containing priority scores for each pixel.
+
+        The scores are calculated with: score = distance_to_edge + (1.0 - normalised_height) * height_bias
+        This means a higher height bias reduces the importance of the pixel being in the centre of the line
+        being skeletonised.
+
+        Returns
+        -------
+        np.ndarray
+            The priority map for each pixel in the image. Pixels not part of the mask are marked as 0.
+        """
+        # Create array of shape mask.shape with score of distance from edge
+        dist = distance_transform_edt(self.mask)
+
+        # Normalise the heightmap
+        img_min, img_max = self.image.min(), self.image.max()
+        norm_height = (self.image - img_min) / (img_max - img_min + 1e-8)
+
+        # Combine the two arrays - (1.0 - norm_height to delete lighter pixels)
+        return dist + norm_height * self.height_bias
+
+
+    def skeletonise_with_bias(self, priority_map):
+        """
+        Create a skeleton from the mask based on the given priority map.
+
+        Loop through pixels in the mask and queue any pixels on a boundary, then loop through the
+        created queue and check each for deletability. If so, delete and add its neighbouring pixels
+        to the queue as they are now boundary pixels.
+        """
+        height, width = self.mask.shape
+        queue = []
+        queue_map = np.zeros_like(self.mask, dtype=bool) # Boolean map of if the pixel is in queue
+
+        # Find all potential pixels to delete, the very edges of the image can be ignored as this is padding
+        for row in range(1, height-1):
+            for col in range(1, width-1):
+                if self.mask[row, col] == 1:
+                    # If a 1 touches a 0 it is a boundary pixel
+                    if np.min(self.mask[row-1:row+2, col-1:col+2]) == 0:
+                        heapq.heappush(queue, (priority_map[row, col], row, col))
+                        queue_map[row, col] = True
+
+        while queue:
+            _, row, col = heapq.heappop(queue)
+            queue_map[row, col] = False
+            # Skip if it's been removed from the mask in a previous iteration
+            if self.mask[row, col] == 0:
+                continue
+
+            if self._is_safe_to_delete(row, col):
+                self.mask[row, col] = 0
+                # Add neighbours in remaining mask to queue as they have become boundaries
+                for dirrow, dircol in [(-1,0), (1,0), (0,-1), (0,1), (-1,-1), (-1,1), (1,-1), (1,1)]:
+                    newrow, newcol = row + dirrow, col + dircol
+                    # Check the neighbour exists and is not already in queue
+                    if self.mask[newrow, newcol] == 1 and not queue_map[newrow, newcol]:
+                        heapq.heappush(queue, (priority_map[newrow, newcol], newrow, newcol))
+                        queue_map[newrow, newcol] = True
+            else:
+                # Not safe
+                pass
+
+
+    def _is_safe_to_delete(self, row, col) -> bool:
+        """
+        Check if a pixel can be safely deleted.
+
+        This is determined by checking neighbouring pixels and confirming the pixel is not
+        at the end of a skeleton (only 1 neighbour) or that it isn't in the centre of a blob
+        (therefore not an edge pixel).
+
+        Returns
+        -------
+        bool
+            If the pixel is safe to delete or not.
+        """
+        height, width = self.mask.shape
+        if row <= 0 or row >= height - 1 or col <= 0 or col >= width - 1:
+            return False
+
+        p = self.get_local_pixels_binary(self.mask, row, col)
+        neighbours = [p[1], p[2], p[4], p[7], p[6], p[5], p[3], p[0]]
+
+        # Check that the pixel is not at the end of a line or an isolated dot (num_neighbours < 2)
+        # and that the pixel is not surrounded (num_neighbours > 6)
+        num_neighbours = sum(neighbours)
+        if num_neighbours < 2 or num_neighbours > 6:
+            return False
+
+        # Check the pixel's neighbours in a circle, every time a pixel is 0 and the next is
+        # 1 count that as a transition. A central pixel on the edge of a block will always have one
+        # single transition.
+        transitions = 0
+        for i in range(len(neighbours)):
+            if neighbours[i] == 0 and neighbours[(i+1) % 8] == 1:
+                transitions += 1
+
+        return transitions == 1
+
+    def get_local_pixels_binary(self, binary_map: np.ndarray, x: int, y: int) -> np.ndarray:
+        """
+        Value of pixels in the local 8-connectivity area around the coordinate (P1) described by x and y.
+
+        P1 must not lie on the edge of the binary map.
+
+        [[p7, p8, p9],    [[0,1,2],
+         [p6, P1, p2], ->  [3,4,5], -> [0,1,2,3,5,6,7,8]
+         [p5, p4, p3]]     [6,7,8]]
+
+        delete P1 to only get local area.
+
+        Parameters
+        ----------
+        binary_map : npt.NDArray
+            Binary mask of image.
+        x : int
+            X coordinate within the binary map.
+        y : int
+            Y coordinate within the binary map.
+
+        Returns
+        -------
+        npt.NDArray
+            Flattened 8-long array describing the values in the binary map around the x,y point.
+        """
+        local_pixels = binary_map[x - 1 : x + 2, y - 1 : y + 2].flatten()
+        return np.delete(local_pixels, 4)
 
 
 class topostatsSkeletonize:  # pylint: disable=too-many-instance-attributes
