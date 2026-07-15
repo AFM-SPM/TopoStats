@@ -172,10 +172,10 @@ class nodeStats:
             self.compile_metrics()
         else:
             LOGGER.debug(f"[{self.filename}] : Nodestats - {self.n_grain} has no crossings.")
-        # Add the number of nodes to the grain's stats
-        # ISSUE: what numbers/ loops do I use for the keys here?
-        # they're for class_number and subgrain_number
-        self.grain_crop.stats[1][0]["num_nodes"] = self.num_nodes
+        # Add the number of nodes to the grain's stats for all of its subgrains.
+        for subgrains in self.grain_crop.stats.values():
+            for subgrain_stats in subgrains.values():
+                subgrain_stats["num_nodes"] = self.num_nodes
         # Add the node dictionary
         return self.image_dict
 
