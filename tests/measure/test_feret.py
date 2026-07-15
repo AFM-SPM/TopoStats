@@ -1,5 +1,7 @@
 """Tests for feret functions."""
 
+import sys
+
 import numpy as np
 import numpy.typing as npt
 import pytest
@@ -1303,7 +1305,7 @@ def test_get_feret_from_labelim(shape: npt.NDArray, axis: int, target: dict) -> 
         np.testing.assert_equal(feret_statistics["max_feret"], target[key]["max_feret"])
         np.testing.assert_array_almost_equal(feret_statistics["max_feret_coords"], target[key]["max_feret_coords"])
 
-
+@pytest.mark.skipif(sys.version_info < (3, 11), reason="matplotlib incompatibility, see issue 1377.")
 @pytest.mark.parametrize(
     (
         "shape",
