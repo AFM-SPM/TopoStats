@@ -1,14 +1,14 @@
 """Skeletonize molecules."""
 
-from collections.abc import Callable
 import heapq
 import logging
+from collections.abc import Callable
 
 import numpy as np
 import numpy.typing as npt
+import skimage as ski
 from scipy.ndimage import distance_transform_edt
 from skimage.morphology import medial_axis, skeletonize, thin
-import skimage as ski
 
 from topostats.logs.logs import LOGGER_NAME
 
@@ -191,7 +191,6 @@ class getSkeleton:  # pylint: disable=too-few-public-methods
         # return Skeletonisation(image, mask, height_bias).do_skeletonisation()
 
 
-
 class Skeletonisation:
     """
     Skeletonise a binary array following Zhang's algorithm (Zhang and Suen, 1984).
@@ -224,10 +223,9 @@ class Skeletonisation:
             Ratio of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria.
         """
         # Extend the image/ mask by mirroring to avoid edge effects
-        self.image = np.pad(image, pad_width=1, mode='edge')
-        self.mask = np.pad(mask, pad_width=1, mode='edge')
+        self.image = np.pad(image, pad_width=1, mode="edge")
+        self.mask = np.pad(mask, pad_width=1, mode="edge")
         self.height_bias = height_bias
-
 
     def do_skeletonisation(self) -> np.ndarray:
         """
@@ -248,7 +246,6 @@ class Skeletonisation:
 
         # Final skeletonisation before returning avoids diagonal lines being too thick
         return ski.morphology.skeletonize(self.mask)
-
 
     def calculate_priority_map(self) -> np.ndarray:
         """
@@ -273,7 +270,6 @@ class Skeletonisation:
         # Combine the two arrays - (1.0 - norm_height to delete lighter pixels)
         return dist + norm_height * self.height_bias
 
-
     def skeletonise_with_bias(self, priority_map):
         """
         Create a skeleton from the mask based on the given priority map.
@@ -284,14 +280,14 @@ class Skeletonisation:
         """
         height, width = self.mask.shape
         queue = []
-        queue_map = np.zeros_like(self.mask, dtype=bool) # Boolean map of if the pixel is in queue
+        queue_map = np.zeros_like(self.mask, dtype=bool)  # Boolean map of if the pixel is in queue
 
         # Find all potential pixels to delete, the very edges of the image can be ignored as this is padding
-        for row in range(1, height-1):
-            for col in range(1, width-1):
+        for row in range(1, height - 1):
+            for col in range(1, width - 1):
                 if self.mask[row, col] == 1:
                     # If a 1 touches a 0 it is a boundary pixel
-                    if np.min(self.mask[row-1:row+2, col-1:col+2]) == 0:
+                    if np.min(self.mask[row - 1 : row + 2, col - 1 : col + 2]) == 0:
                         heapq.heappush(queue, (priority_map[row, col], row, col))
                         queue_map[row, col] = True
 
@@ -305,7 +301,7 @@ class Skeletonisation:
             if self._is_safe_to_delete(row, col):
                 self.mask[row, col] = 0
                 # Add neighbours in remaining mask to queue as they have become boundaries
-                for dirrow, dircol in [(-1,0), (1,0), (0,-1), (0,1), (-1,-1), (-1,1), (1,-1), (1,1)]:
+                for dirrow, dircol in [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)]:
                     newrow, newcol = row + dirrow, col + dircol
                     # Check the neighbour exists and is not already in queue
                     if self.mask[newrow, newcol] == 1 and not queue_map[newrow, newcol]:
@@ -314,7 +310,6 @@ class Skeletonisation:
             else:
                 # Not safe
                 pass
-
 
     def _is_safe_to_delete(self, row, col) -> bool:
         """
@@ -347,7 +342,7 @@ class Skeletonisation:
         # single transition.
         transitions = 0
         for i in range(len(neighbours)):
-            if neighbours[i] == 0 and neighbours[(i+1) % 8] == 1:
+            if neighbours[i] == 0 and neighbours[(i + 1) % 8] == 1:
                 transitions += 1
 
         return transitions == 1
