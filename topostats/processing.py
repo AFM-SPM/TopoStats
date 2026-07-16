@@ -1248,10 +1248,12 @@ def process_scan(  # noqa: C901
                 for class_type in grain_stats[grain_number]:
                     combined_grain_stats[grain_number][class_type] = {}
                     for subgrain_number in grain_stats[grain_number][class_type]:
-                        combined_grain_stats[grain_number][class_type][subgrain_number] = {
-                            **grain_stats[grain_number][class_type][subgrain_number],
-                            **disordered_traces[grain_number],
-                        }
+                        # Skip if no disordered trace for the grain
+                        if grain_number in disordered_traces:
+                            combined_grain_stats[grain_number][class_type][subgrain_number] = {
+                                **grain_stats[grain_number][class_type][subgrain_number],
+                                **disordered_traces[grain_number],
+                            }
         else:
             combined_grain_stats = grain_stats
         grain_stats_df = pd.DataFrame.from_dict(
