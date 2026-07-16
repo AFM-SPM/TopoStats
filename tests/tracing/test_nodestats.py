@@ -59,7 +59,7 @@ def test_keep_biggest_object() -> None:
 def test_connect_close_nodes() -> None:
     """Test of connect_close_nodes() method of nodeStats class."""
 
-
+# NOTE: Testing for different cases (multiple nodes, no nodes) needs adding at some point.
 def test_highlight_node_centres(nodestats_minicircle_small: nodeStats) -> None:
     """Test of highlight_node_centres() method of nodeStats class."""
     return_mask, node_count = nodestats_minicircle_small.highlight_node_centres(nodestats_minicircle_small.mask)
