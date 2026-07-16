@@ -8,11 +8,11 @@
 # ---
 # name: test_process_scan.1
   '''
-                                centre_x   centre_y  radius_min  radius_max  radius_mean  radius_median  height_min  height_max  height_median  height_mean     volume       area  area_cartesian_bbox  smallest_bounding_width  smallest_bounding_length  smallest_bounding_area  aspect_ratio  max_feret  min_feret  num_crossings  mean_crossing_confidence  min_crossing_confidence  num_mols writhe_string  curvature_grain_num_turns  curvature_mean  curvature_max  curvature_min  curvature_std  curvature_var  curvature_total  curvature_median  curvature_iqr  curvature_90th  grain_endpoints  grain_junctions  total_branch_length  grain_width_mean             image
-  grain_number class subgrain                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
-  0            1     0        8.7079e-08 3.5579e-08  3.9431e-09  2.5631e-08   1.6016e-08     1.6680e-08  9.1991e-10  2.6422e-09     1.5338e-09   1.5341e-09 1.0543e-24 6.8721e-16           1.3198e-15               2.0539e-08                5.0379e-08              1.0347e-15    4.0769e-01 5.0379e-08 2.0539e-08     1.0000e+00                       NaN                      NaN         2                                        0      6.4218e-02     2.5648e-01     0.0000e+00     7.0853e-02     5.0200e-03       8.6694e+00        4.6522e-02     2.0314e-01      1.7462e-01                1                1           8.5729e-08        9.5493e-09  minicircle_small
-  1            1     0        8.6581e-08 7.2337e-08  6.8951e-09  2.7188e-08   1.6272e-08     1.6263e-08  9.0630e-10  2.4586e-09     1.6144e-09   1.6264e-09 1.0352e-24 6.3645e-16           1.5931e-15               2.0174e-08                5.1212e-08              1.0332e-15    3.9394e-01 5.1262e-08 2.0174e-08            NaN                       NaN                      NaN         1            NA                          0      1.0999e-01     3.3925e-01     2.3270e-03     7.2083e-02     5.1960e-03       1.2649e+01        1.0152e-01     2.6693e-01      2.1756e-01                0                0           7.3054e-08        7.6878e-09  minicircle_small
-  2            1     0        3.8100e-08 7.7556e-08  9.9461e-09  2.3654e-08   1.7561e-08     1.8364e-08  9.0641e-10  2.1066e-09     1.5939e-09   1.5493e-09 1.1192e-24 7.2236e-16           1.5462e-15               3.3592e-08                4.1496e-08              1.3940e-15    8.0952e-01 4.4405e-08 3.2528e-08            NaN                       NaN                      NaN         1            NA                          1      8.1232e-02     3.4719e-01     5.9000e-05     7.1972e-02     5.1800e-03       1.3891e+01        6.3881e-02     2.3120e-01      1.9778e-01                0                0           1.0331e-07        7.8754e-09  minicircle_small
+                                centre_x   centre_y  radius_min  radius_max  radius_mean  radius_median  height_min  height_max  height_median  height_mean     volume       area  area_cartesian_bbox  smallest_bounding_width  smallest_bounding_length  smallest_bounding_area  aspect_ratio  max_feret  min_feret  num_crossings  mean_crossing_confidence  min_crossing_confidence  num_nodes  num_mols writhe_string  curvature_grain_num_turns  curvature_mean  curvature_max  curvature_min  curvature_std  curvature_var  curvature_total  curvature_median  curvature_iqr  curvature_90th  grain_endpoints  grain_junctions  total_branch_length  grain_width_mean             image
+  grain_number class subgrain                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+  0            1     0        8.7079e-08 3.5579e-08  3.9431e-09  2.5631e-08   1.6016e-08     1.6680e-08  9.1991e-10  2.6422e-09     1.5338e-09   1.5341e-09 1.0543e-24 6.8721e-16           1.3198e-15               2.0539e-08                5.0379e-08              1.0347e-15    4.0769e-01 5.0379e-08 2.0539e-08     1.0000e+00                       NaN                      NaN          2         2                                        0      6.4218e-02     2.5648e-01     0.0000e+00     7.0853e-02     5.0200e-03       8.6694e+00        4.6522e-02     2.0314e-01      1.7462e-01                1                1           8.5729e-08        9.5493e-09  minicircle_small
+  1            1     0        8.6581e-08 7.2337e-08  6.8951e-09  2.7188e-08   1.6272e-08     1.6263e-08  9.0630e-10  2.4586e-09     1.6144e-09   1.6264e-09 1.0352e-24 6.3645e-16           1.5931e-15               2.0174e-08                5.1212e-08              1.0332e-15    3.9394e-01 5.1262e-08 2.0174e-08            NaN                       NaN                      NaN          0         1            NA                          0      1.0999e-01     3.3925e-01     2.3270e-03     7.2083e-02     5.1960e-03       1.2649e+01        1.0152e-01     2.6693e-01      2.1756e-01                0                0           7.3054e-08        7.6878e-09  minicircle_small
+  2            1     0        3.8100e-08 7.7556e-08  9.9461e-09  2.3654e-08   1.7561e-08     1.8364e-08  9.0641e-10  2.1066e-09     1.5939e-09   1.5493e-09 1.1192e-24 7.2236e-16           1.5462e-15               3.3592e-08                4.1496e-08              1.3940e-15    8.0952e-01 4.4405e-08 3.2528e-08            NaN                       NaN                      NaN          0         1            NA                          1      8.1232e-02     3.4719e-01     5.9000e-05     7.1972e-02     5.1800e-03       1.3891e+01        6.3881e-02     2.3120e-01      1.9778e-01                0                0           1.0331e-07        7.8754e-09  minicircle_small
   '''
 # ---
 # name: test_process_scan.2
@@ -4906,6 +4906,7 @@
           'min_feret': np.float64(2.05389724e-08),
           'num_crossings': np.int64(1),
           'num_mols': np.int64(2),
+          'num_nodes': np.int64(2),
           'radius_max': np.float64(2.56305796e-08),
           'radius_mean': np.float64(1.60155513e-08),
           'radius_median': np.float64(1.66800065e-08),
@@ -4942,6 +4943,7 @@
           'max_feret': np.float64(5.12621772e-08),
           'min_feret': np.float64(2.01744145e-08),
           'num_mols': np.int64(1),
+          'num_nodes': np.int64(0),
           'radius_max': np.float64(2.7188433e-08),
           'radius_mean': np.float64(1.6271758e-08),
           'radius_median': np.float64(1.62634511e-08),
@@ -4978,6 +4980,7 @@
           'max_feret': np.float64(4.44053405e-08),
           'min_feret': np.float64(3.25281929e-08),
           'num_mols': np.int64(1),
+          'num_nodes': np.int64(0),
           'radius_max': np.float64(2.36542378e-08),
           'radius_mean': np.float64(1.75607377e-08),
           'radius_median': np.float64(1.83639286e-08),

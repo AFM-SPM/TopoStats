@@ -60,9 +60,14 @@ def test_connect_close_nodes() -> None:
     """Test of connect_close_nodes() method of nodeStats class."""
 
 
-@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15")
-def test_highlight_node_centres() -> None:
+# NOTE: Testing for different cases (multiple nodes, no nodes) needs adding at some point.
+def test_highlight_node_centres(nodestats_minicircle_small: nodeStats) -> None:
     """Test of highlight_node_centres() method of nodeStats class."""
+    return_mask, node_count = nodestats_minicircle_small.highlight_node_centres(nodestats_minicircle_small.mask)
+
+    assert return_mask.shape == nodestats_minicircle_small.mask.shape
+    assert np.array_equal(return_mask, nodestats_minicircle_small.mask)
+    assert node_count == 1
 
 
 @pytest.mark.skip(reason="Awaiting test to be written 2024-10-15")
