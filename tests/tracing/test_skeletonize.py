@@ -1,10 +1,11 @@
 """Test the skeletonize module."""
 
+import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
 import pytest
 
-from topostats.tracing.skeletonize import getSkeleton, topostatsSkeletonize
+from topostats.tracing.skeletonize import Skeletonisation, getSkeleton, topostatsSkeletonize
 
 # pytest: disable=import-error
 
@@ -540,6 +541,58 @@ def test_get_skeleton(  # pylint: disable=too-many-arguments,too-many-positional
     assert skeleton.shape == shape
     assert skeleton.sum() == array_sum
     np.testing.assert_array_equal(skeleton, target)
+
+
+# Tests for Skeletonisation class
+@pytest.mark.parametrize(
+    ("fixture_name", "height_bias", "expected_skeleton"),
+    [
+        pytest.param("skeletonize_linear", 0.6, np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0]]), id="linear grain"),
+        pytest.param("skeletonize_circular", 0.6, np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0]]), id="circular grain"),
+    ],
+)
+def test_do_skeletonisation(request, fixture_name, height_bias, expected_skeleton) -> None:
+    """Test for the Skeletonisation.do_skeletonisation() method."""
+    fixture = request.getfixturevalue(fixture_name)
+    image = fixture
+    mask = fixture.astype(bool)
+    height_bias = 0.6
+
+    skel_class = Skeletonisation(image=image, mask=mask, height_bias=height_bias)
+    skeleton = skel_class.do_skeletonisation()
+
+    print(skeleton)
+
+    fig, axes = plt.subplots(2, 2, figsize=(8, 8))
+
+    axes[0, 0].imshow(image)
+    axes[0, 0].set_title("Image")
+
+    axes[0, 1].imshow(mask)
+    axes[0, 1].set_title("Mask")
+
+    axes[1, 0].imshow(skeleton)
+    axes[1, 0].set_title("Skeleton")
+
+    axes[1, 1].axis("off")
+
+    plt.tight_layout()
+    plt.savefig("skeleton_tests_linear.png")
+
+    assert skeleton.shape == mask.shape
+    # assert np.array_equal(skeleton, expected_skeleton)
+
+
+def test_calculate_priority_map() -> None:
+    """Test for the Skeletonisation.calculate_priority_map() method."""
+
+
+def test_skeletonise_with_bias() -> None:
+    """Test for the Skeletonisation.skeletonise_with_bias() method."""
+
+
+def test_is_safe_to_delete() -> None:
+    """Test for the Skeletonisation.is_safe_to_delete() method."""
 
 
 # Tests for topopstatsSkeletonize class

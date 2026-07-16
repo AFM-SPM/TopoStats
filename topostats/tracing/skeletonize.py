@@ -268,7 +268,6 @@ class Skeletonisation:
         norm_height = (self.image - img_min) / (img_max - img_min + 1e-8)
 
         # Combine the two arrays, balanced by the height bias
-        print("Priority chosen:", dist * (1 - self.height_bias) + norm_height * self.height_bias)
         return dist * (1 - self.height_bias) + norm_height * self.height_bias
 
     def skeletonise_with_bias(self, priority_map):
@@ -305,7 +304,7 @@ class Skeletonisation:
             if self.mask[row, col] == 0:
                 continue
 
-            if self._is_safe_to_delete(row, col):
+            if self.is_safe_to_delete(row, col):
                 self.mask[row, col] = 0
                 # Add neighbours in remaining mask to queue as they have become boundaries
                 for dirrow, dircol in [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)]:
@@ -318,7 +317,7 @@ class Skeletonisation:
                 # Not safe
                 pass
 
-    def _is_safe_to_delete(self, row, col) -> bool:
+    def is_safe_to_delete(self, row, col) -> bool:
         """
         Check if a pixel can be safely deleted.
 
