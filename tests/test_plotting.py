@@ -1,5 +1,6 @@
 """Tests for the plotting module."""
 
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -108,6 +109,7 @@ def test_toposum(summary_config: dict) -> None:
     assert isinstance(figures["area"]["violin"]["figure"], Figure)
 
 
+@pytest.mark.skipif(sys.version_info < (3, 11), reason="matplotlib incompatibility, see issue 1377.")
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
 def test_plot_kde(toposum_object_single_directory: TopoSum) -> None:
     """Regression test for sns_plot() with a single KDE."""
@@ -116,6 +118,7 @@ def test_plot_kde(toposum_object_single_directory: TopoSum) -> None:
     return fig
 
 
+@pytest.mark.skipif(sys.version_info < (3, 11), reason="matplotlib incompatibility, see issue 1377.")
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
 def test_plot_kde_multiple_directories(toposum_object_multiple_directories: TopoSum) -> None:
     """Regression test for sns_plot() with multiple KDE."""
@@ -124,6 +127,7 @@ def test_plot_kde_multiple_directories(toposum_object_multiple_directories: Topo
     return fig
 
 
+@pytest.mark.skipif(sys.version_info < (3, 11), reason="matplotlib incompatibility, see issue 1377.")
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
 def test_plot_hist(toposum_object_single_directory: TopoSum) -> None:
     """Regression test for sns_plot() with a single histogram."""
@@ -132,6 +136,7 @@ def test_plot_hist(toposum_object_single_directory: TopoSum) -> None:
     return fig
 
 
+@pytest.mark.skipif(sys.version_info < (3, 11), reason="matplotlib incompatibility, see issue 1377.")
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
 def test_plot_hist_multiple_directories(toposum_object_multiple_directories: TopoSum) -> None:
     """Regression test for sns_plot() with multiple overlaid histograms."""
@@ -140,6 +145,7 @@ def test_plot_hist_multiple_directories(toposum_object_multiple_directories: Top
     return fig
 
 
+@pytest.mark.skipif(sys.version_info < (3, 11), reason="matplotlib incompatibility, see issue 1377.")
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
 def test_plot_hist_kde(toposum_object_single_directory: TopoSum) -> None:
     """Test plotting Kernel Density Estimate and Histogram for area."""
@@ -147,6 +153,7 @@ def test_plot_hist_kde(toposum_object_single_directory: TopoSum) -> None:
     return fig
 
 
+@pytest.mark.skipif(sys.version_info < (3, 11), reason="matplotlib incompatibility, see issue 1377.")
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
 def test_plot_hist_kde_multiple_directories(toposum_object_multiple_directories: TopoSum) -> None:
     """Test plotting Kernel Density Estimate and Histogram for area."""
@@ -154,6 +161,7 @@ def test_plot_hist_kde_multiple_directories(toposum_object_multiple_directories:
     return fig
 
 
+@pytest.mark.skipif(sys.version_info < (3, 11), reason="matplotlib incompatibility, see issue 1377.")
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
 def test_plot_violin(toposum_object_single_directory: TopoSum) -> None:
     """Test plotting Kernel Density Estimate and Histogram for area for a single image."""
@@ -161,6 +169,7 @@ def test_plot_violin(toposum_object_single_directory: TopoSum) -> None:
     return fig
 
 
+@pytest.mark.skipif(sys.version_info < (3, 11), reason="matplotlib incompatibility, see issue 1377.")
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
 def test_plot_violin_multiple_directories(toposum_object_multiple_directories: TopoSum) -> None:
     """Test plotting Kernel Density Estimate and Histogram for area with multiple images."""
