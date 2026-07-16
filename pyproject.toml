@@ -15,6 +15,7 @@ authors = [
   { name = "Neil Shephard", email = "n.shephard@sheffield.ac.uk" },
   { name = "Max Gamill", email = "maxgamill@live.com" },
   { name = "Jean Du", email = "mdu12@sheffield.ac.uk" },
+  { name = "Daniel Brady", email = "daniel.brady@sheffield.ac.uk" },
 ]
 classifiers = [
   "Programming Language :: Python :: 3",
