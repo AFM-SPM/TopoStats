@@ -14,7 +14,7 @@ branches.
 ![object mask to pruned skeleton](../_static/images/disordered_tracing/overview.png)
 
 This module measures the number of junctions and endpoints for each pruned skeleton object and appends these columns to
-the `all_statistics.csv`. In addition, the `all_disordered_segment_statistics.csv` file is produced which measures the
+the `grain_statistics.csv`. In addition, the `branch_statistics.csv` file is produced which measures the
 length, type, connections, and pixel value (typically height); minimum, middle, median, mean and standard deviation for
 each skeleton segment between junctions using [Skan](https://skeleton-analysis.org/stable/index.html). The branch types
 are given by:

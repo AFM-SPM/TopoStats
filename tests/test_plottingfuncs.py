@@ -1,5 +1,6 @@
 """Tests of plotting functions."""
 
+import sys
 from pathlib import Path
 
 import matplotlib as mpl
@@ -80,6 +81,7 @@ def test_dilate_binary_image(binary_image: np.ndarray, dilation_iterations: int,
 rng = np.random.default_rng()
 
 
+@pytest.mark.skipif(sys.version_info < (3, 11), reason="matplotlib incompatibility, see issue 1377.")
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_plot_curvatures(minicircle_small_topostats: TopoStats, tmp_path: Path) -> None:
     """Test ``plottingfuncs.Images.plot_curvatures()``."""
@@ -98,6 +100,7 @@ def test_plot_curvatures(minicircle_small_topostats: TopoStats, tmp_path: Path) 
     return fig
 
 
+@pytest.mark.skipif(sys.version_info < (3, 11), reason="matplotlib incompatibility, see issue 1377.")
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 @pytest.mark.parametrize(
     ("grain"),
@@ -153,6 +156,7 @@ def test_save_figure(
     assert isinstance(ax, Axes)
 
 
+@pytest.mark.skipif(sys.version_info < (3, 11), reason="matplotlib incompatibility, see issue 1377.")
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_plot_and_save_no_colorbar(load_scan_data: LoadScans, plotting_config: dict, tmp_path: Path) -> None:
     """Test plotting without colorbar."""
@@ -168,6 +172,7 @@ def test_plot_and_save_no_colorbar(load_scan_data: LoadScans, plotting_config: d
     return fig
 
 
+@pytest.mark.skipif(sys.version_info < (3, 11), reason="matplotlib incompatibility, see issue 1377.")
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_plot_histogram_and_save(load_scan_data: LoadScans, tmp_path: Path) -> None:
     """Test plotting histograms."""
@@ -177,6 +182,7 @@ def test_plot_histogram_and_save(load_scan_data: LoadScans, tmp_path: Path) -> N
     return fig
 
 
+@pytest.mark.skipif(sys.version_info < (3, 11), reason="matplotlib incompatibility, see issue 1377.")
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_plot_and_save_colorbar_and_axes(load_scan_data: LoadScans, plotting_config: dict, tmp_path: Path) -> None:
     """Test plotting with colorbar and axes (True in default_config.yaml)."""
@@ -191,6 +197,7 @@ def test_plot_and_save_colorbar_and_axes(load_scan_data: LoadScans, plotting_con
     return fig
 
 
+@pytest.mark.skipif(sys.version_info < (3, 11), reason="matplotlib incompatibility, see issue 1377.")
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_plot_and_save_no_axes(load_scan_data: LoadScans, plotting_config: dict, tmp_path: Path) -> None:
     """Test plotting without axes."""
@@ -205,6 +212,7 @@ def test_plot_and_save_no_axes(load_scan_data: LoadScans, plotting_config: dict,
     return fig
 
 
+@pytest.mark.skipif(sys.version_info < (3, 11), reason="matplotlib incompatibility, see issue 1377.")
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_plot_and_save_no_axes_no_colorbar(load_scan_data: LoadScans, plotting_config: dict, tmp_path: Path) -> None:
     """Test plotting without axes and without the colourbar."""
@@ -220,6 +228,7 @@ def test_plot_and_save_no_axes_no_colorbar(load_scan_data: LoadScans, plotting_c
     return fig
 
 
+@pytest.mark.skipif(sys.version_info < (3, 11), reason="matplotlib incompatibility, see issue 1377.")
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_plot_and_save_colorbar_afmhot(load_scan_data: LoadScans, tmp_path: Path, plotting_config: dict) -> None:
     """Test plotting with colorbar."""
@@ -238,6 +247,7 @@ def test_plot_and_save_colorbar_afmhot(load_scan_data: LoadScans, tmp_path: Path
     return fig
 
 
+@pytest.mark.skipif(sys.version_info < (3, 11), reason="matplotlib incompatibility, see issue 1377.")
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_plot_and_save_bounding_box(
     minicircle_grain_area_thresholding: Grains,
@@ -259,6 +269,7 @@ def test_plot_and_save_bounding_box(
     return fig
 
 
+@pytest.mark.skipif(sys.version_info < (3, 11), reason="matplotlib incompatibility, see issue 1377.")
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_plot_and_save_zrange(minicircle_grain_gaussian_filter: Filters, plotting_config: dict, tmp_path: Path) -> None:
     """Tests plotting of the zrange scaled image."""
@@ -275,6 +286,7 @@ def test_plot_and_save_zrange(minicircle_grain_gaussian_filter: Filters, plottin
     return fig
 
 
+@pytest.mark.skipif(sys.version_info < (3, 11), reason="matplotlib incompatibility, see issue 1377.")
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_plot_and_save_non_square_bounding_box(
     minicircle_grain_area_thresholding: Grains,
@@ -296,6 +308,7 @@ def test_plot_and_save_non_square_bounding_box(
     return fig
 
 
+@pytest.mark.skipif(sys.version_info < (3, 11), reason="matplotlib incompatibility, see issue 1377.")
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_mask_cmap(plotting_config: dict, tmp_path: Path) -> None:
     """Test the plotting of a mask with a different colourmap (blu)."""
@@ -310,6 +323,7 @@ def test_mask_cmap(plotting_config: dict, tmp_path: Path) -> None:
     return fig
 
 
+@pytest.mark.skipif(sys.version_info < (3, 11), reason="matplotlib incompatibility, see issue 1377.")
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/", savefig_kwargs={"dpi": DPI})
 def test_high_dpi(minicircle_grain_gaussian_filter: Filters, plotting_config: dict, tmp_path: Path) -> None:
     """Test plotting with high DPI."""

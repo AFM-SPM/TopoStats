@@ -597,9 +597,9 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         Returns
         -------
             writhe_string: str
-                A string of the whole grain writhe sign
+                A string of the whole grain writhe sign.
             node_to_writhe: dict
-                a dictionary linking each node to its sign.
+                A dictionary linking each node to its sign.
         """
         # compile all vectors for each node and their z_idx
         #   - want for each node, ordered vectors according to z_idx
@@ -655,7 +655,6 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
 
         Returns
         -------
-        tuple[list, dict, dict]
         dict[str, npt.NDArray]
             A dictionary of ordered trace images.
         """

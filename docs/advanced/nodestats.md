@@ -15,7 +15,7 @@ skeleton, the effectiveness of automating the joining of skeleton junction point
 This module identifies crossing regions from nearby skeleton junctions and analyses each branch emanating out from the
 crossing to pair them, then determines the overlying and underlying strand using the full-width half-maximum from each
 height trace passing through the crossing. It adds the number of identified crossings and the minimum and average pseudo
-confidence values to the `all_statistics.csv`.
+confidence values to the `grain_statistics.csv`.
 
 Some quick FYI's:
 

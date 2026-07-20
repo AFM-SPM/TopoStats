@@ -3,7 +3,7 @@
 ## At a Glance - Measures Objects
 
 TopoStats automatically tries to measure the grains (objects of interest) found in the grain finding section, in your
-AFM images, and outputs them into the `all_statistics.csv` file.
+AFM images, and outputs them into the `grain_statistics.csv` file.
 
 The metrics are briefly summarised in the table below:
 

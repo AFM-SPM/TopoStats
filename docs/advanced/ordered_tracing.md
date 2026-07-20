@@ -16,7 +16,7 @@ NodeStats.
 This module orders the disordered trace pixel-by-pixel (`topostats` method) or segment-by-segment (`nodestats` method),
 giving direction to the trace and creating a path to follow. It adds the number of identified molecules (found by
 restarting the trace when using the `nodestats` method) and whether the trace contains endpoints and is therefore
-circular or not to the `all_statistics.csv`.
+circular or not to the `grain_statistics.csv`.
 
 Some quick FYI's:
 
@@ -142,12 +142,12 @@ For each grain, the following new columns are added to the `grainstats.csv` file
 
 For each molecule found by the ordering algorithm(s), the following new columns are added to the `molstats.csv` file:
 
-| Column Name     | Description                                                                                                         | Data Type |
-| --------------- | ------------------------------------------------------------------------------------------------------------------- | --------- |
-| `circular`      | The number of molecules found by following the tracing paths. Note: This will always be 1 for the TopoStats method. | `integer` |
-| `topology`      | Whether the disordered trace contains an endpoint.                                                                  | `bool`    |
-| `topology_flip` | The number of molecules found by following the tracing paths. Note: This will always be 1 for the TopoStats method. | `integer` |
-| `processing`    | The method used for ordering.                                                                                       | `str`     |
+| Column Name     | Description                                                | Data Type |
+| --------------- | ---------------------------------------------------------- | --------- |
+| `circular`      | Whether the disordered trace contains an endpoint.         | `bool`    |
+| `topology`      | Topological classification of the molecule.                | `str`     |
+| `topology_flip` | Reverse of the topological classification of the molecule. | `str`     |
+| `processing`    | The method used for ordering.                              | `str`     |
 
 &nbsp;
 

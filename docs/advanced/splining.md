@@ -14,8 +14,8 @@ ordering worked successfully, and whether the skeleton matches the underlying sa
 
 This smooths the ordered trace by using an average of splines through the ordered coordinates (`spline` method) or using
 the mean coordinate of a rolling window (`rolling_window` method), helping to resolve length errors in jagged in the
-skeletons. It adds the contour length and end-to-end euclidean distance to the `all_mol_statistics.csv` and the sum and
-average of these respectively to the `all_statistics.csv`.
+skeletons. It adds the contour length and end-to-end euclidean distance to the `molecule_statistics.csv` and the sum and
+average of these respectively to the `grain_statistics.csv`.
 
 Some quick FYI's:
 

@@ -11,6 +11,7 @@ import pytest
 
 from topostats.classes import GrainCrop, MatchedBranch, Molecule, OrderedTrace, TopoStats
 from topostats.tracing.disordered_tracing import disorderedTrace
+from topostats.tracing.nodestats import nodeStats
 from topostats.tracing.skeletonize import getSkeleton, topostatsSkeletonize
 
 # This is required because of the inheritance used throughout
@@ -185,50 +186,49 @@ def catenane_skeleton() -> npt.NDArray[np.bool_]:
     return np.load(NODESTATS_RESOURCES / "catenane_skeleton.npy")
 
 
-# @pytest.fixture()
-# def nodestats_minicircle_small(
-#     graincrop_minicircle_small: GrainCrop,
-#     minicircle_small_post_disordered_trace: TopoStats,
-# ) -> nodeStats:
-#     """Fixture for the nodeStats object for Minicircle Small, to be used in analyse_nodes."""
-#     return nodeStats(
-#         grain_crop=graincrop_minicircle_small,
-#         n_grain=0,
-#         node_joining_length=7,
-#         node_extend_dist=14.0,
-#         branch_pairing_length=20.0,
-#         pair_odd_branches=True,
-#     )
+@pytest.fixture()
+def nodestats_minicircle_small(
+    graincrop_minicircle_small: GrainCrop,
+) -> nodeStats:
+    """Fixture for the nodeStats object for Minicircle Small, to be used in analyse_nodes."""
+    return nodeStats(
+        grain_crop=graincrop_minicircle_small,
+        n_grain=0,
+        node_joining_length=7,
+        node_extend_dist=14.0,
+        branch_pairing_length=20.0,
+        pair_odd_branches=True,
+    )
 
-# @pytest.fixture()
-# def nodestats_catenane(
-#     graincrop_catenane: GrainCrop,
-#     catenane_post_disordered_trace: TopoStats,
-# ) -> nodeStats:
-#     """Fixture for the nodeStats object for a Catenane molecule, to be used in analyse_nodes."""
-#     return nodeStats(
-#         grain_crop=graincrop_catenane,
-#         n_grain=0,
-#         node_joining_length=7,
-#         node_extend_dist=14.0,
-#         branch_pairing_length=20.0,
-#         pair_odd_branches=True,
-#     )
 
-# @pytest.fixture()
-# def nodestats_rep_int(
-#     graincrop_rep_int: GrainCrop,
-#     rep_int_post_disordered_trace: TopoStats,
-# ) -> nodeStats:
-#     """Fixture for the nodeStats object for a Rep Int molecule, to be used in analyse_nodes."""
-#     return nodeStats(
-#         grain_crop=graincrop_rep_int,
-#         n_grain=0,
-#         node_joining_length=7,
-#         node_extend_dist=14.0,
-#         branch_pairing_length=20.0,
-#         pair_odd_branches=True,
-#     )
+@pytest.fixture()
+def nodestats_catenane(
+    graincrop_catenane: GrainCrop,
+) -> nodeStats:
+    """Fixture for the nodeStats object for a Catenane molecule, to be used in analyse_nodes."""
+    return nodeStats(
+        grain_crop=graincrop_catenane,
+        n_grain=0,
+        node_joining_length=7,
+        node_extend_dist=14.0,
+        branch_pairing_length=20.0,
+        pair_odd_branches=True,
+    )
+
+
+@pytest.fixture()
+def nodestats_rep_int(
+    graincrop_rep_int: GrainCrop,
+) -> nodeStats:
+    """Fixture for the nodeStats object for a Rep Int molecule, to be used in analyse_nodes."""
+    return nodeStats(
+        grain_crop=graincrop_rep_int,
+        n_grain=0,
+        node_joining_length=7,
+        node_extend_dist=14.0,
+        branch_pairing_length=20.0,
+        pair_odd_branches=True,
+    )
 
 
 @pytest.fixture()
