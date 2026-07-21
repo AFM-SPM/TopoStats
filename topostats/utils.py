@@ -93,7 +93,7 @@ def convert_path(path: str | Path) -> Path:
     return Path().cwd() if path == "./" else Path(path).expanduser()
 
 
-def _get_grain_mask(image: npt.NDArray, thresh: float, img_name: str = None) -> npt.NDArray:
+def _get_grain_mask(image: npt.NDArray, thresh: float, img_name: str | None = None) -> npt.NDArray:
     """
     Calculate a mask for pixels that exceed the threshold.
 
@@ -103,7 +103,7 @@ def _get_grain_mask(image: npt.NDArray, thresh: float, img_name: str = None) -> 
         Numpy array representing image.
     thresh : float
         A float representing the threshold.
-    img_name : str
+    img_name : str, optional
         Name of image being processed.
 
     Returns
@@ -145,7 +145,7 @@ def _get_filter_mask(image: npt.NDArray, thresh: float, threshold_direction: str
     return image < thresh
 
 
-def get_grain_mask(image: npt.NDArray, thresholds: list, img_name: str = None) -> npt.NDArray:
+def get_grain_mask(image: npt.NDArray, thresholds: list, img_name: str | None = None) -> npt.NDArray:
     """
     Mask data that should not be included in flattening.
 
@@ -156,7 +156,7 @@ def get_grain_mask(image: npt.NDArray, thresholds: list, img_name: str = None) -
     thresholds : dict
         Dictionary of thresholds, at a bare minimum must have key 'below' with an associated value, second key is
         to have an 'above' threshold.
-    img_name : str
+    img_name : str, optional
         Image name that is being masked.
 
     Returns
@@ -219,17 +219,17 @@ def get_grain_thresholds(  # noqa: C901
         2D Numpy array of image to be masked.
     threshold_method : str
         Method for thresholding, 'otsu', 'std_dev' or 'absolute' are valid options.
-    otsu_threshold_multiplier : float
+    otsu_threshold_multiplier : float, optional
         Scaling value for Otsu threshold.
-    threshold_std_dev : list[float]
+    threshold_std_dev : list[float], optional
         List of thresholds for the standard deviation method.
-    absolute : list[float]
+    absolute : list[float], optional
         List of absolute thresholds.
 
     Returns
     -------
     list[float]
-        Dictionary of thresholds, contains keys 'below' and optionally 'above'.
+        List of calculated thresholds.
     """
     thresholds: list[float] = []
     if threshold_method == "otsu":

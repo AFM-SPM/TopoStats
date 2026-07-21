@@ -85,7 +85,7 @@ class Grains:
     threshold_absolute : list[float] | None
         List of absolute thresholds for grain finding.
     area_thresholds : list[list[float]]
-        Dictionary of above and below grain's area thresholds.
+        Nested lists of area thresholds. One sublist per threshold, matched by index.
     endpoint_connection_config : dict[str, Any] | None
         Configuration for connecting loose ends in the grain mask.
             run : bool
