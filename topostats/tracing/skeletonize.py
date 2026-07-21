@@ -4,6 +4,7 @@ import heapq
 import logging
 from collections.abc import Callable
 
+import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
 import skimage as ski
@@ -188,7 +189,34 @@ class getSkeleton:  # pylint: disable=too-few-public-methods
         """
         # return topostatsSkeletonize(image, mask, height_bias).do_skeletonising()
 
-        return Skeletonisation(image, mask, height_bias).do_skeletonisation()
+        # return Skeletonisation(image, mask, height_bias).do_skeletonisation()
+
+        og_skel = topostatsSkeletonize(image, mask, height_bias).do_skeletonising().astype(bool)
+        new_skel = Skeletonisation(image, mask, height_bias).do_skeletonisation()
+
+        diff = og_skel != new_skel
+
+        _, ax = plt.subplots(1, 3, figsize=(15, 5))
+
+        ax[0].imshow(image, cmap="grey")
+        skel_mask = np.ma.masked_where(~og_skel, og_skel)
+        ax[0].imshow(skel_mask, alpha=0.5)
+        ax[0].set_title("OG")
+
+        ax[1].imshow(image, cmap="grey")
+        skel_mask = np.ma.masked_where(~new_skel, new_skel)
+        ax[1].imshow(skel_mask, alpha=0.5)
+        ax[1].set_title("new")
+
+        ax[2].imshow(image, cmap="grey")
+        diff_masked = np.ma.masked_where(~diff, diff)
+        ax[2].imshow(diff_masked, alpha=0.5)
+        ax[2].set_title(f"Difference {diff.sum()} pixels")
+
+        plt.tight_layout()
+        plt.savefig("diff_checker.png")
+
+        return new_skel
 
 
 class Skeletonisation:
@@ -246,6 +274,8 @@ class Skeletonisation:
 
         # Final skeletonisation before returning avoids diagonal lines being too thick
         return ski.morphology.skeletonize(self.mask)
+
+        # return self.mask
 
     def calculate_priority_map(self) -> np.ndarray:
         """
