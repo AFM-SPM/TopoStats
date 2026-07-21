@@ -886,10 +886,10 @@ def find_height_defects(  # noqa: C901
                         curvature_defect_height_defect_search_range_nm=curvature_defect_height_defect_search_range_nm,
                         pixel_to_nm_scaling=grain_model.pixel_to_nm_scaling,
                     )
-                    if np.any(height_defects_near_curvature_defects):
-                        print(
-                            f"found height defect near curvature defect for file {grain_model.filename} grain {grain_model.global_grain_id}"
-                        )
+                    # if np.any(height_defects_near_curvature_defects):
+                    #     print(
+                    #         f"found height defect near curvature defect for file {grain_model.filename} grain {grain_model.global_grain_id}"
+                    #     )
                     height_defects_bool = np.logical_or(height_defects_bool, height_defects_near_curvature_defects)
 
                 ordered_defect_gap_list = get_defects_and_gaps_from_bool_array(
