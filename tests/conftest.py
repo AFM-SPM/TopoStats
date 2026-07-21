@@ -1687,9 +1687,9 @@ def minicircle_small_post_ordered_tracing() -> TopoStats:
 
 
 @pytest.fixture()
-def graincrop_minicircle_small(minicircle_small_post_disordered_trace: TopoStats) -> GrainCrop:
+def graincrop_minicircle_small(minicircle_small_post_disordered_tracing: TopoStats) -> GrainCrop:
     """GrainCrop of Minicircle Small post disordered tracing."""
-    return minicircle_small_post_disordered_trace.grain_crops.above.crops[0]
+    return minicircle_small_post_disordered_tracing.grain_crops[0]
 
 
 ##### Catenane #####
@@ -1726,9 +1726,9 @@ def catenanes_post_ordered_tracing() -> TopoStats:
 
 
 @pytest.fixture()
-def graincrop_catenanes(catenanes_post_disordered_trace: TopoStats) -> TopoStats:
+def graincrop_catenanes(catenanes_post_disordered_tracing: TopoStats) -> TopoStats:
     """GrainCrop of Catenanes post disordered tracing."""
-    return catenanes_post_disordered_trace.grain_crops.above.crops[0]
+    return catenanes_post_disordered_tracing.grain_crops.above.crops[0]
 
 
 ##### Rep_Int #####

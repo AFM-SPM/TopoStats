@@ -1241,16 +1241,21 @@ def process_scan(  # noqa: C901
             grain_number: grain_crop.stats for grain_number, grain_crop in topostats_object.grain_crops.items()
         }
         # Add top level statistics from a grain's disordered trace to the grain_stats dictionary
-        combined_grain_stats = {}
-        for grain_number in grain_stats:
-            combined_grain_stats[grain_number] = {}
-            for class_type in grain_stats[grain_number]:
-                combined_grain_stats[grain_number][class_type] = {}
-                for subgrain_number in grain_stats[grain_number][class_type]:
-                    combined_grain_stats[grain_number][class_type][subgrain_number] = {
-                        **grain_stats[grain_number][class_type][subgrain_number],
-                        **disordered_traces[grain_number],
-                    }
+        if disordered_traces:  # Only if disordered tracing was run
+            combined_grain_stats = {}
+            for grain_number in grain_stats:
+                combined_grain_stats[grain_number] = {}
+                for class_type in grain_stats[grain_number]:
+                    combined_grain_stats[grain_number][class_type] = {}
+                    for subgrain_number in grain_stats[grain_number][class_type]:
+                        # Skip if no disordered trace for the grain
+                        if grain_number in disordered_traces:
+                            combined_grain_stats[grain_number][class_type][subgrain_number] = {
+                                **grain_stats[grain_number][class_type][subgrain_number],
+                                **disordered_traces[grain_number],
+                            }
+        else:
+            combined_grain_stats = grain_stats
         grain_stats_df = pd.DataFrame.from_dict(
             {
                 (grain_number, class_type, subgrain_number): combined_grain_stats[grain_number][class_type][
