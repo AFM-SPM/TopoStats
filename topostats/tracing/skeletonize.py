@@ -216,15 +216,14 @@ class getSkeleton:  # pylint: disable=too-few-public-methods
         plt.tight_layout()
         plt.savefig("diff_checker.png")
 
-        return new_skel
+        return og_skel
 
 
 class Skeletonisation:
     """
-    Skeletonise a binary array following Zhang's algorithm (Zhang and Suen, 1984).
+    Skeletonise a binary array roughly following Zhang's algorithm (Zhang and Suen, 1984).
 
-    Modifications are made to the published algorithm during the removal step to remove a fraction of the smallest pixel
-    values opposed to all of them in the aforementioned algorithm. All operations are performed on the mask entered.
+    Modifications are made to the published algorithm using the height_bias
 
     Parameters
     ----------
@@ -233,8 +232,10 @@ class Skeletonisation:
     mask : npt.NDArray
         Binary image containing the object to be skeletonised. Dimensions should match those of 'image'.
     height_bias : float
-        Ratio of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1 is all pixels
-        smiilar to Zhang.
+        0-1 value deciding how much the height of a pixel should take priority over its position in a
+        mask during skeletonisation. For example, 0 will mean the skeleton's pixels will be as close to
+        the centre as possible and a higher height_bias will mean the skeleton may be over to one side if
+        that side has higher pixels than the centre.
     """
 
     def __init__(self, image: np.ndarray, mask: np.ndarray, height_bias: float = 0.6):
@@ -281,7 +282,7 @@ class Skeletonisation:
         """
         Create an array of size mask.shape containing priority scores for each pixel.
 
-        The scores are calculated with: score = distance_to_edge + (1.0 - normalised_height) * height_bias
+        The scores are calculated with: score = distance_to_edge * (1 - height_bias) + normalised_height * height_bias
         This means a higher height bias reduces the importance of the pixel being in the centre of the line
         being skeletonised.
 
@@ -322,7 +323,7 @@ class Skeletonisation:
         for row in range(1, height - 1):
             for col in range(1, width - 1):
                 if self.mask[row, col] == 1:
-                    # If a 1 touches a 0 it is a boundary pixel
+                    # If a 1 (mask) touches a 0 (background) it is a boundary pixel
                     if np.min(self.mask[row - 1 : row + 2, col - 1 : col + 2]) == 0:
                         heapq.heappush(queue, (priority_map[row, col], row, col))
                         queue_map[row, col] = True
@@ -388,7 +389,17 @@ class Skeletonisation:
             if neighbours[i] == 0 and neighbours[(i + 1) % 8] == 1:
                 transitions += 1
 
-        return transitions == 1
+        if transitions != 1:
+            return False
+
+        # Prevent erosion of endpoints and corners
+        # P2, P4, P6, P8 = neighbours[0], neighbours[2], neighbours[4], neighbours[6]
+        # cond1 = not (P2 and P4 and P6) and not (P4 and P6 and P8)
+        # cond2 = not (P2 and P4 and P8) and not (P2 and P6 and P8)
+
+        # return cond1 and cond2
+
+        return True
 
     def get_local_pixels_binary(self, binary_map: np.ndarray, x: int, y: int) -> np.ndarray:
         """
@@ -416,7 +427,9 @@ class Skeletonisation:
         npt.NDArray
             Flattened 8-long array describing the values in the binary map around the x,y point.
         """
+        # +2 as with a:b b is exclusive
         local_pixels = binary_map[x - 1 : x + 2, y - 1 : y + 2].flatten()
+        # Return without centre pixel
         return np.delete(local_pixels, 4)
 
 
