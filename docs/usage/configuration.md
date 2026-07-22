@@ -43,7 +43,7 @@ filter:
 grains:
   threshold_method: absolute
   threshold_absolute: [1.2]
-  absolute_area_threshold: [[], [400, 1000]]
+  absolute_area_threshold: [[400, 1000]]
 ```
 
 ## Using a custom configuration
