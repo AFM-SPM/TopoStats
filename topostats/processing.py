@@ -2,6 +2,7 @@
 
 import logging
 from copy import deepcopy
+from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
@@ -1643,7 +1644,9 @@ def check_run_steps(  # noqa: C901
         LOGGER.info("Configuration run options are consistent, processing can proceed.")
 
 
-def completion_message(config: dict, img_files: list, summary_config: dict, images_processed: int) -> None:
+def completion_message(
+    config: dict, img_files: list, summary_config: dict, images_processed: int, start_time: datetime
+) -> None:
     """
     Print a completion message summarising images processed.
 
@@ -1657,11 +1660,16 @@ def completion_message(config: dict, img_files: list, summary_config: dict, imag
         Configuration for plotting summary statistics.
     images_processed : int
         Pandas DataFrame of results.
+    start_time : datetime
+        Datetime for start of processing.
     """
     if summary_config is not None:
         distribution_plots_message = str(summary_config["output_dir"])
     else:
         distribution_plots_message = "Disabled. Enable in config 'summary_stats/run' if needed."
+
+    end_time = datetime.now(timezone.utc)
+    elapsed = end_time - start_time
     print(
         "\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
     )
@@ -1674,6 +1682,7 @@ def completion_message(config: dict, img_files: list, summary_config: dict, imag
         f"  File Extension              : {config['file_ext']}\n"
         f"  Files Found                 : {len(img_files)}\n"
         f"  Successfully Processed^1    : {images_processed} ({(images_processed * 100) / len(img_files)}%)\n"
+        f"  Time taken                  : {datetime.fromtimestamp(elapsed.seconds, timezone.utc).strftime('%H:%M:%S')} (HH-MM-SS))\n"
         f"  All statistics              : {str(config['output_dir'])}/grain_statistics.csv\n"
         f"  Distribution Plots          : {distribution_plots_message}\n\n"
         f"  Configuration               : {config['output_dir']}/config.yaml\n\n"
