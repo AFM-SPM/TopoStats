@@ -205,7 +205,7 @@ def run_grains(  # noqa: C901
                     grain_crop_plot_size_nm = plotting_config["grain_crop_plot_size_nm"]
                     # @ns-rse : 2025-10-30 Need to think through carefully what this becomes and which directory things are
                     # to be in as we no longer have a direction and should be using topostats_object.grain_crops
-                    for idx, image_arrays in grains.mask_images.items():
+                    for _, image_arrays in grains.mask_images.items():
                         LOGGER.debug(f"[{topostats_object.filename}] : Plotting Grain Diagnostic Images")
                         # Plot diagnostic full grain images
                         for plot_name, array in image_arrays.items():

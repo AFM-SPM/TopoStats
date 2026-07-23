@@ -815,7 +815,7 @@ class Grains:
                     ordered_trace=graincrop.ordered_trace,
                     threshold_method=graincrop.threshold_method,
                     thresholds=graincrop.thresholds,
-                    threshold=graincrop.threshold,
+                    threshold_idx=graincrop.threshold_idx,
                 )
 
         LOGGER.debug(f"Number of empty removed grains: {num_empty_removed_grains}")
