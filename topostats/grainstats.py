@@ -13,7 +13,7 @@ import skimage.measure as skimage_measure
 import skimage.morphology as skimage_morphology
 
 from topostats.classes import TopoStats
-from topostats.grains import get_thresholds
+from topostats.grains import get_grain_thresholds
 from topostats.logs.logs import LOGGER_NAME
 from topostats.measure import feret
 
@@ -173,7 +173,7 @@ class GrainStats:
             for grain_index, grain_crop in self.grain_crops.items():
                 # If we don't have thresholds stored in the grain calculate them again (using grains.get_thresholds())
                 if grain_crop.thresholds is None:
-                    grain_crop.thresholds = get_thresholds(
+                    grain_crop.thresholds = get_grain_thresholds(
                         image=self.topostats_object.image,
                         threshold_method=self.topostats_object.config["grains"]["threshold_method"],
                         otsu_threshold_multiplier=self.topostats_object.config["grains"]["otsu_threshold_multiplier"],
@@ -257,6 +257,7 @@ class GrainStats:
                         # from pixel units to nanometres.
                         # Removed formatting, better to keep accurate until the end, including in CSV, then shorten display
                         stats = {
+                            "threshold_idx": grain_crop.threshold_idx,
                             "centre_x": centre_x_m,
                             "centre_y": centre_y_m,
                             "radius_min": radius_stats["min"] * length_scaling_factor,

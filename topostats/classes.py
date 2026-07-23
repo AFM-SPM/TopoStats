@@ -47,8 +47,8 @@ class GrainCrop:
         Thresholds used to find the grain.
     filename : str
         Filename of the image from which the crop was taken.
-    threshold : str
-        Direction of the molecule from the threshold (above / below).
+    threshold_idx : int
+        Index of the threshold used.
     skeleton : npt.NDArray[np.bool_]
         3-D Numpy tensor of the skeletonised mask.
     convolved_skeleton : npt.NDArray[np.int32] | None = None
@@ -74,7 +74,7 @@ class GrainCrop:
         pixel_to_nm_scaling: float,
         thresholds: list[float],
         filename: str,
-        threshold: str | None = None,
+        threshold_idx: int,
         skeleton: npt.NDArray[np.bool_] | None = None,
         convolved_skeleton: npt.NDArray[np.int32] | None = None,
         stats: dict[int, dict[int, Any]] | None = None,
@@ -102,8 +102,8 @@ class GrainCrop:
             A list of thresholds used to identify the grain.
         filename : str
             Filename of the image from which the crop was taken.
-        threshold : str
-            Direction of the molecule from the threshold (above / below).
+        threshold_idx : int
+            Index of the threshold used (from the thresholds list).
         skeleton : npt.NDArray[np.bool_]
             3-D Numpy tensor of the skeletonised mask.
         convolved_skeleton : npt.NDArray[np.int32] | None = None
@@ -128,7 +128,7 @@ class GrainCrop:
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.thresholds = thresholds
         self.filename = filename
-        self.threshold: str | None = threshold
+        self.threshold_idx = threshold_idx
         self.stats: dict[str, Any] | None = {} if stats is None else stats
         self.skeleton: npt.NDArray[np.bool_] | None = skeleton
         self.convolved_skeleton: npt.NDArray[np.int32] | None = convolved_skeleton
@@ -161,7 +161,7 @@ class GrainCrop:
             and self.pixel_to_nm_scaling == other.pixel_to_nm_scaling
             and self.thresholds == other.thresholds
             and self.filename == other.filename
-            and self.threshold == other.threshold
+            and self.threshold_idx == other.threshold_idx
             and self.stats == other.stats
             and np.array_equal(self.skeleton, other.skeleton)
             and self.convolved_skeleton == other.convolved_skeleton
@@ -188,6 +188,7 @@ class GrainCrop:
             f"padding : {self.padding}\n"
             f"thresholds : {self.thresholds}\n"
             f"threshold method : {self.threshold_method}\n"
+            f"threshold index : {self.threshold_idx}\n"
             f"bounding box coords : {self.bbox}\n"
             f"pixel to nm scaling : {self.pixel_to_nm_scaling}\n"
             f"number of nodes : {len(self.nodes)}"
@@ -564,6 +565,30 @@ class GrainCrop:
         """
         self._threshold_method = value
 
+    @property
+    def threshold_idx(self) -> int:
+        """
+        Getter for the ``threshold_idx`` attribute.
+
+        Returns
+        -------
+        list[float]
+            Returns the value of ``threshold_idx``.
+        """
+        return self._threshold_idx
+
+    @threshold_idx.setter
+    def threshold_idx(self, value: int) -> None:
+        """
+        Setter for the ``threshold_idx`` attribute.
+
+        Parameters
+        ----------
+        value : int
+            Value to set for ``threshold_idx``.
+        """
+        self._threshold_idx = value
+
     def debug_locate_difference(self, other: object) -> None:  # noqa: C901 # pylint: disable=too-many-branches
         """
         Debug function to find the culprit when two GrainCrop objects are not equal.
@@ -619,6 +644,12 @@ class GrainCrop:
                 "Threshold Method is different\n"
                 f" self.threshold_method  : {self.threshold_method}\n"
                 f" other.threshold_method : {other.threshold_method}"
+            )
+        if self.threshold_idx != other.threshold_idx:
+            raise ValueError(
+                "Threshold Index is different\n"
+                f" self.threshold_idx  : {self.threshold_idx}\n"
+                f" other.threshold_idx : {other.threshold_idx}"
             )
         LOGGER.info("Cannot find difference between graincrops")
 
@@ -1119,8 +1150,8 @@ class Molecule:
     """
     Class for Molecules identified during ordered tracing.
 
-    threshold : str
-        Direction from threshold of molecule (above / below)
+    threshold : int
+        Index of threshold used (from list in config).
     molecule_number : int
         Index of the molecule (per grain)
     circular : str, bool, optional
@@ -1149,7 +1180,7 @@ class Molecule:
         Bounding box.
     """
 
-    threshold: str | None = None
+    threshold: int | None = None
     molecule_number: int | None = None
     circular: str | bool | None = None
     processing: str | None = None
