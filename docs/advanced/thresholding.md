@@ -49,7 +49,7 @@ Examples:
 
 ### Area thresholds
 
-Each threshold needs `area_thresholds` values to go along with it, with one set of low and high threshold bounds per threshold.
+Each threshold needs `area_threshold` values to go along with it, with a low and a high value per threshold.
 Again using the examples from above:
 
 ```yaml
