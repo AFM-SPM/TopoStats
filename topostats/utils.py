@@ -256,6 +256,11 @@ def get_grain_thresholds(  # noqa: C901
         raise ValueError(
             f"threshold_method ({threshold_method}) is invalid. Valid values : 'otsu' 'std_dev' 'absolute'"
         )
+    # Raise error if no thresholds can be found
+    if not thresholds:
+        raise ValueError(
+            "threshold list is empty. Ensure thresholds have been entered in the config for the selected threshold method."
+        )
     return thresholds
 
 

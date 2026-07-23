@@ -552,6 +552,7 @@ class Grains:
                 padding=self.grain_crop_padding,
                 pixel_to_nm_scaling=self.pixel_to_nm_scaling,
                 filename=self.filename,
+                threshold_idx=i,
             )
 
             # If there are no grains, then later steps will fail, so skip the stages if no grains are found.
@@ -596,6 +597,7 @@ class Grains:
                                 padding=self.grain_crop_padding,
                                 pixel_to_nm_scaling=self.pixel_to_nm_scaling,
                                 filename=self.filename,
+                                threshold_idx=i,
                             )
                 else:
                     # otherwise use the traditional graincrops
@@ -813,6 +815,7 @@ class Grains:
                     ordered_trace=graincrop.ordered_trace,
                     threshold_method=graincrop.threshold_method,
                     thresholds=graincrop.thresholds,
+                    threshold=graincrop.threshold,
                 )
 
         LOGGER.debug(f"Number of empty removed grains: {num_empty_removed_grains}")
@@ -1635,6 +1638,7 @@ class Grains:
                 ordered_trace=graincrop.ordered_trace,
                 threshold_method=graincrop.threshold_method,
                 thresholds=graincrop.thresholds,
+                threshold_idx=graincrop.threshold_idx,
             )
 
         return passed_graincrops
@@ -1720,6 +1724,7 @@ class Grains:
         padding: int,
         pixel_to_nm_scaling: float,
         filename: str,
+        threshold_idx: int,
     ) -> dict[int, GrainCrop]:
         """
         Extract grains from the full image mask tensor.
@@ -1738,6 +1743,8 @@ class Grains:
             Pixel to nanometre scaling factor.
         filename : str
             Filename of the image.
+        threshold_idx : int
+            The index of the threshold used to find the grain.
 
         Returns
         -------
@@ -1830,6 +1837,7 @@ class Grains:
                 ordered_trace=None,
                 threshold_method=self.threshold_method,
                 thresholds=self.thresholds,
+                threshold_idx=threshold_idx,
             )
 
         return graincrops

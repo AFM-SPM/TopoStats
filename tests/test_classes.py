@@ -121,6 +121,7 @@ def test_grain_crop_str(dummy_graincrop: GrainCrop) -> None:
         "padding : 2\n"
         "thresholds : (1, 2)\n"
         "threshold method : None\n"
+        "threshold index : 0\n"
         "bounding box coords : (1, 1, 11, 11)\n"
         "pixel to nm scaling : 1.0\n"
         "number of nodes : 2"

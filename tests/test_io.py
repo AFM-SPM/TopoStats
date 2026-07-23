@@ -1219,6 +1219,7 @@ def test_dict_to_json(dictionary: dict, target: dict, tmp_path: Path) -> None:
                         filename="basic_graincrop",
                         skeleton=np.array([[0, 1], [1, 0]]),
                         thresholds=[0, 2],
+                        threshold_idx=0,
                         stats=None,
                     )
                 },
@@ -1291,6 +1292,7 @@ def test_dict_to_json(dictionary: dict, target: dict, tmp_path: Path) -> None:
                         skeleton=np.array([[0, 1], [1, 0]]),
                         stats=None,
                         thresholds=[0, 2],
+                        threshold_idx=0,
                         disordered_trace=DisorderedTrace(
                             images={"pruned_skeleton": np.array([[0, 1], [1, 0]])},
                             grain_endpoints=3,

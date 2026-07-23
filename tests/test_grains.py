@@ -619,6 +619,7 @@ def test_remove_edge_intersecting_grains(
                         ]
                     ),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -658,6 +659,7 @@ def test_remove_edge_intersecting_grains(
                         ]
                     ),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -696,6 +698,7 @@ def test_remove_edge_intersecting_grains(
                         ]
                     ),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -734,6 +737,7 @@ def test_remove_edge_intersecting_grains(
                         ]
                     ),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -774,6 +778,7 @@ def test_remove_edge_intersecting_grains(
                         ]
                     ),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -803,6 +808,7 @@ def test_remove_edge_intersecting_grains(
                     pixel_to_nm_scaling=1.0,
                     image=np.array([[0.1, 0.2, 0.1], [0.1, 1.5, 0.2], [0.1, 0.2, 0.1]]),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -944,6 +950,7 @@ def test_find_grains(
                         ]
                     ),
                     thresholds=[0.9],
+                    threshold_idx=0,
                     threshold_method="absolute",
                     mask=np.stack(
                         [
@@ -984,6 +991,7 @@ def test_find_grains(
                         ]
                     ),
                     thresholds=[0.9],
+                    threshold_idx=0,
                     threshold_method="absolute",
                     mask=np.stack(
                         [
@@ -1022,6 +1030,7 @@ def test_find_grains(
                         ]
                     ),
                     thresholds=[0.9],
+                    threshold_idx=0,
                     threshold_method="absolute",
                     mask=np.stack(
                         [
@@ -1266,6 +1275,7 @@ def test_tidy_border_tensor(
                         ],
                     ),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -1305,6 +1315,7 @@ def test_tidy_border_tensor(
                         ],
                     ),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -1342,6 +1353,7 @@ def test_tidy_border_tensor(
                         ]
                     ),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -1379,6 +1391,7 @@ def test_tidy_border_tensor(
                         ],
                     ),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -1418,6 +1431,7 @@ def test_tidy_border_tensor(
                         ],
                     ),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -1455,6 +1469,7 @@ def test_tidy_border_tensor(
                         ]
                     ),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -1507,6 +1522,7 @@ def test_tidy_border_tensor(
                         ]
                     ),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -3626,6 +3642,7 @@ def test_merge_classes(
                         ]
                     ).astype(np.float32),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -3719,6 +3736,7 @@ def test_merge_classes(
                         ]
                     ).astype(np.float32),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -3802,6 +3820,7 @@ def test_merge_classes(
                         ]
                     ).astype(np.float32),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -3879,6 +3898,7 @@ def test_merge_classes(
                         ]
                     ).astype(np.float32),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -3946,6 +3966,7 @@ def test_merge_classes(
                         ]
                     ),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -3995,6 +4016,7 @@ def test_merge_classes(
                         ]
                     ),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -4044,6 +4066,7 @@ def test_merge_classes(
                         ]
                     ),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -4093,6 +4116,7 @@ def test_merge_classes(
                         ]
                     ),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -4142,6 +4166,7 @@ def test_merge_classes(
                         ]
                     ),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -4203,6 +4228,7 @@ def test_merge_classes(
                         ]
                     ),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -4258,6 +4284,7 @@ def test_merge_classes(
                         ]
                     ),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -4307,6 +4334,7 @@ def test_merge_classes(
                         ]
                     ),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -4356,6 +4384,7 @@ def test_merge_classes(
                         ]
                     ),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -4405,6 +4434,7 @@ def test_merge_classes(
                         ]
                     ),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -4454,6 +4484,7 @@ def test_merge_classes(
                         ]
                     ),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -4516,6 +4547,7 @@ def test_merge_classes(
                         ]
                     ),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -4565,6 +4597,7 @@ def test_merge_classes(
                         ]
                     ),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -4614,6 +4647,7 @@ def test_merge_classes(
                         ]
                     ),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -4663,6 +4697,7 @@ def test_merge_classes(
                         ]
                     ),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -4712,6 +4747,7 @@ def test_merge_classes(
                         ]
                     ),
                     thresholds=None,
+                    threshold_idx=0,
                     mask=np.stack(
                         [
                             np.array(
@@ -4783,6 +4819,7 @@ def test_graincrops_merge_classes() -> None:
                 ]
             ),
             thresholds=None,
+            threshold_idx=0,
             mask=np.stack(
                 [
                     np.array(
@@ -4858,6 +4895,7 @@ def test_graincrops_merge_classes() -> None:
                 ]
             ),
             thresholds=None,
+            threshold_idx=0,
             mask=np.stack(
                 [
                     np.array(
@@ -4960,6 +4998,7 @@ def test_graincrops_update_background_class() -> None:
                 ]
             ).astype(np.float32),
             thresholds=None,
+            threshold_idx=0,
             mask=np.stack(
                 [
                     np.array(
@@ -5012,6 +5051,7 @@ def test_graincrops_update_background_class() -> None:
                 ]
             ).astype(np.float32),
             thresholds=None,
+            threshold_idx=0,
             mask=np.stack(
                 [
                     np.array(
@@ -5067,6 +5107,7 @@ def test_graincrops_update_background_class() -> None:
                 ]
             ).astype(np.float32),
             thresholds=None,
+            threshold_idx=0,
             mask=np.stack(
                 [
                     np.array(
@@ -5119,6 +5160,7 @@ def test_graincrops_update_background_class() -> None:
                 ]
             ).astype(np.float32),
             thresholds=None,
+            threshold_idx=0,
             mask=np.stack(
                 [
                     np.array(
@@ -5181,6 +5223,7 @@ def test_graincrops_remove_objects_too_small_to_process() -> None:
                 ]
             ).astype(np.float32),
             thresholds=None,
+            threshold_idx=0,
             mask=np.stack(
                 [
                     np.array(
@@ -5238,6 +5281,7 @@ def test_graincrops_remove_objects_too_small_to_process() -> None:
                 ]
             ).astype(np.float32),
             thresholds=None,
+            threshold_idx=0,
             mask=np.stack(
                 [
                     np.array(
@@ -5301,6 +5345,7 @@ def test_graincrop_init() -> None:
             ]
         ),
         thresholds=None,
+        threshold_idx=0,
         mask=np.stack(
             [
                 np.array(
@@ -5436,6 +5481,7 @@ def test_graincrop_mask_setter(
     graincrop = GrainCrop(
         image=np.ones((mask_size, mask_size)).astype(np.float32),
         thresholds=None,
+        threshold_idx=0,
         mask=graincrop_mask,
         padding=padding,
         bbox=(0, 0, mask_size, mask_size),
@@ -5472,6 +5518,7 @@ def test_graincrop_padding_setter(dummy_graincrop: GrainCrop) -> None:
                     ]
                 ),
                 thresholds=None,
+                threshold_idx=0,
                 mask=np.stack(
                     [
                         np.array(
@@ -5516,6 +5563,7 @@ def test_graincrop_padding_setter(dummy_graincrop: GrainCrop) -> None:
                     ]
                 ),
                 thresholds=None,
+                threshold_idx=0,
                 mask=np.stack(
                     [
                         np.array(
@@ -5564,6 +5612,7 @@ def test_graincrop_padding_setter(dummy_graincrop: GrainCrop) -> None:
                     ]
                 ),
                 thresholds=None,
+                threshold_idx=0,
                 mask=np.stack(
                     [
                         np.array(
@@ -5608,6 +5657,7 @@ def test_graincrop_padding_setter(dummy_graincrop: GrainCrop) -> None:
                     ]
                 ),
                 thresholds=None,
+                threshold_idx=0,
                 mask=np.stack(
                     [
                         np.array(
@@ -5656,6 +5706,7 @@ def test_graincrop_padding_setter(dummy_graincrop: GrainCrop) -> None:
                     ]
                 ),
                 thresholds=None,
+                threshold_idx=0,
                 mask=np.stack(
                     [
                         np.array(
@@ -5700,6 +5751,7 @@ def test_graincrop_padding_setter(dummy_graincrop: GrainCrop) -> None:
                     ]
                 ),
                 thresholds=None,
+                threshold_idx=0,
                 mask=np.stack(
                     [
                         np.array(
@@ -5748,6 +5800,7 @@ def test_graincrop_padding_setter(dummy_graincrop: GrainCrop) -> None:
                     ]
                 ),
                 thresholds=None,
+                threshold_idx=0,
                 mask=np.stack(
                     [
                         np.array(
@@ -5792,6 +5845,7 @@ def test_graincrop_padding_setter(dummy_graincrop: GrainCrop) -> None:
                     ]
                 ),
                 thresholds=None,
+                threshold_idx=0,
                 mask=np.stack(
                     [
                         np.array(
@@ -5840,6 +5894,7 @@ def test_graincrop_padding_setter(dummy_graincrop: GrainCrop) -> None:
                     ]
                 ),
                 thresholds=None,
+                threshold_idx=0,
                 mask=np.stack(
                     [
                         np.array(
@@ -5884,6 +5939,7 @@ def test_graincrop_padding_setter(dummy_graincrop: GrainCrop) -> None:
                     ]
                 ),
                 thresholds=None,
+                threshold_idx=0,
                 mask=np.stack(
                     [
                         np.array(
@@ -5932,6 +5988,7 @@ def test_graincrop_padding_setter(dummy_graincrop: GrainCrop) -> None:
                     ]
                 ),
                 thresholds=None,
+                threshold_idx=0,
                 mask=np.stack(
                     [
                         np.array(
@@ -5976,6 +6033,7 @@ def test_graincrop_padding_setter(dummy_graincrop: GrainCrop) -> None:
                     ]
                 ),
                 thresholds=None,
+                threshold_idx=0,
                 mask=np.stack(
                     [
                         np.array(
@@ -6024,6 +6082,7 @@ def test_graincrop_padding_setter(dummy_graincrop: GrainCrop) -> None:
                     ]
                 ),
                 thresholds=None,
+                threshold_idx=0,
                 mask=np.stack(
                     [
                         np.array(
@@ -6068,6 +6127,7 @@ def test_graincrop_padding_setter(dummy_graincrop: GrainCrop) -> None:
                     ]
                 ),
                 thresholds=None,
+                threshold_idx=0,
                 mask=np.stack(
                     [
                         np.array(

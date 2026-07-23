@@ -571,7 +571,7 @@ def grainstats(args: argparse.Namespace | None = None) -> None:
     # the dataframes have the file names in them already.
     try:
         grain_stats_all_df = pd.concat(grain_stats_all.values())
-        grain_stats_all_df.to_csv(config["output_dir"] / "image_statistics.csv")
+        grain_stats_all_df.to_csv(config["output_dir"] / "grain_statistics.csv")
     except ValueError as error:
         LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
         LOGGER.error(error)

@@ -1110,6 +1110,7 @@ def dict_to_topostats(  # noqa: C901 # pylint: disable=too-many-locals,too-many-
             ordered_trace = OrderedTrace(**crop["ordered_trace"]) if "ordered_trace" in crop.keys() else None
             threshold_method = crop["threshold_method"] if "threshold_method" in crop.keys() else None
             thresholds = crop["thresholds"] if "thresholds" in crop.keys() else None
+            threshold_idx = crop["threshold_idx"] if "threshold_idx" in crop.keys() else None
             grain_crops[grain] = GrainCrop(
                 image=image,
                 mask=mask,
@@ -1124,6 +1125,7 @@ def dict_to_topostats(  # noqa: C901 # pylint: disable=too-many-locals,too-many-
                 ordered_trace=ordered_trace,
                 threshold_method=threshold_method,
                 thresholds=thresholds,
+                threshold_idx=threshold_idx,
             )
     else:
         grain_crops = None
