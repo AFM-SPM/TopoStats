@@ -632,9 +632,9 @@ class LoadScans:
         """
         Load a ``.topostats`` file (hdf5 format) using AFMReader.
 
-        AFMReader is general and returns the data as a AFMLoad object, with most of the data stored in the .metadata
-        attribute. This is converted into a dictionary, then later converted to ``TopoStats`` class when building
-        dictionaries of images.
+        AFMReader is general and returns the data as an AFMLoad object, with most of the data stored in the
+        ``.metadata`` attribute. This is converted into a dictionary, then later converted to ``TopoStats``
+        class when building dictionaries of images.
 
         Returns
         -------

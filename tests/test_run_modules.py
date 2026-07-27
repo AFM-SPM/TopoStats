@@ -127,13 +127,15 @@ def test_filters(attributes: dict, caplog) -> None:
     )
     assert "Looking for images with extension   : .topostats" in caplog.text
     assert "[minicircle_small] Filtering completed." in caplog.text
-    # Load the output file with AFMReader check its a dictionary and convert to TopoStats
+    # Load the output file with AFMReader and check it's an AFMLoad object
     afm_load = topostats.load_topostats("output/processed/minicircle_small.topostats", channel="image_original")
     assert isinstance(afm_load, AFMLoad)
+    # Then convert the AFMLoad object to a dictionary
     data = afm_load.metadata
     data["image_original"] = afm_load.image
     data["pixel_to_nm_scaling"] = afm_load.pixel_to_nanometre_scaling
     assert isinstance(data, dict)
+    # Then convert the dictionary to a TopoStats object
     topostats_object = dict_to_topostats(dictionary=data)
     assert isinstance(topostats_object, TopoStats)
     for attribute in attributes:
@@ -180,15 +182,17 @@ def test_grains(attributes: dict, caplog, tmp_path: Path) -> None:
     )
     assert "Looking for images with extension   : .topostats" in caplog.text
     assert "[minicircle_small] Grain detection completed (NB - Filtering was *not* re-run)." in caplog.text
-    # Load the output file with AFMReader check its a dictionary and convert to TopoStats
+    # Load the output file with AFMReader and check it's an AFMLoad object
     afm_load = topostats.load_topostats(
         tmp_path / "output/processed/minicircle_small.topostats", channel="image_original"
     )
     assert isinstance(afm_load, AFMLoad)
+    # Then convert the AFMLoad object to a dictionary
     data = afm_load.metadata
     data["image_original"] = afm_load.image
     data["pixel_to_nm_scaling"] = afm_load.pixel_to_nanometre_scaling
     assert isinstance(data, dict)
+    # Then convert the dictionary to a TopoStats object
     topostats_object = dict_to_topostats(dictionary=data)
     assert isinstance(topostats_object, TopoStats)
     for attribute in attributes:

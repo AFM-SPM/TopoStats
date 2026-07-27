@@ -59,8 +59,8 @@ def test_process_scan(tmp_path, process_scan_config: dict, load_scan_data: LoadS
 
     # Regtest for the topostats file
     assert Path.exists(tmp_path / "tests/resources/test_image/processed/minicircle_small.topostats")
-    # Load the results, note that we use AFMReader.topostats.load_topostats() here which simply loads the data as
-    # dictionaries and means it is easy to compare to syrupy snapshots
+    # Load the results, note that we use AFMReader.topostats.load_topostats() here which loads the data as an AFMLoad
+    # object then we extract image and metadata into a dictionary so it is easy to compare to syrupy snapshots
     afm_load = load_topostats(
         file_path=tmp_path / "tests/resources/test_image/processed/minicircle_small.topostats", channel="image_original"
     )
