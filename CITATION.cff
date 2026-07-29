@@ -65,6 +65,11 @@ authors:
     family-names: Joseph
     email: agnel-praveen.joseph@stfc.ac.uk
     affiliation: Collaborative Computational Project for Electron cryo-Microscopy, Science and Technology Facilities Council
+  - given-names: Daniel
+    family-names: Brady
+    email: daniel.brady@sheffield.ac.uk
+    affiliation: The University of Sheffield
+    orcid: "https://orcid.org/0000-0003-4671-0676"
 
 identifiers:
   - type: doi
