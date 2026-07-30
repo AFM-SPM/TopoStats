@@ -91,7 +91,7 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
             Dictionary of pruning parameters. Contains 'method', 'max_length', 'height_threshold', 'method_values',
             'method_outlier' and 'only_height_prune_endpoints'.
         n_grain : int
-            Grain number being processed (only  used in logging).
+            Grain number being processed (only used in logging).
         """
         self.image = image
         self.mask = mask
