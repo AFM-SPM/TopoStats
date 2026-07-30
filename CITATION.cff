@@ -84,6 +84,6 @@ keywords:
   - atomic force microscopy
   - python
 license: GPL-3.0
-commit: cd0ec35a5071deb7f6f8ef6dce6598a542cb059b
-version: 2.1.0
-date-released: "2023-05-18"
+commit: b36130e8e130519f219f1b7855b78f2c5518b974
+version: 2.4.1
+date-released: "2026-07-31"
