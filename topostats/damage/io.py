@@ -27,6 +27,10 @@ def get_dose_from_folder_name(folder_name: str) -> float:
     match = re.search(r"(\d+)_percent_damage", folder_name)
     if match:
         return float(match.group(1))
+    # else try using the pattern "/XXgy"
+    match = re.search(r"/(\d+)gy", folder_name)
+    if match:
+        return float(match.group(1))
     raise ValueError(f"Could not extract dose from folder name: {folder_name}")
 
 
@@ -155,6 +159,8 @@ def load_grain_models_from_topo_files(  # noqa: C901
                 ]
 
                 # get the molecule data
+                if grain_crop.ordered_trace is None:
+                    continue  # not meant to be able to happen but in some files it does, so handle it
                 grain_molecule_data = grain_crop.ordered_trace.require_molecule_data()
                 molecule_data_collection = UnanalysedMoleculeDataCollection(molecules={})
                 for molecule_id, molecule_ordered_trace_data in grain_molecule_data.items():
@@ -229,6 +235,7 @@ def construct_grains_collection_from_topostats_files(
     dir_processed_data: Path,
     df_grain_stats: pd.DataFrame,
     bbox_padding: int,
+    folder_prefixes_to_ignore: list[str],
     force_reload: bool = False,
 ) -> UnanalysedGrainCollection:
     """
@@ -244,6 +251,8 @@ def construct_grains_collection_from_topostats_files(
         Dataframe containing the grain statistics to be aligned with the data in the TopoStats files.
     bbox_padding: int
         Amount of padding to add to the bounding boxes when loading the grain data from the TopoStats files.
+    folder_prefixes_to_ignore : list[str]
+        Any prefixes to the folder structure that should be deleted for sample type discerning.
     force_reload: bool
         Whether to force reload the data from the TopoStats files even if the hash matches the previous hash.
     """
@@ -263,8 +272,8 @@ def construct_grains_collection_from_topostats_files(
     # calculate a hash for each folder by combining the hashes of files in that folder.
     for local_folder, group in unique_file_folder_combinations_grouped:
         sample_type = str(local_folder)
-        sample_type = str(sample_type).replace("../all_data/", "")
-        sample_type = str(sample_type).replace("../test_subset_data/", "")
+        for folder_prefix_to_ignore in folder_prefixes_to_ignore:
+            sample_type = str(sample_type).replace(folder_prefix_to_ignore, "")
         dir_loaded_sample_type = dir_loaded_datasets / sample_type
         print(f"checking folder {sample_type} with {len(group)} files")
         print("calculating hashes for topostats files...")
@@ -274,10 +283,9 @@ def construct_grains_collection_from_topostats_files(
             filename = str(row["image"])
             basename = str(row["basename"])
             # reconstruct the path to the file using the basename, image name and structure of directories.
-            if "all_data" in str(basename):
-                dir_topo_file = Path(str(basename).replace("../all_data/", ""))
-            if "test_subset_data" in str(basename):
-                dir_topo_file = Path(str(basename).replace("../test_subset_data/", ""))
+            dir_topo_file = basename
+            for folder_prefix_to_ignore in folder_prefixes_to_ignore:
+                dir_topo_file = Path(str(sample_type).replace(folder_prefix_to_ignore, ""))
             dir_topo_file = dir_processed_data / dir_topo_file / "processed"
             assert dir_topo_file.exists(), f"could not find folder at {dir_topo_file}"
             file_topostats = dir_topo_file / f"{filename}.topostats"
