@@ -556,6 +556,7 @@ class GrainModel(UnanalysedGrain):
     """Data object to hold the analysed grain data."""
 
     molecule_data_collection: MoleculeDataCollection
+    has_double_strand_break: bool = False
 
     def from_unanalysed_grain(
         unanalysed_grain: UnanalysedGrain,
@@ -840,7 +841,11 @@ class GrainModel(UnanalysedGrain):
             for molecule_id, molecule_data in self.molecule_data_collection.items():
                 molecule_beak_defect_data = molecule_data.beak_defect_data
                 if molecule_beak_defect_data is None:
-                    raise ValueError(f"molecule with id {molecule_data.molecule_id} has no beak defect data")
+                    # raise ValueError(f"molecule with id {molecule_data.molecule_id} has no beak defect data")
+                    print(
+                        f"molecule with id {molecule_data.molecule_id} has no beak defect data, skipping plotting beaks"
+                    )
+                    continue
                 for item in molecule_beak_defect_data.ordered_defects_and_gaps.defect_gap_list:
                     if isinstance(item, Defect):
                         defect_start_index = item.start_index
