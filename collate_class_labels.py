@@ -75,8 +75,10 @@ def get_class_name_from_filename(filename: str, classes: list[str]) -> str | Non
 
 
 if __name__ == "__main__":
-    images_dir = Path("/Users/sylvi/topo_data/crossings_net/dataset_false_true_slot/images_true_slot")
-    input_labels_dir = Path("/Users/sylvi/topo_data/crossings_net/dataset_false_true_slot/labels_true_slot")
+    # images_dir = Path("/Users/sylvi/topo_data/crossings_net/dataset_false_true_slot/images_true_slot")
+    # input_labels_dir = Path("/Users/sylvi/topo_data/crossings_net/dataset_false_true_slot/labels_true_slot")
+    images_dir = Path("/Users/sylvi/topo_data/crossings_net/dataset_false_true_slot/images_false")
+    input_labels_dir = Path("/Users/sylvi/topo_data/crossings_net/dataset_false_true_slot/labels_false")
     output_labels_dir = input_labels_dir.parent / f"{input_labels_dir.name}_combined"
     output_labels_dir.mkdir(parents=True, exist_ok=True)
     classes = ["strand1", "strand2"]
