@@ -490,10 +490,11 @@ class Grains:
 
         self.topostats_object.full_mask_tensor = None
 
+        # iterate over the thresholds
         for i, threshold in enumerate(self.thresholds):
             LOGGER.debug(f"[{self.filename}] : Finding grains, threshold: ({threshold})")
             self.mask_images[i] = {}
-            # iterate over the thresholds
+
             traditional_full_mask_tensor = Grains.multi_class_thresholding(
                 image=self.image,
                 thresholds=[threshold],
@@ -698,11 +699,11 @@ class Grains:
         traditional_full_mask_tensor = np.zeros(
             (image.shape[0], image.shape[1], len(thresholds) + 1), dtype=np.int32
         ).astype(bool)
-        for threshold_index, direction_threshold in enumerate(thresholds):
+        for threshold_index, threshold in enumerate(thresholds):
             # mask the grains
             traditional_full_mask_tensor[:, :, threshold_index + 1] = _get_grain_mask(
                 image=image,
-                thresh=direction_threshold,
+                thresh=threshold,
                 img_name=image_name,
             ).astype(bool)
         # Update background class in the full mask tensor
