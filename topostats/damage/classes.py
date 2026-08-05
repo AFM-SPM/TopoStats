@@ -236,6 +236,8 @@ class MoleculeData(UnanalysedMoleculeData):
     beak_defect_data: MoleculeDefectData | None = None
     coinciding_defect_threshold_nm: float
     smoothed_spline_coords_heights: npt.NDArray[np.float64] | None = None
+    widths_nm: list[tuple[float, float]] | None = None
+    thick_regions_data: MoleculeDefectData | None = None
 
     def from_unanalysed_molecule_data(
         unanalysed_data: UnanalysedMoleculeData,
@@ -557,6 +559,8 @@ class GrainModel(UnanalysedGrain):
 
     molecule_data_collection: MoleculeDataCollection
     has_double_strand_break: bool = False
+    has_beak: bool = False
+    beak_mask: npt.NDArray[np.bool_] | None = None
 
     def from_unanalysed_grain(
         unanalysed_grain: UnanalysedGrain,
