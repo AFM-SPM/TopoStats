@@ -506,6 +506,119 @@ def find_hard_connected_endpoints(  # noqa: C901
     return hard_connected_endpoints
 
 
+def get_neighbouring_true_pixels(
+    mask: npt.NDArray[np.bool_], coord: npt.NDArray[np.integer]
+) -> list[npt.NDArray[np.integer]]:
+    """
+    Get the coordinates of neighbouring true pixels in a binary mask.
+
+    Parameters
+    ----------
+    mask : npt.NDArray[np.bool_]
+        The binary mask.
+    coord : npt.NDArray[np.integer]
+        The coordinate to get neighbours for.
+
+    Returns
+    -------
+    list[npt.NDArray[np.integer]]
+        A list of coordinates of neighbouring true pixels.
+    """
+    neighbours = []
+    for dx in [-1, 0, 1]:
+        for dy in [-1, 0, 1]:
+            if dx == 0 and dy == 0:
+                continue
+            neighbour_coord = coord + np.array([dx, dy])
+            if (
+                neighbour_coord[0] >= 0
+                and neighbour_coord[0] < mask.shape[0]
+                and neighbour_coord[1] >= 0
+                and neighbour_coord[1] < mask.shape[1]
+            ):
+                if mask[neighbour_coord[0], neighbour_coord[1]]:
+                    neighbours.append(neighbour_coord)
+    return neighbours
+
+
+def get_point_along_branch(
+    skeleton: npt.NDArray[np.bool_], start_coord: npt.NDArray[np.integer], distance_px: float
+) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
+    """
+    Get the coordinate and path taken of a point along a branch at a specified distance from a starting coordinate.
+
+    Parameters
+    ----------
+    skeleton : npt.NDArray[np.bool_]
+        The skeleton image.
+    start_coord : npt.NDArray[np.integer]
+        The starting coordinate.
+    distance_px : float
+        The distance in pixels.
+
+    Returns
+    -------
+    tuple[npt.NDArray[np.integer], npt.NDArray[np.integer]]
+        The coordinate of the point along the branch at the specified distance, and the path taken to get there.
+    """
+    skeleton_tracker = skeleton.copy()
+    distance_travelled_px = 0.0
+    path_taken = [start_coord]
+    current_coord = start_coord
+    skeleton_tracker[current_coord[0], current_coord[1]] = False
+    neighbours = get_neighbouring_true_pixels(skeleton_tracker, current_coord)
+    # note: if we ever encounter more than one neighbour, we stop and return that point, as it's
+    # a crossing / node, and we don't want to have to define how to deicde where to go from there.
+    while distance_travelled_px < distance_px:
+        if len(neighbours) == 0:
+            # we've reached the end of the branch before reaching the desired distance, so we return the last point
+            break
+        if len(neighbours) > 1:
+            # we've reached a crossing / node before reaching the desired distance, so we return the current point
+            break
+        next_coord = neighbours[0]
+        distance_travelled_px += np.linalg.norm(next_coord - current_coord)
+        current_coord = next_coord
+        path_taken.append(current_coord)
+        skeleton_tracker[current_coord[0], current_coord[1]] = False
+        neighbours = get_neighbouring_true_pixels(skeleton_tracker, current_coord)
+    return np.array(current_coord, dtype=np.int32), np.array(path_taken, dtype=np.int32)
+
+
+def ray_cast(
+    point: npt.NDArray[np.integer],
+    direction: npt.NDArray[np.integer],
+    mask: npt.NDArray[np.bool_],
+) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
+    """
+    Ray cast from a point in a given direction until hitting a true pixel in the mask.
+
+    Parameters
+    ----------
+    point : npt.NDArray[np.integer]
+        The starting point of the ray.
+    direction : npt.NDArray[np.integer]
+        The direction of the ray (should be a unit vector).
+    mask : npt.NDArray[np.bool_]
+        The binary mask to ray cast against.
+    """
+    # Normalize the direction to ensure it's a unit vector
+    direction = direction / np.linalg.norm(direction)
+    current_point = point.copy()
+    current_point_int = np.round(current_point).astype(int)
+    ray_cast_path = [current_point_int.copy()]
+    # Keep stepping in the direction until we hit a true pixel or go out of bounds
+    while (
+        0 <= current_point_int[0] < mask.shape[0]
+        and 0 <= current_point_int[1] < mask.shape[1]
+        and not mask[current_point_int[0], current_point_int[1]]
+    ):
+        current_point = current_point.astype(float) + direction
+        current_point_int = np.round(current_point).astype(int)
+        ray_cast_path.append(current_point_int.copy())
+    return current_point_int, np.array(ray_cast_path, dtype=np.int32)
+
+
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-statements
