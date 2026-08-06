@@ -11,12 +11,14 @@ import skan
 from scipy import ndimage
 from skimage import filters
 from skimage.morphology import label
+from skimage.draw import line
 
 from topostats.classes import DisorderedTrace, TopoStats
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.pruning import prune_skeleton
 from topostats.tracing.skeletonize import getSkeleton
 from topostats.utils import convolve_skeleton
+from topostats.mask_manipulation import get_point_along_branch, ray_cast
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -61,6 +63,8 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
         filename: str,
         pixel_to_nm_scaling: float,
         min_skeleton_size: int = 10,
+        extend_endpoints_to_mask_edge: bool = False,
+        endpoint_vector_follow_distance_nm: float = 5.0,
         mask_smoothing_params: dict | None = None,
         skeletonisation_params: dict | None = None,
         pruning_params: dict | None = None,
@@ -98,6 +102,8 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
         self.filename = filename
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.min_skeleton_size = min_skeleton_size
+        self.extend_endpoints_to_mask_edge = extend_endpoints_to_mask_edge
+        self.endpoint_vector_follow_distance_nm = endpoint_vector_follow_distance_nm
         self.mask_smoothing_params = mask_smoothing_params
         self.skeletonisation_params = (
             skeletonisation_params if skeletonisation_params is not None else {"method": "zhang"}
@@ -135,6 +141,15 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
         self.pruned_skeleton = prune_skeleton(
             self.image, self.skeleton, self.pixel_to_nm_scaling, **self.pruning_params.copy()
         )
+        # extend endpoints to the edge of the mask
+        if self.extend_endpoints_to_mask_edge:
+            self.pruned_skeleton = extend_branch_ends_to_mask_edge(
+                skeleton=self.pruned_skeleton,
+                mask=self.smoothed_mask,
+                pixel_to_nm_scaling=self.pixel_to_nm_scaling,
+                endpoint_vector_follow_distance_nm=self.endpoint_vector_follow_distance_nm,
+            )
+
         self.pruned_skeleton = self.remove_touching_edge(self.pruned_skeleton)
         self.disordered_trace = np.argwhere(self.pruned_skeleton == 1)
 
@@ -327,6 +342,8 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
     topostats_object: TopoStats,
     class_index: int,
     min_skeleton_size: int,
+    extend_endpoints_to_mask_edge: bool,
+    endpoint_vector_follow_distance_nm: float,
     mask_smoothing_params: dict,
     skeletonisation_params: dict,
     pruning_params: dict,
@@ -342,6 +359,10 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
         Index of the class to trace.
     min_skeleton_size : int
         Minimum size of grain in pixels after skeletonisation.
+    extend_endpoints_to_mask_edge : bool
+        Whether to extend skeleton endpoints to the edge of the grain mask.
+    endpoint_vector_follow_distance_nm : float
+        The distance in nanometres to follow the branch back for calculating the direction of the endpoint.
     mask_smoothing_params : dict
         Dictionary of parameters to smooth the grain mask for better quality skeletonisation results. Contains
         a gaussian 'sigma' and number of dilation iterations.
@@ -382,6 +403,8 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                 skeletonisation_params=skeletonisation_params,
                 pruning_params=pruning_params,
                 min_skeleton_size=min_skeleton_size,
+                extend_endpoints_to_mask_edge=extend_endpoints_to_mask_edge,
+                endpoint_vector_follow_distance_nm=endpoint_vector_follow_distance_nm,
                 n_grain=grain_number,
             )
             LOGGER.debug(f"[{grain_crop.filename}] : Disordered Traced grain {grain_number + 1} of {number_of_grains}")
@@ -614,6 +637,8 @@ def disordered_trace_grain(  # pylint: disable=too-many-arguments
     filename: str = None,
     min_skeleton_size: int = 10,
     n_grain: int = None,
+    extend_endpoints_to_mask_edge: bool = False,
+    endpoint_vector_follow_distance_nm: float = 5.0,
 ) -> dict:
     """
     Trace an individual grain.
@@ -647,6 +672,10 @@ def disordered_trace_grain(  # pylint: disable=too-many-arguments
         Minimum size of grain in pixels after skeletonisation.
     n_grain : int
         Grain number being processed.
+    extend_endpoints_to_mask_edge : bool
+        Whether to extend skeleton endpoints to the edge of the grain mask.
+    endpoint_vector_follow_distance_nm : float
+        The distance in nanometres to follow the branch back for calculating the direction of the endpoint
 
     Returns
     -------
@@ -660,6 +689,8 @@ def disordered_trace_grain(  # pylint: disable=too-many-arguments
         filename=filename,
         pixel_to_nm_scaling=pixel_to_nm_scaling,
         min_skeleton_size=min_skeleton_size,
+        extend_endpoints_to_mask_edge=extend_endpoints_to_mask_edge,
+        endpoint_vector_follow_distance_nm=endpoint_vector_follow_distance_nm,
         mask_smoothing_params=mask_smoothing_params,
         skeletonisation_params=skeletonisation_params,
         pruning_params=pruning_params,
@@ -779,6 +810,64 @@ def pad_bounding_box(array_shape: tuple, bounding_box: list, pad_width: int) -> 
     # Right Column : Make this the last column if too close
     bounding_box[3] = array_shape[1] if bounding_box[3] + pad_width > array_shape[1] else bounding_box[3] + pad_width
     return bounding_box
+
+
+def extend_branch_ends_to_mask_edge(
+    skeleton: npt.NDArray,
+    mask: npt.NDArray,
+    pixel_to_nm_scaling: float,
+    endpoint_vector_follow_distance_nm: float,
+) -> npt.NDArray[np.bool_]:
+    """
+    Extend the ends of a skeleton to the edge of a mask.
+
+    Parameters
+    ----------
+    skeleton : npt.NDArray
+        A binary array representing the skeleton of a grain.
+    mask : npt.NDArray
+        A binary array representing the mask of a grain.
+
+    Returns
+    -------
+    npt.NDArray[np.bool_]
+        A binary array representing the extended skeleton.
+    """
+    # Convolve the skeleton
+    conv_skeleton = convolve_skeleton(skeleton)
+    endpoints = np.argwhere(conv_skeleton == 2)
+    extended_skeleton = skeleton.copy()
+
+    print(f"endpoins: {endpoints} px | {endpoints * pixel_to_nm_scaling} nm")
+
+    for endpoint in endpoints:
+        y, x = endpoint
+        # find the direction of the endpoint by backtracking along the skeleton and getting the vector
+        follow_distance_px = int(endpoint_vector_follow_distance_nm / pixel_to_nm_scaling)
+        backtracked_point, _path = get_point_along_branch(
+            skeleton=extended_skeleton,
+            start_coord=np.array([y, x]),
+            distance_px=follow_distance_px,
+        )
+        print(f"backtracked point: {backtracked_point}")
+        print(f"endpoint: {endpoint}")
+        vector = np.array([y, x]) - backtracked_point
+
+        # follow the vector from the endpoint until the edge of the mask is reached by sending out a ray
+        _mask_edge_point, ray_cast_path = ray_cast(
+            point=np.array([y, x]),
+            direction=vector,
+            mask=~mask.astype(np.bool),
+        )
+
+        # Use the point just before the edge of the mask to draw a line from the endpoint to the edge of the mask
+        penultimate_mask_edge_point = ray_cast_path[-2]
+
+        # draw a line from the endpoint to the edge of the mask
+        rows, cols = line(y, x, penultimate_mask_edge_point[0], penultimate_mask_edge_point[1])
+        extended_skeleton[rows, cols] = 1
+
+    return extended_skeleton
 
 
 # 2023-06-09 - Code that runs dnatracing in parallel across grains, left deliberately for use when we remodularise the
