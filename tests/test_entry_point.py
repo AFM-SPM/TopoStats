@@ -9,6 +9,7 @@ from topostats import run_modules
 from topostats.config import write_config_with_comments
 from topostats.entry_point import (
     entry_point,
+    pair_float,
 )
 from topostats.plotting import run_toposum
 
@@ -253,22 +254,15 @@ def test_entry_point_subprocess_help(capsys, argument: str, option: str) -> None
                 "absolute",
                 "--otsu-threshold-multiplier",
                 "2.3",
-                "--threshold-std-dev-below",
-                "1.0",
-                "--threshold-std-dev-above",
+                "--threshold-std-dev",
+                "-1.0",
                 "1.5",
-                "--threshold-absolute-below",
-                "45",
-                "--threshold-absolute-above",
+                "--threshold-absolute",
+                "-45",
                 "56",
-                "--direction",
-                "both",
-                "--area-thresholds-above",
-                "17",
-                "19",
-                "--area-thresholds-below",
-                "19",
-                "21",
+                "--area-thresholds",
+                "19, 21",
+                "17, 19",
                 "--remove-edge-intersecting-grains",
                 "True",
                 "--unet-model-path",
@@ -290,13 +284,9 @@ def test_entry_point_subprocess_help(capsys, argument: str, option: str) -> None
                 "grain_crop_padding": 1,
                 "threshold_method": "absolute",
                 "otsu_threshold_multiplier": 2.3,
-                "threshold_std_dev_below": 1.0,
-                "threshold_std_dev_above": 1.5,
-                "threshold_absolute_below": 45,
-                "threshold_absolute_above": 56,
-                "direction": "both",
-                "area_thresholds_above": [17.0, 19.0],
-                "area_thresholds_below": [19.0, 21.0],
+                "threshold_std_dev": [-1.0, 1.5],
+                "threshold_absolute": [-45, 56],
+                "area_thresholds": [[19.0, 21.0], [17.0, 19.0]],
                 "remove_edge_intersecting_grains": True,
                 "unet_model_path": Path("/tmp/models/"),  # noqa: S108
                 "unet_grain_crop_padding": 10,
@@ -482,22 +472,15 @@ def test_entry_point_subprocess_help(capsys, argument: str, option: str) -> None
                 "absolute",
                 "--grains-otsu-threshold-multiplier",
                 "2.3",
-                "--grains-threshold-std-dev-below",
-                "1.0",
-                "--grains-threshold-std-dev-above",
+                "--grains-threshold-std-dev",
+                "-1.0",
                 "1.5",
-                "--grains-threshold-absolute-below",
-                "45",
-                "--grains-threshold-absolute-above",
+                "--grains-threshold-absolute",
+                "-45",
                 "56",
-                "--grains-direction",
-                "both",
-                "--grains-area-thresholds-above",
-                "17",
-                "19",
-                "--grains-area-thresholds-below",
-                "19",
-                "21",
+                "--grains-area-thresholds",
+                "19,21",
+                "17,19",
                 "--grains-remove-edge-intersecting-grains",
                 "True",
                 "--unet-model-path",
@@ -597,13 +580,9 @@ def test_entry_point_subprocess_help(capsys, argument: str, option: str) -> None
                 "grains_grain_crop_padding": 1,
                 "grains_threshold_method": "absolute",
                 "grains_otsu_threshold_multiplier": 2.3,
-                "grains_threshold_std_dev_below": 1.0,
-                "grains_threshold_std_dev_above": 1.5,
-                "grains_threshold_absolute_below": 45,
-                "grains_threshold_absolute_above": 56,
-                "grains_direction": "both",
-                "grains_area_thresholds_above": [17.0, 19.0],
-                "grains_area_thresholds_below": [19.0, 21.0],
+                "grains_threshold_std_dev": [-1.0, 1.5],
+                "grains_threshold_absolute": [-45, 56],
+                "grains_area_thresholds": [[19.0, 21.0], [17.0, 19.0]],
                 "grains_remove_edge_intersecting_grains": True,
                 "unet_model_path": Path("/tmp/models/"),  # noqa: S108
                 "unet_grain_crop_padding": 10,
@@ -715,3 +694,29 @@ def test_entry_point_create_config_file(config: str, target_file: str, tmp_path:
             ]
         )
     assert Path(f"{tmp_path}/{target_file}").is_file()
+
+
+@pytest.mark.parametrize(
+    ("list_str", "expected"),
+    [
+        pytest.param("1.0,2.0", [1.0, 2.0], id="correct format"),
+        pytest.param(
+            "1.0,2.0,3.0,4.0",
+            None,
+            id="incorrect format",
+            marks=pytest.mark.xfail(reason="Incorrect format used."),
+        ),
+        pytest.param(
+            [1.0, 2.0],
+            None,
+            id="incorrect datatype",
+            marks=pytest.mark.xfail(reason="Incorrect type used."),
+        ),
+    ],
+)
+def test_pair_float(list_str: str, expected: list[float]) -> None:
+    """Method for checking that a valid string is returned correctly from pair_float()."""
+    assert isinstance(list_str, str)
+    new_list = pair_float(list_str)
+
+    assert new_list == expected

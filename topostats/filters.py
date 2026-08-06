@@ -12,7 +12,7 @@ from skimage.filters import gaussian
 from topostats import scars
 from topostats.classes import TopoStats
 from topostats.logs.logs import LOGGER_NAME
-from topostats.utils import get_mask, get_thresholds
+from topostats.utils import get_filter_mask, get_filter_thresholds
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -549,7 +549,7 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
 
         # Get the thresholds
         try:
-            self.thresholds = get_thresholds(
+            self.thresholds = get_filter_thresholds(
                 image=self.images["initial_zero_average_background"],
                 threshold_method=self.threshold_method,
                 otsu_threshold_multiplier=self.otsu_threshold_multiplier,
@@ -558,7 +558,7 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
             )
         except TypeError as type_error:
             raise type_error
-        self.images["mask"] = get_mask(
+        self.images["mask"] = get_filter_mask(
             image=self.images["initial_zero_average_background"],
             thresholds=self.thresholds,
             img_name=self.filename,

@@ -206,7 +206,7 @@ def test_grainstats(caplog, snapshot) -> None:
     assert "Looking for images with extension   : .topostats" in caplog.text
     assert "[minicircle_small] Grainstats completed (NB - Filtering was *not* re-run)." in caplog.text
     # Load the output and check contents
-    data = pd.read_csv("output/image_statistics.csv")
+    data = pd.read_csv("output/grain_statistics.csv")
     data.drop(["basename"], axis=1, inplace=True)
     assert data.to_string(float_format="{:.4e}".format) == snapshot(
         matcher=path_type(types=(float,), replacer=lambda data, _: round(data, 4))

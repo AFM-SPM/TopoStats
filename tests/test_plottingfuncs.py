@@ -258,7 +258,7 @@ def test_plot_and_save_bounding_box(
     """Test plotting bounding boxes."""
     plotting_config["image_type"] = "binary"
     fig, _ = Images(
-        data=minicircle_grain_area_thresholding.mask_images["above"]["area_thresholded"][:, :, 1],
+        data=minicircle_grain_area_thresholding.mask_images[0]["area_thresholded"][:, :, 1],
         output_dir=tmp_path,
         filename="bounding_box",
         pixel_to_nm_scaling=minicircle_grain_area_thresholding.pixel_to_nm_scaling,
@@ -297,7 +297,7 @@ def test_plot_and_save_non_square_bounding_box(
     """Test plotting bounding boxes."""
     plotting_config["image_type"] = "binary"
     fig, _ = Images(
-        data=minicircle_grain_area_thresholding.mask_images["above"]["area_thresholded"][:, 0:512, 1],
+        data=minicircle_grain_area_thresholding.mask_images[0]["area_thresholded"][:, 0:512, 1],
         output_dir=tmp_path,
         filename="non-square-bounding-box.png",
         pixel_to_nm_scaling=minicircle_grain_area_thresholding.pixel_to_nm_scaling,

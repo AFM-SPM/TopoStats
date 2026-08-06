@@ -136,52 +136,33 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 ),
             ),
             "otsu_threshold_multiplier": float,
-            "threshold_std_dev": {
-                "below": [lambda n: n > 0],
-                "above": [
-                    lambda n: n > 0,
-                ],
-            },
-            "threshold_absolute": {
-                "below": [
-                    Or(
-                        int,
-                        float,
-                        error=(
-                            "Invalid value in config for grains.threshold.absolute.below should be type int or float"
-                        ),
-                    )
-                ],
-                "above": [
-                    Or(
-                        int,
-                        float,
-                        error=(
-                            "Invalid value in config for grains.threshold.absolute.above should be type int or float"
-                        ),
-                    )
-                ],
-            },
-            "area_thresholds": {
-                "above": [
-                    Or(
-                        int,
-                        None,
-                        error=(
-                            "Invalid value in config for 'grains.area_thresholds.above', valid values are int or null"
-                        ),
-                    )
-                ],
-                "below": [
-                    Or(
-                        int,
-                        None,
-                        error=(
-                            "Invalid value in config for 'grains.area_thresholds.below', valid values are int or null"
-                        ),
-                    )
-                ],
-            },
+            "threshold_std_dev": [
+                Or(
+                    float,
+                    int,
+                    error=(
+                        "Invalid value in config for grains.threshold.std_dev should be type list[int] or list[float]"
+                    ),
+                )
+            ],
+            "threshold_absolute": [
+                Or(
+                    int,
+                    float,
+                    error=(
+                        "Invalid value in config for grains.threshold.absolute should be type list[int] or list[float]"
+                    ),
+                )
+            ],
+            "area_thresholds": [
+                Or(
+                    list[int],
+                    list[None],
+                    error=(
+                        "Invalid value in config for 'grains.area_thresholds', valid values are [int, int] or [null, null]"
+                    ),
+                )
+            ],
             "remove_edge_intersecting_grains": Or(
                 True,
                 False,
