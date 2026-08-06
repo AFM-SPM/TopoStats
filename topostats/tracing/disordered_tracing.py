@@ -10,15 +10,15 @@ import pandas as pd
 import skan
 from scipy import ndimage
 from skimage import filters
-from skimage.morphology import label
 from skimage.draw import line
+from skimage.morphology import label
 
 from topostats.classes import DisorderedTrace, TopoStats
 from topostats.logs.logs import LOGGER_NAME
+from topostats.mask_manipulation import get_point_along_branch, ray_cast
 from topostats.tracing.pruning import prune_skeleton
 from topostats.tracing.skeletonize import getSkeleton
 from topostats.utils import convolve_skeleton
-from topostats.mask_manipulation import get_point_along_branch, ray_cast
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
