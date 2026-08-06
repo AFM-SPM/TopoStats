@@ -163,7 +163,7 @@ class Colormap:
         vals[2] = [243 / 256, 194 / 256, 93 / 256, 1.0]
         vals[3] = [1.0, 1.0, 1.0, 1.0]
 
-        return LinearSegmentedColormap.from_list("gwyddion", vals, N=256)
+        return LinearSegmentedColormap.from_list("gwyddion", vals)
 
     @staticmethod
     def blue() -> ListedColormap:
@@ -175,7 +175,7 @@ class Colormap:
         ListedColormap
             The 'blue' colormap.
         """
-        return ListedColormap([[32 / 256, 226 / 256, 205 / 256]], "blue", N=256)
+        return ListedColormap([[32 / 256, 226 / 256, 205 / 256]], "blue")
 
     @staticmethod
     def blue_purple_green() -> ListedColormap:
@@ -190,5 +190,4 @@ class Colormap:
         return ListedColormap(
             [[0 / 256, 157 / 256, 229 / 256], [255 / 256, 100 / 256, 225 / 256], [0 / 256, 1, 139 / 256]],
             "blue_purple_green",
-            N=3,
         )
