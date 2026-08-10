@@ -54,9 +54,10 @@ def sort_filenames(filenames: list[Path]) -> list[Path]:
 
 
 if __name__ == "__main__":
-    input_images_dir = Path("/Users/sylvi/topo_data/dna-damage-unet/data/cesium/group_0")
-    input_labels_dir = Path("/Users/sylvi/topo_data/dna-damage-unet/data/cesium/group_0_tasks")
-    output_dir = Path("/Users/sylvi/topo_data/dna-damage-unet/data/cesium/group_0_ready")
+    input_images_dir = Path("/Users/sylvi/topo_data/dna-damage-unet/data/cesium/group_1")
+    input_labels_dir = Path("/Users/sylvi/topo_data/dna-damage-unet/data/cesium/group_1_tasks")
+    output_dir = Path("/Users/sylvi/topo_data/dna-damage-unet/data/cesium/group_1_ready")
+    output_dir.mkdir(exist_ok=True, parents=True)
 
     label_files_npy = sort_filenames(list(input_labels_dir.glob("*.npy")))
     image_files_npy = sort_filenames(list(input_images_dir.glob("*.npy")))
