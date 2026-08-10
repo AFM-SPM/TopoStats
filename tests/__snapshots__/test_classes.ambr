@@ -795,6 +795,8 @@
       }),
       'disordered_tracing': dict({
         'class_index': 1,
+        'endpoint_vector_follow_distance_nm': 5.0,
+        'extend_endpoints_to_mask_edge': False,
         'mask_smoothing_params': dict({
           'dilation_iterations': 2,
           'gaussian_sigma': 2,
@@ -2373,6 +2375,8 @@
       }),
       'disordered_tracing': dict({
         'class_index': 1,
+        'endpoint_vector_follow_distance_nm': 5.0,
+        'extend_endpoints_to_mask_edge': False,
         'mask_smoothing_params': dict({
           'dilation_iterations': 2,
           'gaussian_sigma': 2,
