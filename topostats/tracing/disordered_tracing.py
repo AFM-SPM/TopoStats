@@ -43,6 +43,10 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
         Pixel to nm scaling.
     min_skeleton_size : int
         Minimum skeleton size below which tracing statistics are not calculated.
+    extend_endpoints_to_mask_edge : bool
+        Whether to extend skeleton endpoints to the edge of the grain mask.
+    endpoint_vector_follow_distance_nm : float
+        The distance in nanometres to follow the branch back for calculating the direction of the endpoint.
     mask_smoothing_params : dict
         Dictionary of parameters to smooth the grain mask for better quality skeletonisation results. Contains
         a gaussian 'sigma' and number of dilation iterations.
@@ -85,6 +89,10 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
             Pixel to nm scaling.
         min_skeleton_size : int
             Minimum skeleton size below which tracing statistics are not calculated.
+        extend_endpoints_to_mask_edge : bool
+            Whether to extend skeleton endpoints to the edge of the grain mask.
+        endpoint_vector_follow_distance_nm : float
+            The distance in nanometres to follow the branch back for calculating the direction of the endpoint.
         mask_smoothing_params : dict
             Dictionary of parameters to smooth the grain mask for better quality skeletonisation results. Contains
             a gaussian 'sigma' and number of dilation iterations.
@@ -675,7 +683,7 @@ def disordered_trace_grain(  # pylint: disable=too-many-arguments
     extend_endpoints_to_mask_edge : bool
         Whether to extend skeleton endpoints to the edge of the grain mask.
     endpoint_vector_follow_distance_nm : float
-        The distance in nanometres to follow the branch back for calculating the direction of the endpoint
+        The distance in nanometres to follow the branch back for calculating the direction of the endpoint.
 
     Returns
     -------

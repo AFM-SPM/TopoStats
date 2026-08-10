@@ -506,9 +506,7 @@ def find_hard_connected_endpoints(  # noqa: C901
     return hard_connected_endpoints
 
 
-def get_neighbouring_true_pixels(
-    mask: npt.NDArray[np.bool_], coord: npt.NDArray[np.integer]
-) -> list[npt.NDArray[np.integer]]:
+def get_neighbouring_true_pixels(mask: npt.NDArray[np.bool_], coord: npt.NDArray[int]) -> list[npt.NDArray[int]]:
     """
     Get the coordinates of neighbouring true pixels in a binary mask.
 
@@ -516,12 +514,12 @@ def get_neighbouring_true_pixels(
     ----------
     mask : npt.NDArray[np.bool_]
         The binary mask.
-    coord : npt.NDArray[np.integer]
+    coord : npt.NDArray[int]
         The coordinate to get neighbours for.
 
     Returns
     -------
-    list[npt.NDArray[np.integer]]
+    list[npt.NDArray[int]]
         A list of coordinates of neighbouring true pixels.
     """
     neighbours = []
@@ -542,7 +540,7 @@ def get_neighbouring_true_pixels(
 
 
 def get_point_along_branch(
-    skeleton: npt.NDArray[np.bool_], start_coord: npt.NDArray[np.integer], distance_px: float
+    skeleton: npt.NDArray[np.bool_], start_coord: npt.NDArray[np.int32], distance_px: float
 ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
     """
     Get the coordinate and path taken of a point along a branch at a specified distance from a starting coordinate.
@@ -551,14 +549,14 @@ def get_point_along_branch(
     ----------
     skeleton : npt.NDArray[np.bool_]
         The skeleton image.
-    start_coord : npt.NDArray[np.integer]
+    start_coord : npt.NDArray[np.int32]
         The starting coordinate.
     distance_px : float
         The distance in pixels.
 
     Returns
     -------
-    tuple[npt.NDArray[np.integer], npt.NDArray[np.integer]]
+    tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]
         The coordinate of the point along the branch at the specified distance, and the path taken to get there.
     """
     skeleton_tracker = skeleton.copy()
@@ -586,8 +584,8 @@ def get_point_along_branch(
 
 
 def ray_cast(
-    point: npt.NDArray[np.integer],
-    direction: npt.NDArray[np.integer],
+    point: npt.NDArray[np.int32],
+    direction: npt.NDArray[np.int32],
     mask: npt.NDArray[np.bool_],
 ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
     """
@@ -595,12 +593,18 @@ def ray_cast(
 
     Parameters
     ----------
-    point : npt.NDArray[np.integer]
+    point : npt.NDArray[np.int32]
         The starting point of the ray.
-    direction : npt.NDArray[np.integer]
+    direction : npt.NDArray[np.int32]
         The direction of the ray (should be a unit vector).
     mask : npt.NDArray[np.bool_]
         The binary mask to ray cast against.
+
+    Returns
+    -------
+    tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]
+        The coordinate of the first true pixel hit by the ray, and the path taken by the ray as a numpy array of shape
+        (N, 2).
     """
     # Normalize the direction to ensure it's a unit vector
     direction = direction / np.linalg.norm(direction)
