@@ -835,6 +835,10 @@ def extend_branch_ends_to_mask_edge(
         A binary array representing the skeleton of a grain.
     mask : npt.NDArray
         A binary array representing the mask of a grain.
+    pixel_to_nm_scaling : float
+        The scaling factor to convert pixels to nanometers.
+    endpoint_vector_follow_distance_nm : float
+        The distance in nanometers to follow the branch back for calculating the direction of the endpoint.
 
     Returns
     -------
