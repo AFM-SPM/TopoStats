@@ -305,6 +305,12 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ),
             "class_index": int,
             "min_skeleton_size": lambda n: n > 0.0,
+            "extend_endpoints_to_mask_edge": Or(
+                True,
+                False,
+                error="Invalid value in config for 'disordered_tracing.pruning_params.extend_endpoints_to_mask_edge', valid values are 'True' or 'False'",
+            ),
+            "endpoint_vector_follow_distance_nm": lambda n: n > 0.0,
             "mask_smoothing_params": {
                 "gaussian_sigma": Or(
                     float,

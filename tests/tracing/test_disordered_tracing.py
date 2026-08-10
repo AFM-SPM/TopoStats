@@ -1311,6 +1311,8 @@ def test_check_pixel_touching_edge(
         "image_filename",
         "topostats_object_fixture",
         "min_skeleton_size",
+        "extend_endpoints_to_mask_edge",
+        "endpoint_vector_follow_distance_nm",
         "mask_smoothing_params",
         "skeletonisation_params",
         "pruning_params",
@@ -1321,6 +1323,10 @@ def test_check_pixel_touching_edge(
             "topostats_catenanes_2_4_0",
             # Min skeleton size
             10,
+            # Extend endpoints to mask edge
+            False,
+            # Endpoint vector follow distance in nm
+            5.0,
             # Mask smoothing parameters
             {
                 "gaussian_sigma": 2,
@@ -1347,6 +1353,10 @@ def test_check_pixel_touching_edge(
             "topostats_rep_int_2_4_0",
             # Min skeleton size
             10,
+            # Extend endpoints to mask edge
+            False,
+            # Endpoint vector follow distance in nm
+            5.0,
             # Mask smoothing parameters
             {
                 "gaussian_sigma": 2,
@@ -1374,6 +1384,8 @@ def test_trace_image_disordered(
     image_filename: str,
     topostats_object_fixture: str,
     min_skeleton_size: int,
+    extend_endpoints_to_mask_edge: bool,
+    endpoint_vector_follow_distance_nm: float,
     mask_smoothing_params: dict,
     skeletonisation_params: dict,
     pruning_params: dict,
@@ -1390,6 +1402,8 @@ def test_trace_image_disordered(
         topostats_object=topostats_object,
         class_index=1,
         min_skeleton_size=min_skeleton_size,
+        extend_endpoints_to_mask_edge=extend_endpoints_to_mask_edge,
+        endpoint_vector_follow_distance_nm=endpoint_vector_follow_distance_nm,
         mask_smoothing_params=mask_smoothing_params,
         skeletonisation_params=skeletonisation_params,
         pruning_params=pruning_params,
@@ -1410,6 +1424,8 @@ def test_trace_image_disordered(
         "filename",
         "topostats_object",
         "min_skeleton_size",
+        "extend_endpoints_to_mask_edge",
+        "endpoint_vector_follow_distance_nm",
         "mask_smoothing_params",
         "skeletonisation_params",
         "pruning_params",
@@ -1421,6 +1437,10 @@ def test_trace_image_disordered(
             "topostats_catenanes_2_4_0",
             # Min skeleton size
             10,
+            # Extend endpoints to mask edge
+            False,
+            # Endpoint vector follow distance in nm
+            5.0,
             # Mask smoothing parameters
             {
                 "gaussian_sigma": 2,
@@ -1448,6 +1468,10 @@ def test_trace_image_disordered(
             "topostats_rep_int_2_4_0",
             # Min skeleton size
             10,
+            # Extend endpoints to mask edge
+            False,
+            # Endpoint vector follow distance in nm
+            5.0,
             # Mask smoothing parameters
             {
                 "gaussian_sigma": 2,
@@ -1476,6 +1500,8 @@ def test_trace_image_disordered_dataframes(
     filename: str,
     topostats_object: str,
     min_skeleton_size: int,
+    extend_endpoints_to_mask_edge: bool,
+    endpoint_vector_follow_distance_nm: float,
     mask_smoothing_params: dict,
     skeletonisation_params: dict,
     pruning_params: dict,
@@ -1492,6 +1518,8 @@ def test_trace_image_disordered_dataframes(
         topostats_object=topostats_object,
         class_index=1,
         min_skeleton_size=min_skeleton_size,
+        extend_endpoints_to_mask_edge=extend_endpoints_to_mask_edge,
+        endpoint_vector_follow_distance_nm=endpoint_vector_follow_distance_nm,
         mask_smoothing_params=mask_smoothing_params,
         skeletonisation_params=skeletonisation_params,
         pruning_params=pruning_params,
