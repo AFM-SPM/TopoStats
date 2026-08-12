@@ -443,7 +443,8 @@ def correct_close_strands_image(  # noqa: C901
                         f"\npath1 total turn: {path_1_total_turn} ({np.rad2deg(path_1_total_turn)})"
                         f"\npath2 total turn: {path_2_total_turn} ({np.rad2deg(path_2_total_turn)})"
                     )
-                    plt.savefig(tmp_img_dir / f"extended_paths_{graincrop.filename}_{combination_indexes}.png")
+                    if tmp_img_dir.exists():
+                        plt.savefig(tmp_img_dir / f"extended_paths_{graincrop.filename}_{combination_indexes}.png")
                     plt.close()
                     if lowest_height_along_paths > highest_lowest_height_along_paths:
                         highest_lowest_height_along_paths = lowest_height_along_paths
