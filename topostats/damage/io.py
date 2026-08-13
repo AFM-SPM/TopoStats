@@ -53,6 +53,7 @@ def load_grain_models_from_topo_files(  # noqa: C901
     df_grain_stats: pd.DataFrame,
     bbox_padding: int,
     folder_name: str,
+    maximum_pixel_to_nm_scaling_factor: float,
 ) -> UnanalysedGrainCollection:
     """Load grain models from the given TopoStats files and grain statistics dataframe."""
     grain_model_collection = UnanalysedGrainCollection(unanalysed_grains={})
@@ -90,6 +91,12 @@ def load_grain_models_from_topo_files(  # noqa: C901
         full_image = np.array(topostats_obj.image)
         full_mask = np.array(topostats_obj.full_mask_tensor)[:, :, 1]
         pixel_to_nm_scaling = topostats_obj.require_pixel_to_nm_scaling()
+        if pixel_to_nm_scaling > maximum_pixel_to_nm_scaling_factor:
+            print(
+                f"Skipping image {filename} with pixel-to-nm scaling factor {pixel_to_nm_scaling}"
+                f"> {maximum_pixel_to_nm_scaling_factor}."
+            )
+            continue
         grain_crops = topostats_obj.require_grain_crops()
 
         # grab individual grain data, based on each row of the dataframe
@@ -236,6 +243,7 @@ def construct_grains_collection_from_topostats_files(
     df_grain_stats: pd.DataFrame,
     bbox_padding: int,
     folder_prefixes_to_ignore: list[str],
+    maximum_pixel_to_nm_scaling_factor: float,
     force_reload: bool = False,
 ) -> UnanalysedGrainCollection:
     """
@@ -253,6 +261,8 @@ def construct_grains_collection_from_topostats_files(
         Amount of padding to add to the bounding boxes when loading the grain data from the TopoStats files.
     folder_prefixes_to_ignore : list[str]
         Any prefixes to the folder structure that should be deleted for sample type discerning.
+    maximum_pixel_to_nm_scaling_factor: float
+        Maximum pixel-to-nm scaling factor for images to process. Images with a higher scaling factor will be skipped.
     force_reload: bool
         Whether to force reload the data from the TopoStats files even if the hash matches the previous hash.
     """
@@ -344,6 +354,7 @@ def construct_grains_collection_from_topostats_files(
                 df_grain_stats=df_grain_stats_folder,
                 bbox_padding=bbox_padding,
                 folder_name=sample_type,
+                maximum_pixel_to_nm_scaling_factor=maximum_pixel_to_nm_scaling_factor,
             )
 
             print(
