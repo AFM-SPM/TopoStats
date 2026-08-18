@@ -166,8 +166,16 @@ def predict_unet(
 
     # Predict the mask
     LOGGER.info("Running Unet & predicting mask")
-    prediction: npt.NDArray[np.float32] = model.predict(np.expand_dims(image_resized_np, axis=(0, 3)))
-    LOGGER.info(f"Unet finished predicted mask. Prediction shape: {prediction.shape}")
+    try:
+        prediction: npt.NDArray[np.float32] = model.predict(np.expand_dims(image_resized_np, axis=(0, 3)))
+        LOGGER.info(f"Unet finished predicted mask. Prediction shape: {prediction.shape}")
+    except Exception as e:
+        LOGGER.error(f"Unet failed to predict a mask, trying padding the image with RGB channels... Error: {e}")
+        # If the model fails to predict, try padding the image with RGB channels
+        image_resized_np_rgb = np.repeat(image_resized_np[:, :, np.newaxis], 3, axis=2)
+        # axis = 2 since the image is now 3D with 3 channels
+        prediction: npt.NDArray[np.float32] = model.predict(np.expand_dims(image_resized_np_rgb, axis=0))
+        LOGGER.info(f"Unet finished predicted mask. Prediction shape: {prediction.shape}")
 
     # Threshold the predicted mask
     predicted_mask: npt.NDArray[np.bool_] = prediction > confidence
