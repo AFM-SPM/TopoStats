@@ -1,6 +1,10 @@
 name: Release to ORDA
 on:
   workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag name (for manual runs)'
+        required: true
   release:
     types: [published]
 jobs:
@@ -9,6 +13,19 @@ jobs:
     env:
       ARCHIVE_NAME: ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}
     steps:
+      - name: Validate tag exists
+        run: |
+          TAG_NAME="${{ github.event.inputs.tag_name || github.event.release.tag_name }}"
+          if [ -z "$TAG_NAME" ]; then
+            echo "No tag provided"
+            exit 1
+          fi
+          curl -f -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/git/refs/tags/$TAG_NAME" > /dev/null
+          if [ $? -ne 0 ]; then
+            echo "Tag $TAG_NAME does not exist"
+            exit 1
+          fi
       - name: prepare-data-folder
         run: mkdir 'data'
       - name: download-archive
@@ -20,7 +37,7 @@ jobs:
           mv "$ARCHIVE_NAME".zip data/
           mv "$ARCHIVE_NAME".tar.gz data/
       - name: upload-to-figshare
-        uses: figshare/github-upload-action@v1
+        uses: figshare/github-upload-action@v1.1
         with:
           FIGSHARE_TOKEN: ${{ secrets.FIGSHARE_TOKEN }}
           FIGSHARE_ENDPOINT: "https://api.figshare.com/v2"
