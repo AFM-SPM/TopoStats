@@ -252,8 +252,16 @@ class GrainCrop:
         ValueError
             If the mask dimensions do not match the image.
         """
-        if value.shape[0] != self.image.shape[0] or value.shape[1] != self.image.shape[1]:
-            raise ValueError(f"Mask dimensions do not match image: {value.shape} vs {self.image.shape}")
+        if value.ndim == 2:
+            if value.shape[0] != self.image.shape[0] or value.shape[1] != self.image.shape[1]:
+                raise ValueError(f"Mask dimensions do not match image: {value.shape} vs {self.image.shape}")
+        elif value.ndim == 3:
+            # Check only the W, H dimensions, not the C dimension.
+            # It should be in form [W, H, C] where C is the number of classes.
+            if value.shape[0] != self.image.shape[0] or value.shape[1] != self.image.shape[1]:
+                raise ValueError(f"Mask dimensions do not match image: {value.shape} vs {self.image.shape}")
+        else:
+            raise ValueError(f"Mask must be 2D or 3D, but has {value.ndim} dimensions")
         # Ensure that the padding region is blank, set it to be blank if not
         try:
             for class_index in range(1, value.shape[2]):

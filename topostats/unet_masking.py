@@ -1,10 +1,12 @@
 """Segment grains using a U-Net model."""
 
 import logging
+from typing import Literal
 
 import keras
 import numpy as np
 import numpy.typing as npt
+import torch
 import tensorflow as tf
 from PIL import Image
 
@@ -211,6 +213,89 @@ def predict_unet(
         resized_predicted_mask[:, :, channel_index] = np.array(channel_mask_PIL).astype(bool)
 
     return resized_predicted_mask
+
+
+def predict_unet_pytorch(
+    image: npt.NDArray[np.float32],
+    model: torch.nn.Module,
+    confidence: float,
+    model_input_shape: tuple[int | None, int, int, int],
+    upper_norm_bound: float,
+    lower_norm_bound: float,
+) -> npt.NDArray[np.bool_]:
+    """
+    Predict the segmentation mask for a grain image using a pytorch model.
+
+    Parameters
+    ----------
+    image : npt.NDArray[np.float32]
+        The image to predict the mask for.
+    model : torch.nn.Module
+        The U-Net model as a pytorch model.
+    confidence : float
+        The confidence threshold for the mask.
+    model_input_shape : tuple[int | None, int, int, int]
+        The shape of the model input, including the batch and channel dimensions.
+    upper_norm_bound : float
+        The upper bound for normalising the image.
+    lower_norm_bound : float
+        The lower bound for normalising the image.
+
+    Returns
+    -------
+    npt.NDArray[np.bool_]
+        The predicted mask.
+    """
+    # Select device
+    device = torch.device(
+        "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
+    )
+
+    original_image_shape = image.shape
+
+    # Strip the batch dimension from the model input shape
+    image_shape: tuple[int, int] = model_input_shape[2:4]
+    LOGGER.info(f"Model input shape: {model_input_shape}")
+    LOGGER.info(f"Desired image shape without batch and channels: {image_shape}")
+
+    LOGGER.info("Preprocessing image for Unet prediction...")
+
+    image = torch.from_numpy(image).unsqueeze(0).unsqueeze(0).float().to(device)
+
+    # Normalize the image
+    image = torch.clamp(image, min=lower_norm_bound, max=upper_norm_bound)
+    image = (image - lower_norm_bound) / (upper_norm_bound - lower_norm_bound)
+
+    # Match the training resolution
+    image = torch.nn.functional.interpolate(
+        image, size=(image_shape[0], image_shape[1]), mode="bilinear", align_corners=False
+    ).to(device)
+
+    # Predict the mask
+    LOGGER.info("Running Unet & predicting mask")
+    with torch.no_grad():
+        logits = model(image)
+        probabilities = torch.sigmoid(logits)
+        predicted_mask = probabilities > confidence
+
+    # Add a background channel that is the inverse of the sum of all foreground channels
+    background_mask = ~torch.any(predicted_mask, dim=1, keepdim=True)
+    predicted_mask = torch.cat([background_mask, predicted_mask], dim=1)
+
+    # Resize each channel of the predicted mask to the original image size
+    predicted_mask = torch.nn.functional.interpolate(
+        predicted_mask.float(), size=(original_image_shape[0], original_image_shape[1]), mode="nearest"
+    ).to(device)
+
+    LOGGER.info(f"Predicted mask shape after resizing: {predicted_mask.shape}")
+    assert predicted_mask.ndim == 4, f"Predicted mask shape is not 4D after resizing: {predicted_mask.shape}"
+
+    # Convert to numpy and remove the batch dimension
+    predicted_mask = predicted_mask.squeeze(0).cpu().numpy().astype(bool)
+    # Permute so that the channel is the last dimension
+    predicted_mask = np.transpose(predicted_mask, (1, 2, 0))
+    LOGGER.info(f"Final predicted mask shape: {predicted_mask.shape}")
+    return predicted_mask
 
 
 def make_bounding_box_square(
