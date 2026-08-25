@@ -7,14 +7,12 @@ import sys
 from typing import Any
 
 import keras
-import torch
 import numpy as np
 import numpy.typing as npt
 from skimage import morphology
 from skimage.measure import label, regionprops
 from skimage.morphology import dilation
 
-from topostats.dl_model import ResUNet
 from topostats.classes import GrainCrop, TopoStats
 from topostats.logs.logs import LOGGER_NAME
 from topostats.mask_manipulation import multi_class_skeletonise_and_join_close_ends
@@ -24,7 +22,6 @@ from topostats.unet_masking import (
     mean_iou,
     pad_bounding_box_cutting_off_at_image_bounds,
     predict_unet,
-    predict_unet_pytorch,
 )
 from topostats.utils import _get_grain_mask, flatten_multi_class_tensor, get_grain_thresholds, update_background_class
 
@@ -758,33 +755,18 @@ class Grains:
         # https://github.com/keras-team/keras/issues/19441 which also has an experimental fix that we can try but
         # I haven't tested it yet.
 
-        # try:
-        #     unet_model = keras.models.load_model(
-        #         unet_config["model_path"], custom_objects={"mean_iou": mean_iou, "iou_loss": iou_loss}, compile=False
-        #     )
-        # except Exception as e:
-        #     LOGGER.debug(f"Python executable: {sys.executable}")
-        #     LOGGER.debug(f"Keras version: {keras.__version__}")
-        #     LOGGER.debug(f"Model path: {unet_config['model_path']}")
-        #     raise e
-
-        # Load pytorch model
-        # Select device
-        device = torch.device(
-            "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
-        )
-        # Initialise the model class - ensure this is the same as was used to train the model!
-        model = ResUNet(in_channels=1, out_channels=1).to(device)
-        # Load the weights file
-        weights = torch.load(unet_config["model_path"], map_location=device, weights_only=True)
-        # Load the model weights into the model
-        model.load_state_dict(weights)
-        # Set model to evaluation mode
-        model.eval()
+        try:
+            unet_model = keras.models.load_model(
+                unet_config["model_path"], custom_objects={"mean_iou": mean_iou, "iou_loss": iou_loss}, compile=False
+            )
+        except Exception as e:
+            LOGGER.debug(f"Python executable: {sys.executable}")
+            LOGGER.debug(f"Keras version: {keras.__version__}")
+            LOGGER.debug(f"Model path: {unet_config['model_path']}")
+            raise e
 
         # unet_model = keras.models.load_model(unet_config["model_path"], custom_objects={"mean_iou": mean_iou})
-
-        LOGGER.debug(f"Output channels of UNet model: {model.final_conv.out_channels}")
+        LOGGER.debug(f"Output shape of UNet model: {unet_model.output_shape}")
 
         new_graincrops: dict[int, GrainCrop] = {}
         num_empty_removed_grains = 0
@@ -794,15 +776,16 @@ class Grains:
             # as we can add a background class afterwards if needed.
             # Remember that this region is cropped from the original image, so it's not
             # the same size as the original image.
-            predicted_mask = predict_unet_pytorch(
+            predicted_mask = predict_unet(
                 image=graincrop.image,
-                model=model,
+                model=unet_model,
                 confidence=unet_config["confidence"],
-                model_input_shape=(1, 1, 256, 256),
+                model_input_shape=unet_model.input_shape,
                 upper_norm_bound=unet_config["upper_norm_bound"],
                 lower_norm_bound=unet_config["lower_norm_bound"],
             )
-            LOGGER.info(f"Shape of predicted mask for grain {grain_number}: {predicted_mask.shape}")
+            assert len(predicted_mask.shape) == 3
+            LOGGER.debug(f"Predicted mask shape: {predicted_mask.shape}")
 
             if unet_config["remove_disconnected_grains"]:
                 # Remove grains that are not connected to the original grain
@@ -836,7 +819,7 @@ class Grains:
                     threshold_idx=graincrop.threshold_idx,
                 )
 
-        LOGGER.info(f"Number of empty removed grains: {num_empty_removed_grains}")
+        LOGGER.debug(f"Number of empty removed grains: {num_empty_removed_grains}")
 
         return new_graincrops
 
