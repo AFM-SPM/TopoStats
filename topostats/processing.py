@@ -1674,7 +1674,7 @@ def completion_message(
         "\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
     )
     tprint("TopoStats", font="twisted")
-    LOGGER.info(
+    completion_summary = (
         f"\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
         f"  TopoStats Version           : {TOPOSTATS_BASE_VERSION}\n"
         f"  TopoStats Commit            : {TOPOSTATS_COMMIT}\n"
@@ -1699,3 +1699,5 @@ def completion_message(
         f"  linked above and available from the Source Code page.\n"
         f"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
     )
+    print(completion_summary)
+    LOGGER.info(completion_summary)

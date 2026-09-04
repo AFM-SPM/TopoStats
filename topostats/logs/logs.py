@@ -1,5 +1,6 @@
 """Standardise logging."""
 
+from pathlib import Path
 import logging
 import sys
 from datetime import datetime
@@ -19,7 +20,7 @@ LOG_ERROR_FORMATTER = logging.Formatter(
 LOGGER_NAME = "topostats"
 
 
-def setup_logger(log_name: str = LOGGER_NAME) -> logging.Logger:
+def setup_logger(output_dir: Path, log_name: str = LOGGER_NAME) -> logging.Logger:
     """
     Logger setup.
 
@@ -31,6 +32,8 @@ def setup_logger(log_name: str = LOGGER_NAME) -> logging.Logger:
 
     Parameters
     ----------
+    output_dir : Path
+        Directory where the log file will be saved.
     log_name : str
         Name under which logging information occurs.
 
@@ -47,26 +50,23 @@ def setup_logger(log_name: str = LOGGER_NAME) -> logging.Logger:
         from topostats.logs.logs import LOGGER_NAME
 
         LOGGER = logging.getLogger(LOGGER_NAME)
-
+        setup_logger(output_dir=config["output_dir"], log_name=LOGGER_NAME)
         LOGGER.info('This is a log message.')
     """
-    out_stream_handler = logging.StreamHandler(sys.stdout)
-    out_stream_handler.setLevel(logging.DEBUG)
-    out_stream_handler.setFormatter(LOG_INFO_FORMATTER)
+    logger = logging.getLogger(LOGGER_NAME)
+    logger.setLevel(logging.DEBUG)
+    logger.propagate = False  # Prevent log messages from being propagated to the root logger
 
-    err_stream_handler = logging.StreamHandler(sys.stderr)
-    err_stream_handler.setLevel(logging.ERROR)
-    err_stream_handler.setFormatter(LOG_ERROR_FORMATTER)
+    # Check if the logger already has handlers to avoid adding duplicate handlers
+    if logger.handlers:
+        return logger
 
-    file_handler = logging.FileHandler(Path().cwd().stem + f"-{start.strftime('%Y-%m-%d-%H-%M-%S')}.log")
+    # If the logger has no handlers, set up the stream handlers
+    log_file = output_dir / f"topostats-{start.strftime('%Y-%m-%d-%H-%M-%S')}.log"
+
+    file_handler = logging.FileHandler(log_file)
+    file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(LOG_ERROR_FORMATTER)
-
-    logger = logging.getLogger(log_name)
-    logger.setLevel(logging.INFO)
-    logger.propagate = True
-    if not logger.handlers:
-        logger.addHandler(out_stream_handler)
-        logger.addHandler(err_stream_handler)
-        logger.addHandler(file_handler)
+    logger.addHandler(file_handler)
 
     return logger

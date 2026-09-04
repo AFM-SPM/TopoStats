@@ -11,6 +11,7 @@ from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+from io import TextIOBase
 
 import h5py
 import numpy as np
@@ -39,6 +40,59 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=broad-except
 # pylint: disable=too-many-lines
 # pylint: disable=too-many-branches
+
+
+class LogStream(TextIOBase):
+    """Send printed output to the logger instead of stdout."""
+
+    def __init__(self, logger: logging.Logger, level: int = logging.INFO):
+        """
+        Initialise the LogStream.
+
+        Parameters
+        ----------
+        logger : logging.Logger
+            Logger to send output to.
+        level : int
+            Log level to send output to.
+        """
+        self.logger = logger
+        self.level = level
+        self.buffer = ""
+
+    def write(self, message: str) -> int:
+        """
+        Write a message to the logger.
+
+        This function is called when the LogStream is used as a context manager with redirect_stdout or redirect_stderr.
+        It sends the message to the logger instead of printing it to stdout or stderr.
+
+        Parameters
+        ----------
+        message : str
+            Message to send to the logger.
+
+        Returns
+        -------
+        int
+            The number of characters written to the logger. (This return value is needed to satisfy the TextIOBase
+            interface).
+        """
+        self.buffer += message
+
+        while "\n" in self.buffer:
+            # Get the next line from the buffer
+            line, self.buffer = self.buffer.split("\n", 1)
+            # Send the line to the logger
+            self.logger.log(self.level, line)
+
+        return len(message)
+
+    def flush(self) -> None:
+        """Flush the buffer and send any remaining content to the logger."""
+        if self.buffer:
+            self.logger.log(self.level, self.buffer)
+            self.buffer = ""
 
 
 # Sylvia: Ruff says too complex but I think breaking this out would be more complex.

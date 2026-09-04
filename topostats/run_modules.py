@@ -9,6 +9,7 @@ import argparse
 import logging
 import re
 import sys
+from contextlib import redirect_stderr, redirect_stdout
 from collections import defaultdict
 from datetime import datetime, timezone
 from functools import partial
@@ -23,6 +24,7 @@ import yaml
 from tqdm import tqdm
 
 import topostats
+from topostats import get_topostats_commit, get_topostats_version
 from topostats.config import reconcile_config_args, update_config, update_plotting_config
 from topostats.io import (
     LoadScans,
@@ -30,8 +32,9 @@ from topostats.io import (
     read_yaml,
     write_csv,
     write_yaml,
+    LogStream,
 )
-from topostats.logs.logs import LOGGER_NAME
+from topostats.logs.logs import LOGGER_NAME, setup_logger
 from topostats.plotting import toposum
 from topostats.processing import (
     check_run_steps,
@@ -131,9 +134,6 @@ def _parse_configuration(args: argparse.Namespace | None = None) -> tuple[dict, 
     # Validate configuration
     validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
 
-    # Set logging level
-    _set_logging(config["log_level"])
-
     # Create base output directory
     config["output_dir"].mkdir(parents=True, exist_ok=True)
 
@@ -175,6 +175,16 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     start_time: datetime = datetime.now(timezone.utc)
 
     config, img_files = _parse_configuration(args)
+
+    # Set up logger
+    setup_logger(
+        output_dir=config["output_dir"],
+        log_name=LOGGER_NAME,
+    )
+    # Set logging level
+    _set_logging(config["log_level"])
+    LOGGER.info(f"TopoStats version : {get_topostats_version()} {get_topostats_commit()}")
+
     processing_function = partial(
         process_scan,
         base_dir=config["base_dir"],
@@ -195,8 +205,12 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
 
     output_full_stats = config["output_stats"] == "full"
 
-    all_scan_data = LoadScans(img_files, config=config)
-    all_scan_data.get_data()
+    # Catch all logging outputs from loading the data
+    stdout_log = LogStream(LOGGER, logging.INFO)
+    stdout_err = LogStream(LOGGER, logging.ERROR)
+    with redirect_stdout(stdout_log), redirect_stderr(stdout_err):
+        all_scan_data = LoadScans(img_files, config=config)
+        all_scan_data.get_data()
     # Get a dictionary of all the image data dictionaries.
     # Keys are the image names
     # Values are the individual image data dictionaries
@@ -212,6 +226,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
         with tqdm(
             total=len(img_files),
             desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
+            dynamic_ncols=True,  # this ensures the progress bar width adjusts to the terminal width
         ) as pbar:
             for (
                 filename,

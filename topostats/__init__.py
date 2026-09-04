@@ -1,5 +1,6 @@
 """Topostats."""
 
+import logging
 import os
 from importlib.metadata import version
 
@@ -7,14 +8,14 @@ import snoop
 from matplotlib import colormaps
 from packaging.version import Version
 
-from .logs.logs import setup_logger
+from .logs.logs import LOGGER_NAME
+
 from .theme import Colormap
 
 # Disable TensorFlow warnings
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 
-LOGGER = setup_logger()
 
 __version__ = version("topostats")
 __release__ = ".".join(__version__.split(".")[:-2])
@@ -35,8 +36,28 @@ colormaps.register(cmap=Colormap("gwyddion").get_cmap())
 # Disable snoop
 snoop.install(enabled=False)
 
+LOGGER = logging.getLogger(LOGGER_NAME)
 
-def log_topostats_version() -> None:
-    """Log the TopoStats version, commit and date to system logger."""
-    LOGGER.info(f"TopoStats version : {TOPOSTATS_VERSION}")
-    LOGGER.info(f"Commit            : {TOPOSTATS_COMMIT}")
+
+def get_topostats_version() -> Version:
+    """
+    Get the version of TopoStats.
+
+    Returns
+    -------
+    Version
+        The version of TopoStats.
+    """
+    return TOPOSTATS_VERSION
+
+
+def get_topostats_commit() -> str:
+    """
+    Get the commit of TopoStats.
+
+    Returns
+    -------
+    str
+        The commit of TopoStats.
+    """
+    return TOPOSTATS_COMMIT
