@@ -1,16 +1,13 @@
 """Order single pixel skeletons with or without NodeStats Statistics."""
 
-import logging
 import math
 
 import numpy as np
 import numpy.typing as npt
+from loguru import logger
 from scipy import interpolate as interp
 
 from topostats.classes import Molecule, TopoStats
-from topostats.logs.logs import LOGGER_NAME
-
-LOGGER = logging.getLogger(LOGGER_NAME)
 
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-instance-attributes
@@ -125,7 +122,7 @@ class splineTrace:
         # If the fitted trace is less than the degree plus one, then there is no
         # point in trying to spline it, just return the fitted trace
         if fitted_trace_length < self.spline_degree + 1:
-            LOGGER.debug(
+            logger.debug(
                 f"Fitted trace for grain {step_size_px} too small ({fitted_trace_length}), returning fitted trace"
             )
 
@@ -614,7 +611,7 @@ def splining_image(
             if grain_crop.ordered_trace is not None and grain_crop.ordered_trace.molecule_data is not None:
                 for mol_no, molecule in grain_crop.ordered_trace.molecule_data.items():
                     try:
-                        LOGGER.info(
+                        logger.info(
                             f"[{topostats_object.filename}] : Splining Grain {grain_no + 1} Molecule {mol_no + 1}"
                         )
                         # check if want to do nodestats tracing or not
@@ -648,18 +645,18 @@ def splining_image(
                         molecule.end_to_end_distance = tracing_stats["end_to_end_distance"]
                         molecule.contour_length = tracing_stats["contour_length"]
                         molecule.bbox = grain_crop.bbox
-                        LOGGER.debug(f"[{topostats_object.filename}] : Finished splining {grain_no} - {mol_no}")
+                        logger.debug(f"[{topostats_object.filename}] : Finished splining {grain_no} - {mol_no}")
 
                     except Exception as e:  # pylint: disable=broad-exception-caught
-                        LOGGER.error(
+                        logger.error(
                             f"[{topostats_object.filename}] : Splining for {grain_no} failed. "
                             "Consider raising an issue on GitHub. Error: ",
                             exc_info=e,
                         )
             if mol_no is None:
-                LOGGER.warning(f"[{topostats_object.filename}] : No molecules found for grain {grain_no}")
+                logger.warning(f"[{topostats_object.filename}] : No molecules found for grain {grain_no}")
     else:
-        LOGGER.warning("f[{topostats_objec.filename}] : No grains to spline.")
+        logger.warning("f[{topostats_objec.filename}] : No grains to spline.")
 
 
 def interpolate_between_two_points_distance(

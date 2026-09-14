@@ -1,18 +1,15 @@
 """Prune branches from skeletons."""
 
-import logging
 from collections.abc import Callable
 
 import numpy as np
 import numpy.typing as npt
+from loguru import logger
 from skimage import morphology
 
-from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.skeletonize import getSkeleton
 from topostats.tracing.tracingfuncs import coord_dist, genTracingFuncs, order_branch
 from topostats.utils import convolve_skeleton
-
-LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 def prune_skeleton(image: npt.NDArray, skeleton: npt.NDArray, pixel_to_nm_scaling: float, **kwargs) -> npt.NDArray:
@@ -297,10 +294,10 @@ class topostatsPrune:
         for i in range(1, labeled_skel.max() + 1):
             single_skeleton = np.where(labeled_skel == i, 1, 0)
             if self.max_length is not None:
-                LOGGER.debug(f": pruning.py : Pruning by length < {self.max_length}.")
+                logger.debug(f": pruning.py : Pruning by length < {self.max_length}.")
                 single_skeleton = self._prune_by_length(single_skeleton, max_length=self.max_length)
             if self.height_threshold is not None:
-                LOGGER.debug(": pruning.py : Pruning by height.")
+                logger.debug(": pruning.py : Pruning by height.")
                 single_skeleton = heightPruning(
                     self.img,
                     single_skeleton,
@@ -584,8 +581,8 @@ class heightPruning:  # pylint: disable=too-many-instance-attributes
             Branch indices which are less than mean(height) - threshold.
         """
         avg = image[skeleton == 1].mean()
-        LOGGER.debug(f": pruning.py : Avg skeleton height: {avg=}")
-        LOGGER.debug(f": pruning.py : mean_abs threshold: {(avg-threshold)=}")
+        logger.debug(f": pruning.py : Avg skeleton height: {avg=}")
+        logger.debug(f": pruning.py : mean_abs threshold: {(avg-threshold)=}")
         return np.asarray(np.where(np.asarray(height_values) < (avg - threshold)))[0] + 1
 
     @staticmethod
@@ -610,7 +607,7 @@ class heightPruning:  # pylint: disable=too-many-instance-attributes
         q75, q25 = np.percentile(heights, [75, 25])
         iqr = q75 - q25
         threshold = q25 - 1.5 * iqr
-        LOGGER.debug(f": pruning.py : IQR threshold {threshold=}")
+        logger.debug(f": pruning.py : IQR threshold {threshold=}")
         low_coords = coords[heights < threshold]
         low_segment_idxs = []
         low_segment_mins = []

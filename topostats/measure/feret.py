@@ -9,7 +9,6 @@ During testing it was discovered that sorting points prior to derivation of uppe
 so this step was removed.
 """
 
-import logging
 import warnings
 from collections.abc import Generator
 from math import sqrt
@@ -20,10 +19,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
 import skimage.morphology
-
-from topostats.logs.logs import LOGGER_NAME
-
-LOGGER = logging.getLogger(LOGGER_NAME)
 
 # Handle warnings as exceptions (encountered when gradient of base triangle is zero)
 warnings.filterwarnings("error")

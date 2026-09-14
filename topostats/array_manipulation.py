@@ -1,13 +1,7 @@
 """Functions for manipulating numpy arrays."""
 
-import logging
-
 import numpy as np
 import numpy.typing as npt
-
-from topostats.logs.logs import LOGGER_NAME
-
-LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 def re_crop_grain_image_and_mask_to_set_size_nm(

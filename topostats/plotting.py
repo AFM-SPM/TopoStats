@@ -13,14 +13,12 @@ import numpy as np
 import numpy.typing as npt
 import pandas as pd
 import seaborn as sns
+from loguru import logger
 
 from topostats.io import read_yaml, write_yaml, convert_basename_to_relative_paths
-from topostats.logs.logs import LOGGER_NAME
 from topostats.classes import MatchedBranch
 from topostats.config import update_config
 from topostats.theme import Colormap
-
-LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 # pylint: disable=too-many-arguments
@@ -221,7 +219,7 @@ class TopoSum:
             try:
                 sns.kdeplot(data=self.melted_data, x="value", hue=self.hue)
             except np.linalg.LinAlgError:
-                LOGGER.warning(
+                logger.warning(
                     "[plotting] KDE plot error: Numpy linalg error encountered. This is a result of all values \
 for KDE plot being the same. KDE plots cannot be made as there is no variance, skipping."
                 )
@@ -239,7 +237,7 @@ for KDE plot being the same. KDE plots cannot be made as there is no variance, s
                     kde_kws={"cut": self.cut},
                 )
             except np.linalg.LinAlgError:
-                LOGGER.warning(
+                logger.warning(
                     "[plotting] KDE plot error: Numpy linalg error encountered. This is a result of all values \
 for KDE plot being the same. KDE plots cannot be made as there is no variance, skipping."
                 )
@@ -309,7 +307,7 @@ for KDE plot being the same. KDE plots cannot be made as there is no variance, s
         """
         melted_data = pd.melt(df.reset_index(), id_vars=["grain_number", "basename"], value_vars=stat_to_summarize)
         melted_data["variable"] = melted_data["variable"].map(var_to_label)
-        LOGGER.debug("[plotting] Data has been melted to long format for plotting.")
+        logger.debug("[plotting] Data has been melted to long format for plotting.")
 
         return melted_data
 
@@ -327,12 +325,12 @@ for KDE plot being the same. KDE plots cannot be made as there is no variance, s
         range_min = self.melted_data["value"].min()
         range_max = self.melted_data["value"].max()
         plt.xlim(range_min - range_percent, range_max + range_percent)
-        LOGGER.debug(f"[plotting] Setting x-axis range       : {range_min} - {range_max}")
+        logger.debug(f"[plotting] Setting x-axis range       : {range_min} - {range_max}")
 
     def set_palette(self):
         """Set the color palette."""
         sns.set_palette(self.palette)
-        LOGGER.debug(f"[plotting] Seaborn color palette : {self.palette}")
+        logger.debug(f"[plotting] Seaborn color palette : {self.palette}")
 
     def save_plot(self, outfile: Path) -> None:
         """
@@ -344,7 +342,7 @@ for KDE plot being the same. KDE plots cannot be made as there is no variance, s
             Output file name to save figure to.
         """
         plt.savefig(self.output_dir / f"{outfile}.{self.savefig_format}")
-        LOGGER.debug(
+        logger.debug(
             f"[plotting] Plotted {self.stat_to_sum} to : {str(self.output_dir / f'{outfile}.{self.savefig_format}')}"
         )
 
@@ -358,7 +356,7 @@ for KDE plot being the same. KDE plots cannot be made as there is no variance, s
             The variable for which a label is required.
         """
         self.label = self.var_to_label[var]
-        LOGGER.debug(f"[plotting] self.label     : {self.label}")
+        logger.debug(f"[plotting] self.label     : {self.label}")
 
 
 def toposum(config: dict) -> dict:
@@ -381,7 +379,7 @@ def toposum(config: dict) -> dict:
     if "df" not in config.keys():
         config["df"] = pd.read_csv(config["csv_file"])
     if config["df"].isna().values.all():
-        LOGGER.warning("[plotting] No statistics in DataFrame. Exiting...")
+        logger.warning("[plotting] No statistics in DataFrame. Exiting...")
         return None
     violin = config.pop("violin")
     all_stats_to_sum = config.pop("stats_to_sum")
@@ -405,7 +403,7 @@ def toposum(config: dict) -> dict:
                     figures[var]["violin"]["axes"],
                 ) = topo_sum.sns_violinplot()
         else:
-            LOGGER.error(f"[plotting] Statistic is not in dataframe : {var}")
+            logger.error(f"[plotting] Statistic is not in dataframe : {var}")
 
     return figures
 
@@ -421,19 +419,19 @@ def run_toposum(args=None) -> None:
     """
     if args.config_file is not None:
         config = read_yaml(args.config_file)
-        LOGGER.info(f"[plotting] Configuration file loaded from : {args.config_file}")
+        logger.info(f"[plotting] Configuration file loaded from : {args.config_file}")
     else:
         summary_yaml = (resources.files(__package__) / "summary_config.yaml").read_text()
         config = yaml.safe_load(summary_yaml)
-        LOGGER.info("[plotting] Default configuration file loaded.")
+        logger.info("[plotting] Default configuration file loaded.")
     config = update_config(config, args)
     if args.var_to_label is not None:
         config["var_to_label"] = read_yaml(args.var_to_label)
-        LOGGER.debug("[plotting] Variable to labels mapping loaded from : {args.var_to_label}")
+        logger.debug("[plotting] Variable to labels mapping loaded from : {args.var_to_label}")
     else:
         plotting_yaml = (resources.files(__package__) / "var_to_label.yaml").read_text()
         config["var_to_label"] = yaml.safe_load(plotting_yaml)
-        LOGGER.debug("[plotting] Default variable to labels mapping loaded.")
+        logger.debug("[plotting] Default variable to labels mapping loaded.")
     if args.input_csv is not None:
         config["input_csv"] = args.input_csv
 
@@ -445,8 +443,8 @@ def run_toposum(args=None) -> None:
             config_file=args.create_config_file,
             header_message="Sample configuration file auto-generated",
         )
-        LOGGER.info(f"A sample configuration has been written to : ./{args.create_config_file}")
-        LOGGER.info(
+        logger.info(f"A sample configuration has been written to : ./{args.create_config_file}")
+        logger.info(
             "Please refer to the documentation on how to use the configuration file : \n\n"
             "https://afm-spm.github.io/TopoStats/usage.html#configuring-topostats\n"
             "https://afm-spm.github.io/TopoStats/configuration.html"
@@ -459,8 +457,8 @@ def run_toposum(args=None) -> None:
             config_file=args.create_label_file,
             header_message="Sample label file auto-generated",
         )
-        LOGGER.info(f"A sample label file has been written to : ./{args.create_label_file}")
-        LOGGER.info(
+        logger.info(f"A sample label file has been written to : ./{args.create_label_file}")
+        logger.info(
             "Please refer to the documentation on how to use the configuration file : \n\n"
             "https://afm-spm.github.io/TopoStats/usage.html#configuring-topostats\n"
             "https://afm-spm.github.io/TopoStats/configuration.html"

@@ -1,19 +1,15 @@
 """Utilities."""
 
-import logging
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
+from loguru import logger
 from scipy.ndimage import convolve
 
-# from topostats.classes import GrainCrop
-from topostats.logs.logs import LOGGER_NAME
 from topostats.thresholds import threshold
-
-LOGGER = logging.getLogger(LOGGER_NAME)
 
 COLUMN_SETS = {
     "grainstats": (
@@ -112,9 +108,9 @@ def _get_grain_mask(image: npt.NDArray, thresh: float, img_name: str | None = No
         Numpy array of image with objects coloured.
     """
     if thresh >= 0:
-        LOGGER.debug(f"[{img_name}] : Masking threshold: {thresh}")
+        logger.debug(f"[{img_name}] : Masking threshold: {thresh}")
         return image > thresh
-    LOGGER.debug(f"[{img_name}] : Masking threshold: {thresh}")
+    logger.debug(f"[{img_name}] : Masking threshold: {thresh}")
     return image < thresh
 
 
@@ -139,9 +135,9 @@ def _get_filter_mask(image: npt.NDArray, thresh: float, threshold_direction: str
         Numpy array of image with objects coloured.
     """
     if threshold_direction == "above":
-        LOGGER.debug(f"[{img_name}] : Masking (above) Threshold: {thresh}")
+        logger.debug(f"[{img_name}] : Masking (above) Threshold: {thresh}")
         return image > thresh
-    LOGGER.debug(f"[{img_name}] : Masking (below) Threshold: {thresh}")
+    logger.debug(f"[{img_name}] : Masking (below) Threshold: {thresh}")
     return image < thresh
 
 

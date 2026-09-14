@@ -11,10 +11,10 @@ import scipy.ndimage
 import skimage.feature as skimage_feature
 import skimage.measure as skimage_measure
 import skimage.morphology as skimage_morphology
+from loguru import logger
 
 from topostats.classes import TopoStats
 from topostats.grains import get_grain_thresholds
-from topostats.logs.logs import LOGGER_NAME
 from topostats.measure import feret
 
 # pylint: disable=too-many-lines
@@ -32,7 +32,6 @@ from topostats.measure import feret
 # pylint: disable=too-many-statements
 # pylint: disable=too-many-positional-arguments
 
-LOGGER = logging.getLogger(LOGGER_NAME)
 
 GRAIN_STATS_COLUMNS = [
     "grain_number",
@@ -165,7 +164,7 @@ class GrainStats:
         nesting being the class-type and the nesting within the subgrain type which has values for all statistics.
         """
         if self.grain_crops is None or len(self.grain_crops) == 0:
-            LOGGER.warning(
+            logger.warning(
                 f"[{self.filename}] : No grain crops for this image, grain statistics can not be calculated."
             )
         else:
@@ -180,7 +179,7 @@ class GrainStats:
                         threshold_std_dev=self.topostats_object.config["grains"]["threshold_std_dev"],
                         absolute=self.topostats_object.config["grains"]["threshold_absolute"],
                     )
-                LOGGER.debug(f"Processing grain {grain_index}")
+                logger.debug(f"Processing grain {grain_index}")
                 grain_crop.stats = {}
                 image = grain_crop.image
                 mask = grain_crop.mask
@@ -215,7 +214,7 @@ class GrainStats:
                         subgrain_tight_shape = subgrain_region.image.shape
                         # Skip subgrain if too small to calculate stats for
                         if min(subgrain_tight_shape) < 5:
-                            LOGGER.debug(
+                            logger.debug(
                                 f"[{self.filename}] : Skipping subgrain due to being too small "
                                 f"(size: {subgrain_tight_shape}) to calculate stats for."
                             )
@@ -467,10 +466,10 @@ class GrainStats:
         if debug:
             base_output_dir.mkdir(parents=True, exist_ok=True)
             self.plot(edges, hull, base_output_dir / "_points_hull.png")
-            LOGGER.debug(f"points: {edges}")
-            LOGGER.debug(f"hull: {hull}")
-            LOGGER.debug(f"hull indexes: {hull_indices}")
-            LOGGER.debug(f"simplexes: {simplexes}")
+            logger.debug(f"points: {edges}")
+            logger.debug(f"hull: {hull}")
+            logger.debug(f"hull indexes: {hull_indices}")
+            logger.debug(f"simplexes: {simplexes}")
 
         return hull, hull_indices, simplexes
 
@@ -728,7 +727,7 @@ class GrainStats:
                     "k-",
                     linewidth=5,
                 )
-                LOGGER.debug(rotated_points[simplex, 0], rotated_points[simplex, 1])
+                logger.debug(rotated_points[simplex, 0], rotated_points[simplex, 1])
 
                 # Draw the convex hulls
                 for _simplex in hull_simplices:

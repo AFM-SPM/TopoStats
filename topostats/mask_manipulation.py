@@ -1,11 +1,11 @@
 """Code for manipulating binary masks."""
 
-import logging
 from typing import Any
 
 import networkx as nx
 import numpy as np
 import numpy.typing as npt
+from loguru import logger
 from pydantic import BaseModel, Field
 from scipy import ndimage
 from skimage import filters
@@ -14,13 +14,10 @@ from skimage import filters
 from skimage.graph import route_through_array
 from skimage.morphology import label
 
-from topostats.logs.logs import LOGGER_NAME
 from topostats.measure.geometry import calculate_mask_width_with_skeleton, calculate_pixel_path_distance
 from topostats.tracing.pruning import prune_skeleton
 from topostats.tracing.skeletonize import getSkeleton
 from topostats.utils import convolve_skeleton
-
-LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 def re_add_holes(
@@ -125,7 +122,7 @@ def smooth_mask(
     """
     # Option to disable the smoothing (i.e. U-Net masks are already smooth)
     if dilation_iterations is None and gaussian_sigma is None:
-        LOGGER.debug(f"[{filename}] : no grain smoothing done")
+        logger.debug(f"[{filename}] : no grain smoothing done")
         return grain
 
     # Option to only do gaussian or dilation
@@ -135,26 +132,26 @@ def smooth_mask(
         gauss = filters.gaussian(grain, sigma=gaussian_sigma)
         gauss = np.where(gauss > filters.threshold_otsu(gauss) * 1.3, 1, 0)
         gauss = gauss.astype(np.int32)
-        LOGGER.debug(f"[{filename}] : smoothing done by gaussian {gaussian_sigma}")
+        logger.debug(f"[{filename}] : smoothing done by gaussian {gaussian_sigma}")
         return re_add_holes(grain, gauss, holearea_min_max)
     if gaussian_sigma is not None:
         gauss = filters.gaussian(grain, sigma=gaussian_sigma)
         gauss = np.where(gauss > filters.threshold_otsu(gauss) * 1.3, 1, 0)
         gauss = gauss.astype(np.int32)
     else:
-        LOGGER.debug(f"[{filename}] : smoothing done by dilation {dilation_iterations}")
+        logger.debug(f"[{filename}] : smoothing done by dilation {dilation_iterations}")
         return re_add_holes(grain, dilation, holearea_min_max)
 
     # Competition option between dilation and gaussian mask differences wrt original grains
     if abs(dilation.sum() - grain.sum()) > abs(gauss.sum() - grain.sum()):
-        LOGGER.debug(f"[{filename}] : smoothing done by gaussian {gaussian_sigma}")
+        logger.debug(f"[{filename}] : smoothing done by gaussian {gaussian_sigma}")
         return re_add_holes(
             pixel_to_nm_scaling=pixel_to_nm_scaling,
             orig_mask=grain,
             smoothed_mask=gauss,
             holearea_min_max=holearea_min_max,
         )
-    LOGGER.debug(f"[{filename}] : smoothing done by dilation {dilation_iterations}")
+    logger.debug(f"[{filename}] : smoothing done by dilation {dilation_iterations}")
     return re_add_holes(
         pixel_to_nm_scaling=pixel_to_nm_scaling,
         orig_mask=grain,
@@ -196,7 +193,7 @@ def keep_only_nonrepeated_endpoints(
         ) not in repeated_endpoints:
             pairs_no_repeated_ends.append(potential_pair)
         else:
-            LOGGER.info(f"excluding pair {endpoint_1}, {endpoint_2} due to repeated endpoints")
+            logger.info(f"excluding pair {endpoint_1}, {endpoint_2} due to repeated endpoints")
 
     return pairs_no_repeated_ends
 
@@ -753,7 +750,7 @@ def skeletonise_and_join_close_ends(  # noqa: C901
 
     # Now consider each group and decide how to connect them
     for group_id, connection_group in connection_groups.items():
-        LOGGER.info(
+        logger.info(
             f"[{filename}] : processing connection group {group_id} with endpoints : {connection_group.endpoints}"
         )
 
@@ -794,7 +791,7 @@ def skeletonise_and_join_close_ends(  # noqa: C901
             # If there are no connectionpoint pairs, then this means that the two endpoints are not close enough
             # to connect and they were only in the same group due to junctionpoints joining them. So skip this group.
             if len(connection_group.close_connectionpoint_pairs) == 0:
-                LOGGER.info(
+                logger.info(
                     f"[{filename}] : connection group {group_id} has "
                     f"{len(connection_group.endpoints)} endpoints, "
                     f"but no close endpoint pairs to connect, skipping."
@@ -848,7 +845,7 @@ def skeletonise_and_join_close_ends(  # noqa: C901
                 if endpoint_2_id in non_hard_connected_endpoint_ids:
                     non_hard_connected_endpoint_ids.remove(endpoint_2_id)
             if len(non_hard_connected_endpoint_ids) != 2:
-                LOGGER.info(
+                logger.info(
                     f"[{filename}] : connection group {group_id} has "
                     f"{len(connection_group.endpoints)} endpoints, "
                     f"but {len(non_hard_connected_endpoint_ids)} non-hard-connected endpoints, "
@@ -958,7 +955,7 @@ def skeletonise_and_join_close_ends(  # noqa: C901
             # done with this group, move on.
             continue
 
-        LOGGER.info(
+        logger.info(
             f"[{filename}] : connection group {group_id} has "
             f"{len(connection_group.endpoints)} endpoints, "
             f"currently unsupported, skipping."

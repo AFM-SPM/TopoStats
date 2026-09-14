@@ -1,20 +1,16 @@
 """Module for filtering 2D Numpy arrays."""
 
-import logging
-
 import numpy as np
 import numpy.typing as npt
-from scipy.optimize import curve_fit
 
 # pylint: disable=no-name-in-module
+from loguru import logger
+from scipy.optimize import curve_fit
 from skimage.filters import gaussian
 
 from topostats import scars
 from topostats.classes import TopoStats
-from topostats.logs.logs import LOGGER_NAME
 from topostats.utils import get_filter_mask, get_filter_thresholds
-
-LOGGER = logging.getLogger(LOGGER_NAME)
 
 # noqa: PLR0913
 # pylint: disable=fixme
@@ -180,10 +176,10 @@ class Filters:
         image = image.copy()
         if mask is not None:
             read_matrix = np.ma.masked_array(image, mask=mask, fill_value=np.nan).filled()
-            LOGGER.debug(f"[{self.filename}] : Median flattening with mask")
+            logger.debug(f"[{self.filename}] : Median flattening with mask")
         else:
             read_matrix = image
-            LOGGER.debug(f"[{self.filename}] : Median flattening without mask")
+            logger.debug(f"[{self.filename}] : Median flattening without mask")
 
         for row in range(image.shape[0]):
             # Get the median of the row
@@ -191,7 +187,7 @@ class Filters:
             if not np.isnan(m):
                 image[row, :] -= m
             else:
-                LOGGER.warning("""f[{self.filename}] Large grain detected image can not be
+                logger.warning("""f[{self.filename}] Large grain detected image can not be
 processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for more information.""")
 
         return image
@@ -218,45 +214,45 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
         image = image.copy()
         if mask is not None:
             read_matrix = np.ma.masked_array(image, mask=mask, fill_value=np.nan).filled()
-            LOGGER.debug(f"[{self.filename}] : Plane tilt removal with mask")
+            logger.debug(f"[{self.filename}] : Plane tilt removal with mask")
         else:
             read_matrix = image
-            LOGGER.debug(f"[{self.filename}] : Plane tilt removal without mask")
+            logger.debug(f"[{self.filename}] : Plane tilt removal without mask")
 
         # Line of best fit
         # Calculate medians
         medians_x = [np.nanmedian(read_matrix[:, i]) for i in range(read_matrix.shape[1])]
         medians_y = [np.nanmedian(read_matrix[j, :]) for j in range(read_matrix.shape[0])]
-        LOGGER.debug(f"[{self.filename}] [remove_tilt] medians_x   : {medians_x}")
-        LOGGER.debug(f"[{self.filename}] [remove_tilt] medians_y   : {medians_y}")
+        logger.debug(f"[{self.filename}] [remove_tilt] medians_x   : {medians_x}")
+        logger.debug(f"[{self.filename}] [remove_tilt] medians_y   : {medians_y}")
 
         # Fit linear x
         px = np.polyfit(range(0, len(medians_x)), medians_x, 1)
-        LOGGER.debug(f"[{self.filename}] : x-polyfit 1st order: {px}")
+        logger.debug(f"[{self.filename}] : x-polyfit 1st order: {px}")
         py = np.polyfit(range(0, len(medians_y)), medians_y, 1)
-        LOGGER.debug(f"[{self.filename}] : y-polyfit 1st order: {py}")
+        logger.debug(f"[{self.filename}] : y-polyfit 1st order: {py}")
 
         if px[0] != 0:
             if not np.isnan(px[0]):
-                LOGGER.debug(f"[{self.filename}] : Removing x plane tilt")
+                logger.debug(f"[{self.filename}] : Removing x plane tilt")
                 for row in range(0, image.shape[0]):
                     for col in range(0, image.shape[1]):
                         image[row, col] -= px[0] * (col)
             else:
-                LOGGER.debug(f"[{self.filename}] : x gradient is nan, skipping plane tilt x removal")
+                logger.debug(f"[{self.filename}] : x gradient is nan, skipping plane tilt x removal")
         else:
-            LOGGER.debug("[{self.filename}] : x gradient is zero, skipping plane tilt x removal")
+            logger.debug("[{self.filename}] : x gradient is zero, skipping plane tilt x removal")
 
         if py[0] != 0:
             if not np.isnan(py[0]):
-                LOGGER.debug(f"[{self.filename}] : removing y plane tilt")
+                logger.debug(f"[{self.filename}] : removing y plane tilt")
                 for row in range(0, image.shape[0]):
                     for col in range(0, image.shape[1]):
                         image[row, col] -= py[0] * (row)
             else:
-                LOGGER.debug("[{self.filename}] : y gradient is nan, skipping plane tilt y removal")
+                logger.debug("[{self.filename}] : y gradient is nan, skipping plane tilt y removal")
         else:
-            LOGGER.debug("[{self.filename}] : y gradient is zero, skipping plane tilt y removal")
+            logger.debug("[{self.filename}] : y gradient is zero, skipping plane tilt y removal")
 
         return image
 
@@ -350,7 +346,7 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
 
         # Unpack the optimised parameters
         a, b, c, d = popt
-        LOGGER.debug(
+        logger.debug(
             f"[{self.filename}] : Nonlinear polynomial removal optimal params: const: {a} xy: {b} x: {c} y: {d}"
         )
 
@@ -383,17 +379,17 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
         image = image.copy()
         if mask is not None:
             read_matrix = np.ma.masked_array(image, mask=mask, fill_value=np.nan).filled()
-            LOGGER.debug(f"[{self.filename}] : Remove quadratic bow with mask")
+            logger.debug(f"[{self.filename}] : Remove quadratic bow with mask")
         else:
             read_matrix = image
-            LOGGER.debug(f"[{self.filename}] : Remove quadratic bow without mask")
+            logger.debug(f"[{self.filename}] : Remove quadratic bow without mask")
 
         # Calculate medians
         medians_x = [np.nanmedian(read_matrix[:, i]) for i in range(read_matrix.shape[1])]
 
         # Fit quadratic x
         px = np.polyfit(range(0, len(medians_x)), medians_x, 2)
-        LOGGER.debug(f"[{self.filename}] : x polyfit 2nd order: {px}")
+        logger.debug(f"[{self.filename}] : x polyfit 2nd order: {px}")
 
         # Handle divide by zero
         if px[0] != 0:
@@ -404,9 +400,9 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
                     for col in range(0, image.shape[1]):
                         image[row, col] -= px[0] * (col - cx) ** 2
             else:
-                LOGGER.debug(f"[{self.filename}] : Quadratic polyfit returns nan, skipping quadratic removal")
+                logger.debug(f"[{self.filename}] : Quadratic polyfit returns nan, skipping quadratic removal")
         else:
-            LOGGER.debug(f"[{self.filename}] : Quadratic polyfit returns zero, skipping quadratic removal")
+            logger.debug(f"[{self.filename}] : Quadratic polyfit returns zero, skipping quadratic removal")
 
         return image
 
@@ -464,7 +460,7 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
         if mask is None:
             mask = np.zeros_like(image)
         mean = np.mean(image[mask == 0])
-        LOGGER.debug(f"[{self.filename}] : Zero averaging background : {mean} nm")
+        logger.debug(f"[{self.filename}] : Zero averaging background : {mean} nm")
         return image - mean
 
     def gaussian_filter(self, image: npt.NDArray, **kwargs) -> npt.NDArray:
@@ -483,7 +479,7 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
         npt.NDArray
             Numpy array that represent the image after Gaussian filtering.
         """
-        LOGGER.debug(
+        logger.debug(
             f"[{self.filename}] : Applying Gaussian filter (mode : {self.gaussian_mode};"
             f" Gaussian blur (px) : {self.gaussian_size})."
         )
@@ -532,14 +528,14 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
         run_scar_removal = self.remove_scars_config.pop("run")
         self.images["initial_scar_removal"]: npt.NDArray
         if run_scar_removal:
-            LOGGER.debug(f"[{self.filename}] : Initial scar removal")
+            logger.debug(f"[{self.filename}] : Initial scar removal")
             self.images["initial_scar_removal"], _ = scars.remove_scars(
                 self.images["initial_nonlinear_polynomial_removal"],
                 filename=self.filename,
                 **self.remove_scars_config,
             )
         else:
-            LOGGER.debug(f"[{self.filename}] : Skipping scar removal as requested from config")
+            logger.debug(f"[{self.filename}] : Skipping scar removal as requested from config")
             self.images["initial_scar_removal"] = self.images["initial_nonlinear_polynomial_removal"]
 
         # Zero the data before thresholding, helps with absolute thresholding
@@ -580,7 +576,7 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
         # Remove scars
         self.images["secondary_scar_removal"]: npt.NDArray
         if run_scar_removal:
-            LOGGER.debug(f"[{self.filename}] : Secondary scar removal")
+            logger.debug(f"[{self.filename}] : Secondary scar removal")
             self.images["secondary_scar_removal"], scar_mask = scars.remove_scars(
                 self.images["masked_nonlinear_polynomial_removal"],
                 filename=self.filename,
@@ -588,7 +584,7 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
             )
             self.images["scar_mask"] = scar_mask
         else:
-            LOGGER.debug(f"[{self.filename}] : Skipping scar removal as requested from config")
+            logger.debug(f"[{self.filename}] : Skipping scar removal as requested from config")
             self.images["secondary_scar_removal"] = self.images["masked_nonlinear_polynomial_removal"]
         self.images["final_zero_average_background"]: npt.NDArray = self.average_background(
             self.images["secondary_scar_removal"], self.images["mask"]

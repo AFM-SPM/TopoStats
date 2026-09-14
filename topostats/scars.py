@@ -4,10 +4,7 @@ import logging
 
 import numpy as np
 import numpy.typing as npt
-
-from topostats.logs.logs import LOGGER_NAME
-
-LOGGER = logging.getLogger(LOGGER_NAME)
+from loguru import logger
 
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-instance-attributes
@@ -62,7 +59,7 @@ def _mark_if_positive_scar(
         for k in range(1, max_scar_width + 1):
             if row + k + 1 >= img.shape[0]:
                 # Bottom of image, break
-                LOGGER.debug("Bottom of image.")
+                logger.debug("Bottom of image.")
                 break
             min_scar_value = min(min_scar_value, img[row + k, col])
             max_border_value = max(img[row, col], img[row + k + 1, col])
@@ -123,7 +120,7 @@ def _mark_if_negative_scar(
         for k in range(1, max_scar_width + 1):
             if row + k + 1 >= img.shape[0]:
                 # Bottom of image, break
-                LOGGER.debug("Bottom of image.")
+                logger.debug("Bottom of image.")
                 break
             min_scar_value = max(min_scar_value, img[row + k, col])
             max_border_value = min(img[row, col], img[row + k + 1, col])
@@ -337,7 +334,7 @@ def _remove_marked_scars(img: npt.NDArray, scar_mask: npt.NDArray) -> None:
                 img[row + k - 1, col] = interp_val
                 scar_mask[row + k - 1, col] = 0.0
                 k -= 1
-                LOGGER.debug("Scar removed")
+                logger.debug("Scar removed")
 
 
 def remove_scars(
@@ -393,7 +390,7 @@ def remove_scars(
     """
     assert removal_iterations > 0
 
-    LOGGER.info(f"[{filename}] : Removing scars")
+    logger.info(f"[{filename}] : Removing scars")
 
     first_marked_mask = None
     for i in range(removal_iterations):
@@ -421,7 +418,7 @@ def remove_scars(
 
         _remove_marked_scars(img, np.copy(marked_both))
 
-        LOGGER.debug("Scars removed")
+        logger.debug("Scars removed")
     assert first_marked_mask is not None
 
     return img, first_marked_mask

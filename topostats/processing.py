@@ -1,6 +1,5 @@
 """Functions for processing data."""
 
-import logging
 from copy import deepcopy
 from datetime import datetime, timezone
 from pathlib import Path
@@ -8,6 +7,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from art import tprint
+from loguru import logger
 
 from topostats import TOPOSTATS_BASE_VERSION, TOPOSTATS_COMMIT
 from topostats.array_manipulation import re_crop_grain_image_and_mask_to_set_size_nm
@@ -16,7 +16,6 @@ from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import get_out_path, save_topostats_file
-from topostats.logs.logs import LOGGER_NAME
 from topostats.measure.curvature import calculate_curvature_stats_image
 from topostats.plotting import plot_crossing_linetrace_halfmax
 from topostats.plottingfuncs import (
@@ -39,8 +38,6 @@ from topostats.tracing.splining import splining_image
 # pylint: disable=too-many-nested-blocks
 # pylint: disable=unnecessary-dict-index-lookup
 # pylint: disable=too-many-lines
-
-LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 def run_filters(  # noqa: C901
@@ -76,16 +73,16 @@ def run_filters(  # noqa: C901
     if filter_config["run"]:
         filter_config.pop("run")
         try:
-            LOGGER.debug(f"[{topostats_object.filename}] Image dimensions: {topostats_object.image_original.shape}")
-            LOGGER.info(f"[{topostats_object.filename}] : *** Filtering ***")
+            logger.debug(f"[{topostats_object.filename}] Image dimensions: {topostats_object.image_original.shape}")
+            logger.info(f"[{topostats_object.filename}] : *** Filtering ***")
             filters = Filters(
                 topostats_object=topostats_object,
                 **filter_config,
             )
             filters.filter_image()
-            LOGGER.info(f"[{topostats_object.filename}] : Filters stage completed successfully.")
+            logger.info(f"[{topostats_object.filename}] : Filters stage completed successfully.")
         except Exception as e:
-            LOGGER.error(
+            logger.error(
                 f"[{topostats_object.filename}] : An error occurred during filtering. Skipping subsequent steps.",
                 exc_info=e,
             )
@@ -108,7 +105,7 @@ def run_filters(  # noqa: C901
                             try:
                                 # ns-rse 2025-12-03 Could perhaps move logic for plotting here rather incurring cost of
                                 # instantiating only to find the given plot is not required.
-                                LOGGER.debug(
+                                logger.debug(
                                     f"[{topostats_object.filename}] [run_filter] : Plotting array : {plot_name=}"
                                 )
                                 Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()
@@ -117,7 +114,7 @@ def run_filters(  # noqa: C901
                                 # If scar removal isn't run scar_mask plot always fails with Attribute error, only log
                                 # other failures
                                 if plot_name != "scar_mask" or topostats_object.config["filter"]["remove_scars"]["run"]:
-                                    LOGGER.info(f"[{topostats_object.filename}] Unable to generate plot : {plot_name}")
+                                    logger.info(f"[{topostats_object.filename}] Unable to generate plot : {plot_name}")
                                 else:
                                     continue
                     # Always want the 'z_threshed' plot (aka "Height Thresholded") but in the core_out_path
@@ -127,16 +124,16 @@ def run_filters(  # noqa: C901
                         filename=topostats_object.filename,
                         **plotting_config["plot_dict"]["z_threshed"],
                     ).plot_and_save()
-                    LOGGER.info(f"[{topostats_object.filename}] : Filters plotting completed successfully.")
+                    logger.info(f"[{topostats_object.filename}] : Filters plotting completed successfully.")
                 except Exception as e:
-                    LOGGER.error(
+                    logger.error(
                         f"[{topostats_object.filename}] : Plotting filtering failed. Consider raising an issue on "
                         "GitHub. Error : ",
                         exc_info=e,
                     )
         return
     # Otherwise, return None and warn that initial processing is disabled.
-    LOGGER.error(
+    logger.error(
         "Your configuration disables running the initial filter stage. This is required for all subsequent "
         "stages of processing. Please correct your configuration file."
     )
@@ -176,24 +173,24 @@ def run_grains(  # noqa: C901
     if grains_config["run"]:
         grains_config.pop("run")
         try:
-            LOGGER.info(f"[{topostats_object.filename}] : *** Grain Finding ***")
+            logger.info(f"[{topostats_object.filename}] : *** Grain Finding ***")
             grains = Grains(
                 topostats_object=topostats_object,
                 **grains_config,
             )
             grains.find_grains()
-            LOGGER.info(f"[{topostats_object.filename}] : Grain Finding stage completed.")
+            logger.info(f"[{topostats_object.filename}] : Grain Finding stage completed.")
             n_grains = (
                 0
                 if topostats_object.grain_crops is None or len(topostats_object.grain_crops) < 1
                 else len(topostats_object.grain_crops)
             )
-            LOGGER.info(f"[{topostats_object.filename}] : Grains found {n_grains}")
+            logger.info(f"[{topostats_object.filename}] : Grains found {n_grains}")
             if n_grains == 0:
-                LOGGER.warning(f"[{topostats_object.filename}] : No grains found.")
+                logger.warning(f"[{topostats_object.filename}] : No grains found.")
 
         except Exception as e:
-            LOGGER.error(
+            logger.error(
                 f"[{topostats_object.filename}] : An error occurred during grain finding, skipping following steps.",
                 exc_info=e,
             )
@@ -207,13 +204,13 @@ def run_grains(  # noqa: C901
                     # @ns-rse : 2025-10-30 Need to think through carefully what this becomes and which directory things are
                     # to be in as we no longer have a direction and should be using topostats_object.grain_crops
                     for _, image_arrays in grains.mask_images.items():
-                        LOGGER.debug(f"[{topostats_object.filename}] : Plotting Grain Diagnostic Images")
+                        logger.debug(f"[{topostats_object.filename}] : Plotting Grain Diagnostic Images")
                         # Plot diagnostic full grain images
                         for plot_name, array in image_arrays.items():
                             # Tensor, iterate over each channel
                             filename_base = plotting_config["plot_dict"][plot_name]["filename"]
                             for tensor_class in range(1, array.shape[2]):
-                                LOGGER.info(
+                                logger.info(
                                     f"[{topostats_object.filename}] : Plotting {plot_name} image, class {tensor_class}"
                                 )
                                 plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path
@@ -227,7 +224,7 @@ def run_grains(  # noqa: C901
                                 ).plot_and_save()
                         # Plot individual grain masks
                         if topostats_object.grain_crops not in ({}, None):
-                            LOGGER.info(f"[{topostats_object.filename}] : Plotting individual grain masks")
+                            logger.info(f"[{topostats_object.filename}] : Plotting individual grain masks")
                             for grain_number, grain_crop in topostats_object.grain_crops.items():
                                 # If the grain_crop_plot_size_nm is -1, just use the grain crop as-is.
                                 if grain_crop_plot_size_nm == -1:
@@ -236,7 +233,7 @@ def run_grains(  # noqa: C901
                                 # ...otherwise the crop is resized
                                 else:
                                     try:
-                                        LOGGER.info(
+                                        logger.info(
                                             f"[{topostats_object.filename}] : Resizing grain crop {grain_number}"
                                         )
                                         crop_image, crop_mask = re_crop_grain_image_and_mask_to_set_size_nm(
@@ -250,7 +247,7 @@ def run_grains(  # noqa: C901
                                         )
                                     except ValueError as e:
                                         if "crop cannot be re-cropped" in str(e):
-                                            LOGGER.error(
+                                            logger.error(
                                                 "Crop cannot be re-cropped to requested size, skipping plotting "
                                                 "this grain.",
                                                 exc_info=True,
@@ -299,18 +296,18 @@ def run_grains(  # noqa: C901
                                     **plotting_config["plot_dict"][plot_name],
                                     region_properties=full_mask_tensor_class_regionprops,
                                 ).plot_and_save()
-                    LOGGER.info(f"[{topostats_object.filename}] : Grain plotting completed successfully.")
+                    logger.info(f"[{topostats_object.filename}] : Grain plotting completed successfully.")
                 except Exception as e:
-                    LOGGER.error(
+                    logger.error(
                         f"[{topostats_object.filename}] : Plotting grains failed. Consider raising an issue on "
                         "GitHub. Error",
                         exc_info=e,
                     )
             else:
-                LOGGER.info(f"[{topostats_object.filename}] : Plotting disabled for Grain Finding Images")
+                logger.info(f"[{topostats_object.filename}] : Plotting disabled for Grain Finding Images")
         return
     # Otherwise, return None and warn grainstats is disabled
-    LOGGER.info(f"[{topostats_object.filename}] Detection of grains disabled, GrainStats will not be run.")
+    logger.info(f"[{topostats_object.filename}] Detection of grains disabled, GrainStats will not be run.")
     return
 
 
@@ -351,7 +348,7 @@ def run_grainstats(
         _ = {index + 1: class_name for index, class_name in enumerate(grainstats_config.pop("class_names"))}
         # Grain Statistics :
         try:
-            LOGGER.info(f"[{topostats_object.filename}] : *** Grain Statistics ***")
+            logger.info(f"[{topostats_object.filename}] : *** Grain Statistics ***")
             grain_plot_dict = {
                 key: value
                 for key, value in plotting_config["plot_dict"].items()
@@ -364,18 +361,18 @@ def run_grainstats(
                 **grainstats_config,
             )
             grainstats.calculate_stats()
-            LOGGER.info(
+            logger.info(
                 f"[{topostats_object.filename}] : Calculated grainstats for {len(topostats_object.grain_crops)} grains."
             )
-            LOGGER.info(f"[{topostats_object.filename}] : Grainstats stage completed successfully.")
+            logger.info(f"[{topostats_object.filename}] : Grainstats stage completed successfully.")
             return
         except Exception as e:
-            LOGGER.info(
+            logger.info(
                 f"[{topostats_object.filename}] : Errors occurred whilst calculating grain statistics. Returning empty dataframe.",
                 exc_info=e,
             )
             return
-    LOGGER.info(f"[{topostats_object.filename}] : Calculation of grainstats disabled.")
+    logger.info(f"[{topostats_object.filename}] : Calculation of grainstats disabled.")
     return
 
 
@@ -418,28 +415,28 @@ def run_disordered_tracing(  # noqa: C901
     )
     if disordered_tracing_config["run"]:
         disordered_tracing_config.pop("run")
-        LOGGER.info(f"[{topostats_object.filename}] : *** Disordered Tracing ***")
+        logger.info(f"[{topostats_object.filename}] : *** Disordered Tracing ***")
         if topostats_object.grain_crops is None:
-            LOGGER.warning(f"[{topostats_object.filename}] : No grains exist. Skipping disordered tracing.")
+            logger.warning(f"[{topostats_object.filename}] : No grains exist. Skipping disordered tracing.")
             return
         try:
             trace_image_disordered(
                 topostats_object=topostats_object,
                 **disordered_tracing_config,
             )
-            LOGGER.info(f"[{topostats_object.filename}] : Disordered Tracing stage completed successfully.")
+            logger.info(f"[{topostats_object.filename}] : Disordered Tracing stage completed successfully.")
         except ValueError as e:
-            LOGGER.info(f"[{topostats_object.filename}] : Disordered tracing failed with ValueError {e}")
+            logger.info(f"[{topostats_object.filename}] : Disordered tracing failed with ValueError {e}")
         except AttributeError as e:
             if topostats_object.grain_crops is None:
-                LOGGER.info(
+                logger.info(
                     f"[{topostats_object.filename}] : Missing 'grain_crops' attribute, "
                     "no grains to run disordered tracing."
                 )
             else:
-                LOGGER.info(f"[{topostats_object.filename}] : Disordered tracing failed with AttributeError {e}")
+                logger.info(f"[{topostats_object.filename}] : Disordered tracing failed with AttributeError {e}")
         except Exception as e:
-            LOGGER.info(
+            logger.info(
                 f"[{topostats_object.filename}] : Disordered tracing failed - skipping. Consider raising an issue on GitHub. Error: ",
                 exc_info=e,
             )
@@ -449,7 +446,7 @@ def run_disordered_tracing(  # noqa: C901
                 tracing_out_path.mkdir(parents=True, exist_ok=True)
                 for grain_number, grain_crop in topostats_object.grain_crops.items():
                     # Plot pruned skeletons
-                    LOGGER.debug(
+                    logger.debug(
                         f"[{topostats_object.filename}] : Plotting disordered traces for grain {grain_number + 1}"
                     )
                     # Plot other disordered tracing stages...
@@ -474,12 +471,12 @@ def run_disordered_tracing(  # noqa: C901
                                     **plotting_config["plot_dict"][plot_name],
                                 ).plot_and_save()
                                 plotting_config["plot_dict"][plot_name]["filename"] = config_filename
-                                LOGGER.debug(
+                                logger.debug(
                                     f"[{topostats_object.filename}] : Plotting disordered trace {plot_name} for grain"
                                     f" {grain_number + 1}"
                                 )
                             except KeyError:
-                                LOGGER.warning(
+                                logger.warning(
                                     f"[{topostats_object.filename}] : !!! No configuration to plot `{plot_name}` !!!\n\n "
                                     "If you are NOT using a custom plotting configuration then please raise an issue on "
                                     "GitHub to report this problem."
@@ -492,15 +489,15 @@ def run_disordered_tracing(  # noqa: C901
                         **plotting_config["plot_dict"][plot_name],
                     ).plot_and_save()
 
-                LOGGER.info(f"[{topostats_object.filename}] : Disordered trace plotting completed successfully.")
+                logger.info(f"[{topostats_object.filename}] : Disordered trace plotting completed successfully.")
             except Exception as e:
-                LOGGER.error(
+                logger.error(
                     f"[{topostats_object.filename}] : Plotting disordered traces failed. Consider raising an issue on "
                     "GitHub. Error : ",
                     exc_info=e,
                 )
         return
-    LOGGER.info(f"[{topostats_object.filename}] Disordered Tracing disabled.")
+    logger.info(f"[{topostats_object.filename}] Disordered Tracing disabled.")
     return
 
 
@@ -538,26 +535,26 @@ def run_nodestats(  # noqa: C901
     )
     if nodestats_config["run"]:
         nodestats_config.pop("run")
-        LOGGER.info(f"[{topostats_object.filename}] : *** Nodestats ***")
+        logger.info(f"[{topostats_object.filename}] : *** Nodestats ***")
         if topostats_object.grain_crops is None:
-            LOGGER.warning(f"[{topostats_object.filename}] : No grains exist. Skipping nodestats tracing.")
+            logger.warning(f"[{topostats_object.filename}] : No grains exist. Skipping nodestats tracing.")
             return
         try:
             nodestats_image(
                 topostats_object=topostats_object,
                 **nodestats_config,
             )
-            LOGGER.info(f"[{topostats_object.filename}] : NodeStats stage completed successfully.")
+            logger.info(f"[{topostats_object.filename}] : NodeStats stage completed successfully.")
         except UnboundLocalError as e:
-            LOGGER.info(
+            logger.info(
                 f"[{topostats_object.filename}] : NodeStats failed with UnboundLocalError {e} - all skeletons pruned in the Disordered Tracing step."
             )
         except KeyError as e:
-            LOGGER.info(
+            logger.info(
                 f"[{topostats_object.filename}] : NodeStats failed with KeyError {e} - no skeletons found from the Disordered Tracing step."
             )
         except Exception as e:
-            LOGGER.info(
+            logger.info(
                 f"[{topostats_object.filename}] : NodeStats failed - skipping. Consider raising an issue on GitHub. Error: ",
                 exc_info=e,
             )
@@ -567,7 +564,7 @@ def run_nodestats(  # noqa: C901
                 for grain_number, grain_crop in topostats_object.grain_crops.items():
                     if grain_crop.nodes is not None and len(grain_crop.nodes) > 0:
                         for node_number, node in grain_crop.nodes.items():
-                            LOGGER.debug(
+                            logger.debug(
                                 f"[{topostats_object.filename}] : Plotting Nodestats Grain {grain_number + 1} (Node {node_number})"
                             )
                             Images(
@@ -612,15 +609,15 @@ def run_nodestats(  # noqa: C901
                             **plotting_config["plot_dict"][plot_name],
                         ).plot_and_save()
 
-                LOGGER.info(f"[{topostats_object.filename}] : Nodestats plotting completed successfully.")
+                logger.info(f"[{topostats_object.filename}] : Nodestats plotting completed successfully.")
             except Exception as e:
-                LOGGER.error(
+                logger.error(
                     f"[{topostats_object.filename}] : Plotting nodestats failed. Consider raising an issue on "
                     "GitHub. Error : ",
                     exc_info=e,
                 )
         return
-    LOGGER.info(f"[{topostats_object.filename}] : Calculation of nodestats disabled.")
+    logger.info(f"[{topostats_object.filename}] : Calculation of nodestats disabled.")
     return
 
 
@@ -660,25 +657,25 @@ def run_ordered_tracing(  # noqa: C901
     if ordered_tracing_config["run"]:
         ordered_tracing_config.pop("run")
         if topostats_object.grain_crops is None:
-            LOGGER.warning(f"[{topostats_object.filename}] : No grains exist. Skipping ordered tracing.")
+            logger.warning(f"[{topostats_object.filename}] : No grains exist. Skipping ordered tracing.")
             return
         try:
-            LOGGER.info(f"[{topostats_object.filename}] : *** Ordered Tracing ***")
+            logger.info(f"[{topostats_object.filename}] : *** Ordered Tracing ***")
             ordered_tracing_image(
                 topostats_object=topostats_object,
                 **ordered_tracing_config,
             )
-            LOGGER.info(f"[{topostats_object.filename}] : Ordered Tracing stage completed successfully.")
+            logger.info(f"[{topostats_object.filename}] : Ordered Tracing stage completed successfully.")
         except ValueError as e:
-            LOGGER.info(
+            logger.info(
                 f"[{topostats_object.filename}] : Ordered Tracing failed with ValueError {e} - No skeletons exist."
             )
         except KeyError as e:
-            LOGGER.info(
+            logger.info(
                 f"[{topostats_object.filename}] : Ordered Tracing failed with KeyError {e} - no skeletons found from the Disordered Tracing step."
             )
         except Exception as e:
-            LOGGER.info(
+            logger.info(
                 f"[{topostats_object.filename}] : Ordered Tracing failed - skipping. Consider raising an issue on GitHub. Error: ",
                 exc_info=e,
             )
@@ -716,7 +713,7 @@ def run_ordered_tracing(  # noqa: C901
                         ).plot_and_save()
                     # Plot grains to dnatracing/ordered
                     for grain_number, grain_crop in topostats_object.grain_crops.items():
-                        LOGGER.debug(
+                        logger.debug(
                             f"[{topostats_object.filename}] : Plotting ordered traces for grain {grain_number + 1}"
                         )
                         if grain_crop.ordered_trace.images is not None and len(grain_crop.ordered_trace.images) > 0:
@@ -735,36 +732,36 @@ def run_ordered_tracing(  # noqa: C901
                                         **plotting_config["plot_dict"][plot_name],
                                     ).plot_and_save()
                                     plotting_config["plot_dict"][plot_name]["filename"] = config_filename
-                                    LOGGER.debug(
+                                    logger.debug(
                                         f"[{topostats_object.filename}] Plotting ordered trace {plot_name} for grain "
                                         f"{grain_number + 1}"
                                     )
                                 except AttributeError:
-                                    LOGGER.warning(
+                                    logger.warning(
                                         f"[{topostats_object.filename}] : No ordered trace images to plot for grain"
                                         f" {grain_number + 1}"
                                     )
                                 except KeyError:
-                                    LOGGER.warning(
+                                    logger.warning(
                                         f"[{topostats_object.filename}] : !!! No configuration to plot `{plot_name}` !!!\n\n "
                                         "If you  are NOT using a custom plotting configuration then please raise an issue on"
                                         " GitHub to report this problem."
                                     )
                         else:
-                            LOGGER.warning(
+                            logger.warning(
                                 f"[{topostats_object.filename}] : No ordered trace images to plot for grain"
                                 f" {grain_number + 1}"
                             )
 
-                    LOGGER.info(f"[{topostats_object.filename}] : Ordered tracing plotting completed successfully.")
+                    logger.info(f"[{topostats_object.filename}] : Ordered tracing plotting completed successfully.")
                 except Exception as e:
-                    LOGGER.error(
+                    logger.error(
                         f"[{topostats_object.filename}] : Plotting ordered traces failed. Consider raising an issue on "
                         "GitHub. Error : ",
                         exc_info=e,
                     )
         return
-    LOGGER.info(f"[{topostats_object.filename}] : Calculation of ordered tracing disabled.")
+    logger.info(f"[{topostats_object.filename}] : Calculation of ordered tracing disabled.")
     return
 
 
@@ -805,21 +802,21 @@ def run_splining(  # noqa: C901
     if splining_config["run"]:
         splining_config.pop("run")
         if topostats_object.grain_crops is None:
-            LOGGER.warning(f"[{topostats_object.filename}] : No grains exist. Skipping splining.")
+            logger.warning(f"[{topostats_object.filename}] : No grains exist. Skipping splining.")
             return
         try:
-            LOGGER.info(f"[{topostats_object.filename}] : *** Splining ***")
+            logger.info(f"[{topostats_object.filename}] : *** Splining ***")
             splining_image(
                 topostats_object=topostats_object,
                 **splining_config,
             )
-            LOGGER.info(f"[{topostats_object.filename}] : Splining stage completed successfully.")
+            logger.info(f"[{topostats_object.filename}] : Splining stage completed successfully.")
         except KeyError as e:
-            LOGGER.info(
+            logger.info(
                 f"[{topostats_object.filename}] : Splining failed with KeyError {e} - no ordered traces found from the Ordered Tracing step."
             )
         except Exception as e:
-            LOGGER.error(
+            logger.error(
                 f"[{topostats_object.filename}] : Splining failed - skipping. Consider raising an issue on GitHub. Error: ",
                 exc_info=e,
             )
@@ -839,7 +836,7 @@ def run_splining(  # noqa: C901
                                     **plotting_config["plot_dict"]["splined_trace"],
                                 ).plot_and_save()
                                 all_splines.append(molecule.splined_coords + grain_crop.bbox[:2])
-                                LOGGER.debug(
+                                logger.debug(
                                     f"[{topostats_object.filename}] : Plotting splined traces for grain "
                                     f"{grain_number + 1} molecule {molecule_number + 1}"
                                 )
@@ -851,17 +848,17 @@ def run_splining(  # noqa: C901
                         plot_coords=all_splines,
                         **plotting_config["plot_dict"]["splined_trace"],
                     ).plot_and_save()
-                    LOGGER.info(f"[{topostats_object.filename}] : Splining plotting completed successfully.")
+                    logger.info(f"[{topostats_object.filename}] : Splining plotting completed successfully.")
                 except Exception as e:
-                    LOGGER.error(
+                    logger.error(
                         f"[{topostats_object.filename}] : Plotting splines failed. Consider raising an issue on "
                         "GitHub. Error : ",
                         exc_info=e,
                     )
         return
-    LOGGER.info(f"[{topostats_object.filename}] : Calculation of splining disabled.")
+    logger.info(f"[{topostats_object.filename}] : Calculation of splining disabled.")
     if curvature_config["run"]:
-        LOGGER.warning(
+        logger.warning(
             f"[{topostats_object.filename}] : Automatically disabled curvature due to splining being disabled."
         )
         curvature_config["run"] = False
@@ -905,16 +902,16 @@ def run_curvature_stats(
     )
     if curvature_config["run"]:
         if topostats_object.grain_crops is None:
-            LOGGER.warning(f"[{topostats_object.filename}] : No grains exist. Skipping curvature.")
+            logger.warning(f"[{topostats_object.filename}] : No grains exist. Skipping curvature.")
             return
         try:
             curvature_config.pop("run")
-            LOGGER.info(f"[{topostats_object.filename}] : *** Curvature Stats ***")
+            logger.info(f"[{topostats_object.filename}] : *** Curvature Stats ***")
             # Pass the traces to the curvature stats function
             calculate_curvature_stats_image(topostats_object=topostats_object, **curvature_config)
-            LOGGER.info(f"[{topostats_object.filename}] : Curvature stage completed successfully.")
+            logger.info(f"[{topostats_object.filename}] : Curvature stage completed successfully.")
         except Exception as e:
-            LOGGER.error(
+            logger.error(
                 f"[{topostats_object.filename}] : Curvature calculation failed. Consider raising an issue on GitHub. Error: ",
                 exc_info=e,
             )
@@ -938,7 +935,7 @@ def run_curvature_stats(
                                     grain_number=grain_number,
                                     colourmap_normalisation_bounds=colourmap_normalisation_bounds,
                                 )
-                                LOGGER.debug(
+                                logger.debug(
                                     f"[{topostats_object.filename}] : Plotting curvature traces for grain "
                                     f"{grain_number + 1} molecule {molecule_number + 1}"
                                 )
@@ -955,16 +952,16 @@ def run_curvature_stats(
                         grain_crops=topostats_object.grain_crops,
                         colourmap_normalisation_bounds=colourmap_normalisation_bounds,
                     )
-                    LOGGER.info(f"[{topostats_object.filename}] : Curvature plotting completed successfully.")
+                    logger.info(f"[{topostats_object.filename}] : Curvature plotting completed successfully.")
             except Exception as e:
-                LOGGER.error(
+                logger.error(
                     f"[{topostats_object.filename}] : Plotting curvature failed. Consider raising an issue on "
                     "GitHub. Error : ",
                     exc_info=e,
                 )
             return
         return
-    LOGGER.info(f"[{topostats_object.filename}] : Calculation of curvature statistics disabled.")
+    logger.info(f"[{topostats_object.filename}] : Calculation of curvature statistics disabled.")
     return
 
 
@@ -996,7 +993,7 @@ def get_out_paths(
         Core output path for general file outputs, filter output path for flattening related files and
         grain output path for grain finding related files.
     """
-    LOGGER.info(f"Processing : {filename}")
+    logger.info(f"Processing : {filename}")
     core_out_path = get_out_path(image_path, base_dir, output_dir).parent / "processed"
     core_out_path.mkdir(parents=True, exist_ok=True)
     filter_out_path = core_out_path / filename / "filters"
@@ -1162,9 +1159,9 @@ def process_scan(  # noqa: C901
         )
 
     else:
-        LOGGER.warning(f"[{topostats_object.filename}] : No grains found, skipping grainstats and tracing stages.")
+        logger.warning(f"[{topostats_object.filename}] : No grains found, skipping grainstats and tracing stages.")
 
-    LOGGER.info(f"[{topostats_object.filename}] : *** Image Statistics ***")
+    logger.info(f"[{topostats_object.filename}] : *** Image Statistics ***")
     # Image Statistics
     image_stats_df = pd.DataFrame([topostats_object.calculate_image_statistics()])
     image_stats_df.set_index("image", inplace=True)
@@ -1275,7 +1272,7 @@ def process_scan(  # noqa: C901
         else:
             grain_stats_df = None
     else:
-        LOGGER.warning(f"[{topostats_object.filename}] : No statistics to return.")
+        logger.warning(f"[{topostats_object.filename}] : No statistics to return.")
         grain_stats_df = None
         image_stats_df = None
         disordered_tracing_df = None
@@ -1362,7 +1359,7 @@ def process_filters(
         )
         return (topostats_object.filename, True)
     except:  # noqa: E722  # pylint: disable=bare-except
-        LOGGER.info(f"Filtering failed for image : {topostats_object.filename}")
+        logger.info(f"Filtering failed for image : {topostats_object.filename}")
         return (topostats_object.filename, False)
 
 
@@ -1429,7 +1426,7 @@ def process_grains(
         )
         return (topostats_object.filename, True)
     except:  # noqa: E722  # pylint: disable=bare-except
-        LOGGER.info(f"Grain detection failed for image : {topostats_object.filename}")
+        logger.info(f"Grain detection failed for image : {topostats_object.filename}")
         return (topostats_object.filename, False)
 
 
@@ -1495,7 +1492,7 @@ def process_grainstats(
                 topostats_object=topostats_object,
             )
         except:  # noqa: E722  # pylint: disable=bare-except
-            LOGGER.info(f"Grain detection failed for image : {topostats_object.filename}")
+            logger.info(f"Grain detection failed for image : {topostats_object.filename}")
             return None, topostats_object, None
         # Grain Statistics
         grain_stats = {
@@ -1517,7 +1514,7 @@ def process_grainstats(
         else:
             grain_stats_df = None
         return topostats_object.filename, topostats_object, grain_stats_df
-    LOGGER.info(f"[{topostats_object.filename}] : No grains present, GrainStats skipped.")
+    logger.info(f"[{topostats_object.filename}] : No grains present, GrainStats skipped.")
     return topostats_object.filename, topostats_object, None
 
 
@@ -1555,93 +1552,85 @@ def check_run_steps(  # noqa: C901
     curvature_run : bool
         Flag for running curvature calculations of splined DNA traces.
     """
-    LOGGER.debug(f"{filter_run=}")
-    LOGGER.debug(f"{grains_run=}")
-    LOGGER.debug(f"{grainstats_run=}")
-    LOGGER.debug(f"{disordered_tracing_run=}")
-    LOGGER.debug(f"{nodestats_run=}")
-    LOGGER.debug(f"{ordered_tracing_run=}")
-    LOGGER.debug(f"{splining_run=}")
-    LOGGER.debug(f"{curvature_run=}")
     if curvature_run:
         if splining_run is False:
-            LOGGER.error("Curvature enabled but Splining disabled. Please check your configuration file.")
+            logger.error("Curvature enabled but Splining disabled. Please check your configuration file.")
         if ordered_tracing_run is False:
-            LOGGER.error("Curvature enabled but Ordered Tracing disabled. Please check your configuration file.")
+            logger.error("Curvature enabled but Ordered Tracing disabled. Please check your configuration file.")
         if nodestats_run is False:
-            LOGGER.error("Curvature enabled but NodeStats disabled. Tracing will use the 'old' method.")
+            logger.error("Curvature enabled but NodeStats disabled. Tracing will use the 'old' method.")
         if disordered_tracing_run is False:
-            LOGGER.error("Curvature enabled but Disordered Tracing disabled. Please check your configuration file.")
+            logger.error("Curvature enabled but Disordered Tracing disabled. Please check your configuration file.")
         elif grainstats_run is False:
-            LOGGER.error("Curvature enabled but Grainstats disabled. Please check your configuration file.")
+            logger.error("Curvature enabled but Grainstats disabled. Please check your configuration file.")
         elif grains_run is False:
-            LOGGER.error("Curvature enabled but Grains disabled. Please check your configuration file.")
+            logger.error("Curvature enabled but Grains disabled. Please check your configuration file.")
         elif filter_run is False:
-            LOGGER.error("Curvature enabled but Filters disabled. Please check your configuration file.")
+            logger.error("Curvature enabled but Filters disabled. Please check your configuration file.")
         else:
-            LOGGER.info("Configuration run options are consistent, processing can proceed.")
+            logger.info("Configuration run options are consistent, processing can proceed.")
     elif splining_run:
         if ordered_tracing_run is False:
-            LOGGER.error("Splining enabled but Ordered Tracing disabled. Please check your configuration file.")
+            logger.error("Splining enabled but Ordered Tracing disabled. Please check your configuration file.")
         if nodestats_run is False:
-            LOGGER.error("Splining enabled but NodeStats disabled. Tracing will use the 'old' method.")
+            logger.error("Splining enabled but NodeStats disabled. Tracing will use the 'old' method.")
         if disordered_tracing_run is False:
-            LOGGER.error("Splining enabled but Disordered Tracing disabled. Please check your configuration file.")
+            logger.error("Splining enabled but Disordered Tracing disabled. Please check your configuration file.")
         elif grainstats_run is False:
-            LOGGER.error("Splining enabled but Grainstats disabled. Please check your configuration file.")
+            logger.error("Splining enabled but Grainstats disabled. Please check your configuration file.")
         elif grains_run is False:
-            LOGGER.error("Splining enabled but Grains disabled. Please check your configuration file.")
+            logger.error("Splining enabled but Grains disabled. Please check your configuration file.")
         elif filter_run is False:
-            LOGGER.error("Splining enabled but Filters disabled. Please check your configuration file.")
+            logger.error("Splining enabled but Filters disabled. Please check your configuration file.")
         else:
-            LOGGER.info("Configuration run options are consistent, processing can proceed.")
+            logger.info("Configuration run options are consistent, processing can proceed.")
     elif ordered_tracing_run:
         if disordered_tracing_run is False:
-            LOGGER.error(
+            logger.error(
                 "Ordered Tracing enabled but Disordered Tracing disabled. Please check your configuration file."
             )
         elif grainstats_run is False:
-            LOGGER.error("NodeStats enabled but Grainstats disabled. Please check your configuration file.")
+            logger.error("NodeStats enabled but Grainstats disabled. Please check your configuration file.")
         elif grains_run is False:
-            LOGGER.error("NodeStats enabled but Grains disabled. Please check your configuration file.")
+            logger.error("NodeStats enabled but Grains disabled. Please check your configuration file.")
         elif filter_run is False:
-            LOGGER.error("NodeStats enabled but Filters disabled. Please check your configuration file.")
+            logger.error("NodeStats enabled but Filters disabled. Please check your configuration file.")
         else:
-            LOGGER.info("Configuration run options are consistent, processing can proceed.")
+            logger.info("Configuration run options are consistent, processing can proceed.")
     elif nodestats_run:
         if disordered_tracing_run is False:
-            LOGGER.error("NodeStats enabled but Disordered Tracing disabled. Please check your configuration file.")
+            logger.error("NodeStats enabled but Disordered Tracing disabled. Please check your configuration file.")
         elif grainstats_run is False:
-            LOGGER.error("NodeStats enabled but Grainstats disabled. Please check your configuration file.")
+            logger.error("NodeStats enabled but Grainstats disabled. Please check your configuration file.")
         elif grains_run is False:
-            LOGGER.error("NodeStats enabled but Grains disabled. Please check your configuration file.")
+            logger.error("NodeStats enabled but Grains disabled. Please check your configuration file.")
         elif filter_run is False:
-            LOGGER.error("NodeStats enabled but Filters disabled. Please check your configuration file.")
+            logger.error("NodeStats enabled but Filters disabled. Please check your configuration file.")
         else:
-            LOGGER.info("Configuration run options are consistent, processing can proceed.")
+            logger.info("Configuration run options are consistent, processing can proceed.")
     elif disordered_tracing_run:
         if grainstats_run is False:
-            LOGGER.error("Disordered Tracing enabled but Grainstats disabled. Please check your configuration file.")
+            logger.error("Disordered Tracing enabled but Grainstats disabled. Please check your configuration file.")
         elif grains_run is False:
-            LOGGER.error("Disordered Tracing enabled but Grains disabled. Please check your configuration file.")
+            logger.error("Disordered Tracing enabled but Grains disabled. Please check your configuration file.")
         elif filter_run is False:
-            LOGGER.error("Disordered Tracing enabled but Filters disabled. Please check your configuration file.")
+            logger.error("Disordered Tracing enabled but Filters disabled. Please check your configuration file.")
         else:
-            LOGGER.info("Configuration run options are consistent, processing can proceed.")
+            logger.info("Configuration run options are consistent, processing can proceed.")
     elif grainstats_run:
         if grains_run is False:
-            LOGGER.error("Grainstats enabled but Grains disabled. Please check your configuration file.")
+            logger.error("Grainstats enabled but Grains disabled. Please check your configuration file.")
         elif filter_run is False:
-            LOGGER.error("Grainstats enabled but Filters disabled. Please check your configuration file.")
+            logger.error("Grainstats enabled but Filters disabled. Please check your configuration file.")
         else:
-            LOGGER.info("Configuration run options are consistent, processing can proceed.")
+            logger.info("Configuration run options are consistent, processing can proceed.")
     elif grains_run:
         if filter_run is False:
-            LOGGER.error("Grains enabled but Filters disabled. Please check your configuration file.")
+            logger.error("Grains enabled but Filters disabled. Please check your configuration file.")
         else:
-            LOGGER.info("Configuration run options are consistent, processing can proceed.")
+            logger.info("Configuration run options are consistent, processing can proceed.")
     else:
-        LOGGER.info("Configuration run options are consistent, processing can proceed.")
+        logger.info("Configuration run options are consistent, processing can proceed.")
 
 
 def completion_message(
@@ -1700,4 +1689,4 @@ def completion_message(
         f"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
     )
     print(completion_summary)
-    LOGGER.info(completion_summary)
+    logger.info(completion_summary)

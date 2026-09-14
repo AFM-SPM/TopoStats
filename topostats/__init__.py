@@ -1,14 +1,11 @@
 """Topostats."""
 
-import logging
 import os
 from importlib.metadata import version
 
 import snoop
 from matplotlib import colormaps
 from packaging.version import Version
-
-from .logs.logs import LOGGER_NAME
 
 from .theme import Colormap
 
@@ -35,8 +32,6 @@ colormaps.register(cmap=Colormap("gwyddion").get_cmap())
 
 # Disable snoop
 snoop.install(enabled=False)
-
-LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 def get_topostats_version() -> Version:

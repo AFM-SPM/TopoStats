@@ -1,17 +1,13 @@
 """Custom Bruker Nanoscope colorscale."""
 
-import logging
 from collections.abc import Sequence
 from typing import Literal
 
 import matplotlib as mpl
 import matplotlib.cm
 import numpy as np
+from loguru import logger
 from matplotlib.colors import LinearSegmentedColormap, ListedColormap
-
-from topostats.logs.logs import LOGGER_NAME
-
-LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 class Colormap:
@@ -68,7 +64,6 @@ class Colormap:
         else:
             # Get one of the matplotlib colormaps
             self.cmap = mpl.colormaps[name]
-        LOGGER.debug(f"[theme] Colormap set to : {name}")
 
     def get_cmap(self) -> mpl.colors.Colormap | None:
         """

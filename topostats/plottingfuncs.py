@@ -9,13 +9,13 @@ import matplotlib.patheffects as path_effects
 import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
+from loguru import logger
 from matplotlib.patches import Patch, Rectangle
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from skimage.morphology import dilation
 
 import topostats
 from topostats.classes import GrainCrop
-from topostats.logs.logs import LOGGER_NAME
 from topostats.theme import Colormap
 
 # pylint: disable=dangerous-default-value
@@ -26,7 +26,6 @@ from topostats.theme import Colormap
 # pylint: disable=too-many-positional-arguments
 # pylint: disable=unused-argument
 
-LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 def add_pixel_to_nm_to_plotting_config(plotting_config: dict, pixel_to_nm_scaling: float) -> dict:
@@ -496,7 +495,7 @@ class Images:
                 )
                 plt.close()
 
-            LOGGER.debug(
+            logger.debug(
                 f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}.{self.savefig_format}"
                 f" | DPI: {self.savefig_dpi}"
             )
@@ -516,7 +515,7 @@ class Images:
             # Only plot if image_set is "all" (i.e. user wants all images) or an image is in the core_set
             if "all" in self.image_set or self.module in self.image_set or self.core_set:
                 fig, ax = self.save_figure()
-                LOGGER.debug(
+                logger.debug(
                     f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}.{self.savefig_format}"
                     f" | DPI: {self.savefig_dpi}"
                 )

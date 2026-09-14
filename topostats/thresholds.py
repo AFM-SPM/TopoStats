@@ -1,15 +1,10 @@
 """Functions for calculating thresholds."""
 
 # pylint: disable=no-name-in-module
-import logging
 from collections.abc import Callable
 
 import numpy.typing as npt
 from skimage.filters import threshold_mean, threshold_minimum, threshold_otsu, threshold_triangle, threshold_yen
-
-from topostats.logs.logs import LOGGER_NAME
-
-LOGGER = logging.getLogger(LOGGER_NAME)
 
 # pylint: disable=no-else-return
 # pylint: disable=unused-argument

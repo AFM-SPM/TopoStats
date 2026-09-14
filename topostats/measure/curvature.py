@@ -1,6 +1,5 @@
 """Calculate various curvature metrics for traces."""
 
-import logging
 from typing import Literal
 
 import numpy as np
@@ -10,9 +9,6 @@ from scipy.signal import savgol_filter
 
 from topostats.array_manipulation import distances_nm
 from topostats.classes import GrainCurvatureStats, MoleculeCurvatureStats, TopoStats
-from topostats.logs.logs import LOGGER_NAME
-
-LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 def angle_diff_signed(v1: npt.NDArray[np.float64], v2: npt.NDArray[np.float64]):

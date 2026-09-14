@@ -1,6 +1,5 @@
 """Generates disordered traces (pruned skeletons) and metrics."""
 
-import logging
 import warnings
 from pathlib import Path
 
@@ -8,19 +7,17 @@ import numpy as np
 import numpy.typing as npt
 import pandas as pd
 import skan
+from loguru import logger
 from scipy import ndimage
 from skimage import filters
 from skimage.draw import line
 from skimage.morphology import label
 
 from topostats.classes import DisorderedTrace, TopoStats
-from topostats.logs.logs import LOGGER_NAME
 from topostats.mask_manipulation import get_point_along_branch, ray_cast
 from topostats.tracing.pruning import prune_skeleton
 from topostats.tracing.skeletonize import getSkeleton
 from topostats.utils import convolve_skeleton
-
-LOGGER = logging.getLogger(LOGGER_NAME)
 
 # too-many-positional-arguments
 # pylint: disable=R0917
@@ -128,13 +125,13 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
         # suppresses scipy splining warnings
         warnings.filterwarnings("ignore")
 
-        LOGGER.debug(f"[{self.filename}] Performing Disordered Tracing")
+        logger.debug(f"[{self.filename}] Performing Disordered Tracing")
 
     def trace_dna(self):
         """Perform the DNA skeletonisation and cleaning pipeline."""
         self.smoothed_mask = self.smooth_mask(self.mask, **self.mask_smoothing_params)
         if check_pixel_touching_edge(self.smoothed_mask):
-            LOGGER.warning(
+            logger.warning(
                 f"[{self.filename}] : Grain {self.n_grain} skipped as padding is too small. Please consider "
                 "increasing the value of grains.grain_crop_padding in your config file and try again."
             )
@@ -162,10 +159,10 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
         self.disordered_trace = np.argwhere(self.pruned_skeleton == 1)
 
         if self.disordered_trace is None:
-            LOGGER.warning(f"[{self.filename}] : Grain {self.n_grain} failed to Skeletonise.")
+            logger.warning(f"[{self.filename}] : Grain {self.n_grain} failed to Skeletonise.")
             self.disordered_trace = None
         elif len(self.disordered_trace) < self.min_skeleton_size:
-            LOGGER.warning(f"[{self.filename}] : Grain {self.n_grain} skeleton < {self.min_skeleton_size}, skipping.")
+            logger.warning(f"[{self.filename}] : Grain {self.n_grain} skeleton < {self.min_skeleton_size}, skipping.")
             self.disordered_trace = None
 
     def re_add_holes(
@@ -275,7 +272,7 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
         """
         # Option to disable the smoothing (i.e. U-Net masks are already smooth)
         if dilation_iterations is None and gaussian_sigma is None:
-            LOGGER.debug(f"[{self.filename}] : no grain smoothing done")
+            logger.debug(f"[{self.filename}] : no grain smoothing done")
             return grain
 
         # Option to only do gaussian or dilation
@@ -285,21 +282,21 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
             gauss = filters.gaussian(grain, sigma=gaussian_sigma)
             gauss = np.where(gauss > filters.threshold_otsu(gauss) * 1.3, 1, 0)
             gauss = gauss.astype(np.int32)
-            LOGGER.debug(f"[{self.filename}] : smoothing done by gaussian {gaussian_sigma}")
+            logger.debug(f"[{self.filename}] : smoothing done by gaussian {gaussian_sigma}")
             return self.re_add_holes(grain, gauss, holearea_min_max)
         if gaussian_sigma is not None:
             gauss = filters.gaussian(grain, sigma=gaussian_sigma)
             gauss = np.where(gauss > filters.threshold_otsu(gauss) * 1.3, 1, 0)
             gauss = gauss.astype(np.int32)
         else:
-            LOGGER.debug(f"[{self.filename}] : smoothing done by dilation {dilation_iterations}")
+            logger.debug(f"[{self.filename}] : smoothing done by dilation {dilation_iterations}")
             return self.re_add_holes(grain, dilation, holearea_min_max)
 
         # Competition option between dilation and gaussian mask differences wrt original grains
         if abs(dilation.sum() - grain.sum()) > abs(gauss.sum() - grain.sum()):
-            LOGGER.debug(f"[{self.filename}] : smoothing done by gaussian {gaussian_sigma}")
+            logger.debug(f"[{self.filename}] : smoothing done by gaussian {gaussian_sigma}")
             return self.re_add_holes(grain, gauss, holearea_min_max)
-        LOGGER.debug(f"[{self.filename}] : smoothing done by dilation {dilation_iterations}")
+        logger.debug(f"[{self.filename}] : smoothing done by dilation {dilation_iterations}")
         return self.re_add_holes(grain, dilation, holearea_min_max)
 
     @staticmethod
@@ -415,7 +412,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                 endpoint_vector_follow_distance_nm=endpoint_vector_follow_distance_nm,
                 n_grain=grain_number,
             )
-            LOGGER.debug(f"[{grain_crop.filename}] : Disordered Traced grain {grain_number + 1} of {number_of_grains}")
+            logger.debug(f"[{grain_crop.filename}] : Disordered Traced grain {grain_number + 1} of {number_of_grains}")
             if disordered_trace_images is not None:
                 # obtain segment stats
                 try:
@@ -426,7 +423,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                     skan_df = skan.summarize(skel=skan_skeleton, separator="_")
                     total_branch_length_nm = skan_df["branch_distance"].sum() * 1e-9
                 except ValueError:
-                    LOGGER.warning(
+                    logger.warning(
                         f"[{grain_crop.filename}] : Skeleton for grain {grain_number} has been pruned out of existence."
                     )
                     total_branch_length_nm = 0
@@ -526,7 +523,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
 
         # when skeleton is too small, pruned to 0's, skan -> ValueError -> skipped
         except Exception as e:  # pylint: disable=broad-exception-caught
-            LOGGER.error(  # pylint: disable=logging-not-lazy
+            logger.error(  # pylint: disable=logging-not-lazy
                 f"[{grain_crop.filename}] : Disordered tracing of grain {grain_number} failed. "
                 f"Consider raising an issue on GitHub. Error: ",
                 exc_info=e,
@@ -756,7 +753,7 @@ def get_skan_image(original_image: npt.NDArray, pruned_skeleton: npt.NDArray, sk
                 branch_field = i
             branch_field_image[path_coords[:, 0], path_coords[:, 1]] = branch_field + 1
     except ValueError:  # when no skeleton to skan
-        LOGGER.warning("Skeleton has been pruned out of existence.")
+        logger.warning("Skeleton has been pruned out of existence.")
 
     return branch_field_image
 
@@ -891,7 +888,7 @@ def extend_branch_ends_to_mask_edge(
 # if __name__ == "__main__":
 #     cropped_images, cropped_masks = prep_arrays(image, grains_mask, pad_width)
 #     n_grains = len(cropped_images)
-#     LOGGER.info(f"[{grain_crop.filename}] : Calculating statistics for {n_grains} grains.")
+#     logger.info(f"[{grain_crop.filename}] : Calculating statistics for {n_grains} grains.")
 #     # Process in parallel
 #     with Pool(processes=cores) as pool:
 #         results = {}
@@ -908,7 +905,7 @@ def extend_branch_ends_to_mask_edge(
 #                     repeat(skeletonisation_method),
 #                 ),
 #             ):
-#                 LOGGER.info(f"[{filename}] : Traced grain {x + 1} of {n_grains}")
+#                 logger.info(f"[{filename}] : Traced grain {x + 1} of {n_grains}")
 #                 results[x] = result
 #                 x += 1
 #                 pbar.update()
@@ -916,6 +913,6 @@ def extend_branch_ends_to_mask_edge(
 #         results = pd.DataFrame.from_dict(results, orient="index")
 #         results.index.name = "molecule_number"
 #     except ValueError as error:
-#         LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
-#         LOGGER.error(error)
+#         logger.error("No grains found in any images, consider adjusting your thresholds.")
+#         logger.error(error)
 #     return results

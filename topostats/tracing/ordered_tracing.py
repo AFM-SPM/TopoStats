@@ -1,20 +1,17 @@
 """Order single pixel skeletons with or without NodeStats Statistics."""
 
-import logging
 from itertools import combinations
 
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
+from loguru import logger
 from skimage.morphology import dilation, label
 from topoly import jones, translate_code
 
 from topostats.classes import GrainCrop, Molecule, Node, OrderedTrace, TopoStats
-from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.tracingfuncs import coord_dist, genTracingFuncs, order_branch, reorderTrace
 from topostats.utils import convolve_skeleton, coords_2_img
-
-LOGGER = logging.getLogger(LOGGER_NAME)
 
 # pylint: disable=possibly-used-before-assignment
 
@@ -280,10 +277,10 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
                 pd_code = translate_code(
                     nxyz_cp, output_type="pdcode"
                 )  # pd code helps prevents freezing and spawning multiple processes
-                LOGGER.debug(f"{self.filename} : PD Code is: {pd_code}")
+                logger.debug(f"{self.filename} : PD Code is: {pd_code}")
                 top_class = jones(pd_code)
             except (IndexError, KeyError):
-                LOGGER.debug(f"{self.filename} : PD Code could not be obtained from trace coordinates.")
+                logger.debug(f"{self.filename} : PD Code could not be obtained from trace coordinates.")
                 top_class = "N/A"
 
             # don't separate catenanes / overlaps - used for distribution comparison
@@ -887,7 +884,7 @@ def ordered_tracing_image(
         "over_under": np.zeros_like(topostats_object.image),
         "trace_segments": np.zeros_like(topostats_object.image),
     }
-    LOGGER.info(
+    logger.info(
         f"[{topostats_object.filename}] : Calculating Ordered Traces and Statistics for "
         f"{len(topostats_object.grain_crops)} grains..."
     )
@@ -909,27 +906,27 @@ def ordered_tracing_image(
                 and len(grain_crop.nodes) > 0
                 and topostats_object.config["ordered_tracing"]["ordering_method"] == "nodestats"
             ):
-                LOGGER.info(
+                logger.info(
                     f"[{topostats_object.filename}] : Grain {grain_no + 1} present in NodeStats. Tracing via Nodestats."
                 )
                 nodestats_tracing = OrderedTraceNodestats(grain_crop=grain_crop)
 
                 if nodestats_tracing.check_node_errorless():
                     grain_crop.ordered_trace.images = nodestats_tracing.run_nodestats_tracing()
-                    LOGGER.debug(f"[{topostats_object.filename}] : Grain {grain_no + 1} ordered via NodeStats.")
+                    logger.debug(f"[{topostats_object.filename}] : Grain {grain_no + 1} ordered via NodeStats.")
                 else:
-                    LOGGER.debug(f"Nodestats dict has an error for grain : ({grain_no + 1}")
+                    logger.debug(f"Nodestats dict has an error for grain : ({grain_no + 1}")
             # if not doing nodestats ordering, do original TS ordering
             elif grain_crop.disordered_trace is not None:
-                LOGGER.info(
+                logger.info(
                     f"[{topostats_object.filename}] : Grain {grain_no + 1} not in NodeStats. "
                     "Attempting to trace normally."
                 )
                 topostats_tracing = OrderedTraceTopostats(grain_crop=grain_crop)
                 grain_crop.ordered_trace.images = topostats_tracing.run_topostats_tracing()
-                LOGGER.debug(f"[{topostats_object.filename}] : Grain {grain_no + 1} ordered via TopoStats.")
+                logger.debug(f"[{topostats_object.filename}] : Grain {grain_no + 1} ordered via TopoStats.")
             else:
-                LOGGER.info(
+                logger.info(
                     f"[{topostats_object.filename}] : Grain {grain_no + 1} does not have a disordered trace "
                     "skipping orderering."
                 )
@@ -947,7 +944,7 @@ def ordered_tracing_image(
                         **ordered_trace_full_images,
                     }
         except Exception as e:  # pylint: disable=broad-exception-caught
-            LOGGER.error(
+            logger.error(
                 f"[{topostats_object.filename}] : Ordered tracing for grain {grain_no + 1} failed. "
                 "Consider raising an issue on GitHub. Error: ",
                 exc_info=e,

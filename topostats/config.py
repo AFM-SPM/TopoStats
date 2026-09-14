@@ -1,6 +1,5 @@
 """Functions and tools for working with configuration files."""
 
-import logging
 from argparse import Namespace
 from collections.abc import MutableMapping
 from datetime import datetime
@@ -9,14 +8,13 @@ from pkgutil import get_data
 from pprint import pformat
 from typing import Any, TypeVar
 
+from loguru import logger
+
 from topostats import CONFIG_DOCUMENTATION_REFERENCE
 from topostats.io import read_yaml
-from topostats.logs.logs import LOGGER_NAME
 from topostats.utils import convert_path
 
 MutableMappingType = TypeVar("MutableMappingType", bound="MutableMapping")
-
-LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 def reconcile_config_args(args: Namespace | None, default_config: dict[str, Any]) -> dict:
@@ -212,7 +210,7 @@ def write_config_with_comments(  # noqa: C901 # pylint: disable=too-many-branche
                     f"There is no configuration for module {args.module}, valid options are f{valid_module}."
                 )
             ) from exc
-    LOGGER.info(f"{logger_msg} : {str(config_path)}")
+    logger.info(f"{logger_msg} : {str(config_path)}")
 
 
 def update_config(config: dict, args: dict | Namespace) -> dict:
@@ -239,9 +237,7 @@ def update_config(config: dict, args: dict | Namespace) -> dict:
             update_config(config, arg_value)
         else:
             if arg_key in config_keys and arg_value is not None:
-                original_value = config[arg_key]
                 config[arg_key] = arg_value
-                LOGGER.debug(f"Updated config config[{arg_key}] : {original_value} > {arg_value} ")
     if "base_dir" in config.keys():
         config["base_dir"] = convert_path(config["base_dir"])
     if "output_dir" in config.keys():
@@ -268,13 +264,8 @@ def update_plotting_config(plotting_config: dict) -> dict:
     main_config = plotting_config.copy()
     for opt in ["plot_dict", "run"]:
         main_config.pop(opt)
-    LOGGER.debug(
-        f"Main plotting options that need updating/adding to plotting dict :\n{pformat(main_config, indent=4)}"
-    )
     for image, options in plotting_config["plot_dict"].items():
         main_config_temp = main_config.copy()
-        LOGGER.debug(f"Dictionary for image : {image}")
-        LOGGER.debug(f"{pformat(options, indent=4)}")
         # First update options with values that exist in main_config
         # We must however be careful not to update the colourmap for diagnostic traces
         if (
@@ -283,12 +274,10 @@ def update_plotting_config(plotting_config: dict) -> dict:
         ):
             main_config_temp.pop("mask_cmap")
         plotting_config["plot_dict"][image] = update_config(options, main_config_temp)
-        LOGGER.debug(f"Updated values :\n{pformat(plotting_config['plot_dict'][image])}")
         # Then combine the remaining key/values we need from main_config that don't already exist
         for key_main, value_main in main_config_temp.items():
             if key_main not in plotting_config["plot_dict"][image]:
                 plotting_config["plot_dict"][image][key_main] = value_main
-        LOGGER.debug(f"After adding missing configuration options :\n{pformat(plotting_config['plot_dict'][image])}")
         # Make it so that binary images do not have the user-defined z-scale
         # applied, but non-binary images do.
         if plotting_config["plot_dict"][image]["image_type"] == "binary":

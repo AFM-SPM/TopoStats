@@ -2,22 +2,22 @@
 
 import io
 import json
-import logging
 import os
 import pickle as pkl
 import re
 import struct
 from copy import deepcopy
 from datetime import datetime
+from io import TextIOBase
 from pathlib import Path
 from typing import Any
-from io import TextIOBase
 
 import h5py
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
 from AFMReader import asd, gwy, ibw, jpk, spm, stp, top, topostats  # pylint: disable=no-name-in-module
+from loguru import logger
 from numpyencoder import NumpyEncoder
 from packaging.version import parse as parse_version
 from ruamel.yaml import YAML, YAMLError
@@ -33,9 +33,6 @@ from topostats.classes import (
     TopoStats,
     convert_to_dict,
 )
-from topostats.logs.logs import LOGGER_NAME
-
-LOGGER = logging.getLogger(LOGGER_NAME)
 
 # pylint: disable=broad-except
 # pylint: disable=too-many-lines
@@ -45,18 +42,15 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 class LogStream(TextIOBase):
     """Send printed output to the logger instead of stdout."""
 
-    def __init__(self, logger: logging.Logger, level: int = logging.INFO):
+    def __init__(self, level: str = "INFO") -> None:
         """
         Initialise the LogStream.
 
         Parameters
         ----------
-        logger : logging.Logger
-            Logger to send output to.
         level : int
             Log level to send output to.
         """
-        self.logger = logger
         self.level = level
         self.buffer = ""
 
@@ -84,14 +78,14 @@ class LogStream(TextIOBase):
             # Get the next line from the buffer
             line, self.buffer = self.buffer.split("\n", 1)
             # Send the line to the logger
-            self.logger.log(self.level, line)
+            logger.log(self.level, line)
 
         return len(message)
 
     def flush(self) -> None:
         """Flush the buffer and send any remaining content to the logger."""
         if self.buffer:
-            self.logger.log(self.level, self.buffer)
+            logger.log(self.level, self.buffer)
             self.buffer = ""
 
 
@@ -128,32 +122,32 @@ def dict_almost_equal(dict1: dict, dict2: dict, abs_tol: float = 1e-9):  # noqa:
         # Replace with better way if you know of one.
         # pylint: disable=unidiomatic-typecheck
         if type(dict1[key]) != type(dict2[key]):  # noqa: E721
-            LOGGER.debug(f"Key {key} types not equal: {type(dict1[key])} != {type(dict2[key])}")
+            logger.debug(f"Key {key} types not equal: {type(dict1[key])} != {type(dict2[key])}")
             return False
 
-    LOGGER.debug("Comparing dictionaries")
+    logger.debug("Comparing dictionaries")
 
     for key in dict1:
-        LOGGER.debug(f"Comparing key {key}")
+        logger.debug(f"Comparing key {key}")
         if isinstance(dict1[key], dict):
             if not dict_almost_equal(dict1[key], dict2[key], abs_tol=abs_tol):
                 return False
         elif isinstance(dict1[key], np.ndarray):
             if not np.allclose(dict1[key], dict2[key], atol=abs_tol):
-                LOGGER.debug(f"Key {key} type: {type(dict1[key])} not equal: {dict1[key]} != {dict2[key]}")
+                logger.debug(f"Key {key} type: {type(dict1[key])} not equal: {dict1[key]} != {dict2[key]}")
                 return False
         elif isinstance(dict1[key], float):
             # Skip if both values are NaN
             if not (np.isnan(dict1[key]) and np.isnan(dict2[key])):
                 # Check if both values are close
                 if not np.isclose(dict1[key], dict2[key], atol=abs_tol):
-                    LOGGER.debug(f"Key {key} type: {type(dict1[key])} not equal: {dict1[key]} != {dict2[key]}")
+                    logger.debug(f"Key {key} type: {type(dict1[key])} not equal: {dict1[key]} != {dict2[key]}")
                     return False
         elif isinstance(dict1[key], list):
             if not lists_almost_equal(dict1[key], dict2[key], abs_tol=abs_tol):
                 return False
         elif dict1[key] != dict2[key]:
-            LOGGER.debug(f"Key {key} not equal: {dict1[key]} != {dict2[key]}")
+            logger.debug(f"Key {key} not equal: {dict1[key]} != {dict2[key]}")
             return False
 
     return True
@@ -186,16 +180,16 @@ def lists_almost_equal(list1: list, list2: list, abs_tol: float = 1e-9) -> bool:
     """
     # Check if both lists are the same length and only contain numbers
     if len(list1) != len(list2):
-        LOGGER.debug(f"Lists not same length: {len(list1)} != {len(list2)}")
+        logger.debug(f"Lists not same length: {len(list1)} != {len(list2)}")
         return False
     for i, (item1, item2) in enumerate(zip(list1, list2)):
         if isinstance(item1, int | float | np.int64) and isinstance(item2, int | float | np.int64):
             if not np.isclose(item1, item2, atol=abs_tol):
-                LOGGER.debug(f"List item {i} not equal: {item1} != {item2}")
+                logger.debug(f"List item {i} not equal: {item1} != {item2}")
                 return False
         elif isinstance(item1, list) and isinstance(item2, list):
             if not lists_almost_equal(item1, item2):
-                LOGGER.debug(f"Nested list item {i} not equal: {item1} != {item2}")
+                logger.debug(f"Nested list item {i} not equal: {item1} != {item2}")
                 return False
         else:
             raise NotImplementedError(
@@ -223,7 +217,7 @@ def read_yaml(filename: str | Path) -> dict:
             yaml_file = YAML(typ="safe")
             return yaml_file.load(f)
         except YAMLError as exception:
-            LOGGER.error(exception)
+            logger.error(exception)
             return {}
 
 
@@ -281,7 +275,7 @@ def write_yaml(
         try:
             yaml.dump(config, f)
         except YAMLError as exception:
-            LOGGER.error(exception)
+            logger.error(exception)
 
 
 def save_array(array: npt.NDArray, outpath: Path, filename: str, array_type: str) -> None:
@@ -301,7 +295,7 @@ def save_array(array: npt.NDArray, outpath: Path, filename: str, array_type: str
         underscores '_' instead).
     """
     np.save(outpath / f"{filename}_{array_type}.npy", array)
-    LOGGER.info(f"[{filename}] Numpy array saved to : {outpath}/{filename}_{array_type}.npy")
+    logger.info(f"[{filename}] Numpy array saved to : {outpath}/{filename}_{array_type}.npy")
 
 
 def load_array(array_path: str | Path) -> npt.NDArray:
@@ -460,7 +454,7 @@ def read_null_terminated_string(open_file: io.TextIOWrapper, encoding: str = "ut
     except UnicodeDecodeError as e:
         if "codec can't decode byte" in str(e):
             bad_byte = str(e).split("byte ")[1].split(":")[0]
-            LOGGER.debug(
+            logger.debug(
                 f"Decoding error while reading null terminated string. Encoding {encoding} encountered"
                 f" a byte that could not be decoded: {bad_byte}. Trying 'latin1' encoding."
             )
@@ -672,10 +666,10 @@ class LoadScans:
             A tuple containing the image and its pixel to nanometre scaling value.
         """
         try:
-            LOGGER.debug(f"Loading image from : {self.img_path}")
+            logger.debug(f"Loading image from : {self.img_path}")
             return spm.load_spm(file_path=self.img_path, channel=self.channel)
         except FileNotFoundError:
-            LOGGER.error(f"File Not Found : {self.img_path}")
+            logger.error(f"File Not Found : {self.img_path}")
             raise
 
     def load_topostats(self) -> dict[str, Any]:
@@ -691,10 +685,10 @@ class LoadScans:
             A dictionary of all previously processed data and configuration options.
         """
         try:
-            LOGGER.debug(f"Loading image from : {self.img_path}")
+            logger.debug(f"Loading image from : {self.img_path}")
             raw_data = topostats.load_topostats(self.img_path)
             if "topostats_file_version" in raw_data.keys():  # pylint: disable=consider-iterating-dictionary
-                LOGGER.warning(
+                logger.warning(
                     f"[{raw_data['filename']}] : This '.topostats' is an old format "
                     f"({raw_data['topostats_file_version']}), only core features are loaded. "
                     "All trace data has been dropped. If you need access to these please use AFMReader directly."
@@ -719,7 +713,7 @@ class LoadScans:
                         continue
             return raw_data
         except FileNotFoundError:
-            LOGGER.error(f"File Not Found : {self.img_path}")
+            logger.error(f"File Not Found : {self.img_path}")
             raise
 
     def load_asd(self) -> tuple[npt.NDArray, float]:
@@ -736,9 +730,9 @@ class LoadScans:
             pixel_to_nm_scaling: float
             _: dict
             frames, pixel_to_nm_scaling, _ = asd.load_asd(file_path=self.img_path, channel=self.channel)
-            LOGGER.debug(f"[{self.filename}] : Loaded image from : {self.img_path}")
+            logger.debug(f"[{self.filename}] : Loaded image from : {self.img_path}")
         except FileNotFoundError:
-            LOGGER.error(f"File not found. Path: {self.img_path}")
+            logger.error(f"File not found. Path: {self.img_path}")
             raise
 
         return (frames, pixel_to_nm_scaling)
@@ -753,10 +747,10 @@ class LoadScans:
             A tuple containing the image and its pixel to nanometre scaling value.
         """
         try:
-            LOGGER.debug(f"Loading image from : {self.img_path}")
+            logger.debug(f"Loading image from : {self.img_path}")
             return ibw.load_ibw(file_path=self.img_path, channel=self.channel)
         except FileNotFoundError:
-            LOGGER.error(f"File not found : {self.img_path}")
+            logger.error(f"File not found : {self.img_path}")
             raise
 
     def load_jpk(self) -> tuple[npt.NDArray, float]:
@@ -771,7 +765,7 @@ class LoadScans:
         try:
             return jpk.load_jpk(file_path=self.img_path, channel=self.channel)
         except FileNotFoundError:
-            LOGGER.error(f"[{self.filename}] File not found : {self.img_path}")
+            logger.error(f"[{self.filename}] File not found : {self.img_path}")
             raise
 
     def load_gwy(self) -> tuple[npt.NDArray, float]:
@@ -783,11 +777,11 @@ class LoadScans:
         tuple[npt.NDArray, float]
             A tuple containing the image and its pixel to nanometre scaling value.
         """
-        LOGGER.debug(f"Loading image from : {self.img_path}")
+        logger.debug(f"Loading image from : {self.img_path}")
         try:
             return gwy.load_gwy(file_path=self.img_path, channel=self.channel)
         except FileNotFoundError:
-            LOGGER.error(f"File not found : {self.img_path}")
+            logger.error(f"File not found : {self.img_path}")
             raise
 
     def load_top(self) -> tuple[npt.NDArray, float]:
@@ -799,11 +793,11 @@ class LoadScans:
         tuple[npt.NDArray, float]
             A tuple containing the image and its pixel to nanometre scaling value.
         """
-        LOGGER.debug(f"Loading image from : {self.img_path}")
+        logger.debug(f"Loading image from : {self.img_path}")
         try:
             return top.load_top(file_path=self.img_path)
         except FileNotFoundError:
-            LOGGER.error(f"File not found : {self.img_path}")
+            logger.error(f"File not found : {self.img_path}")
             raise
 
     def load_stp(self) -> tuple[npt.NDArray, float]:
@@ -815,11 +809,11 @@ class LoadScans:
         tuple[npt.NDArray, float]
             A tuple containing the image and its pixel to nanometre scaling value.
         """
-        LOGGER.debug(f"Loading image from : {self.img_path}")
+        logger.debug(f"Loading image from : {self.img_path}")
         try:
             return stp.load_stp(file_path=self.img_path)
         except FileNotFoundError:
-            LOGGER.error(f"File not found : {self.img_path}")
+            logger.error(f"File not found : {self.img_path}")
             raise
 
     def get_data(self) -> None:  # noqa: C901  # pylint: disable=too-many-branches
@@ -841,8 +835,8 @@ class LoadScans:
             self.img_path = Path(img_path)
             self.filename = str(Path(img_path).parts[-1])
             suffix = Path(img_path).suffix
-            LOGGER.info(f"Extracting image from {self.img_path}")
-            LOGGER.debug(f"File extension : {suffix}")
+            logger.info(f"Extracting image from {self.img_path}")
+            logger.debug(f"File extension : {suffix}")
 
             OLD_BRUKER_RE = re.compile(r"\.\d+$")
 
@@ -858,8 +852,8 @@ class LoadScans:
                         self.image, self.pixel_to_nm_scaling = suffix_to_loader[suffix]()
                 except Exception as e:
                     if "Channel" in str(e) and "not found" in str(e):
-                        LOGGER.warning(e)  # log the specific error message
-                        LOGGER.warning(f"[{self.filename}] Channel {self.channel} not found, skipping image.")
+                        logger.warning(e)  # log the specific error message
+                        logger.warning(f"[{self.filename}] Channel {self.channel} not found, skipping image.")
                     else:
                         raise
                 else:
@@ -879,11 +873,11 @@ class LoadScans:
                         self._check_image_size_and_add_to_dict(image=self.image, filename=self.filename)
             elif OLD_BRUKER_RE.match(suffix):
                 # This is an old Bruker file, treat as normal.
-                LOGGER.debug(f"Old Bruker file detected, treating as {suffix_to_loader['.spm'].__name__}")
+                logger.debug(f"Old Bruker file detected, treating as {suffix_to_loader['.spm'].__name__}")
                 try:
                     self.image, self.pixel_to_nm_scaling = self.load_spm()
                 except FileNotFoundError:
-                    LOGGER.error(f"File not found : {self.img_path}")
+                    logger.error(f"File not found : {self.img_path}")
                     raise
                 self._check_image_size_and_add_to_dict(image=self.image, filename=self.filename)
             else:
@@ -905,10 +899,10 @@ class LoadScans:
             The name of the file.
         """
         if image.shape[0] < self.MINIMUM_IMAGE_SIZE or image.shape[1] < self.MINIMUM_IMAGE_SIZE:
-            LOGGER.warning(f"[{filename}] Skipping, image too small: {image.shape}")
+            logger.warning(f"[{filename}] Skipping, image too small: {image.shape}")
         else:
             self.add_to_dict(image=image, filename=filename)
-            LOGGER.debug(f"[{filename}] Image added to processing.")
+            logger.debug(f"[{filename}] Image added to processing.")
 
     def add_to_dict(self, image: npt.NDArray, filename: str) -> None:
         """
@@ -953,9 +947,9 @@ def dict_to_hdf5(  # noqa: C901 # pylint: disable=too-many-statements
         A dictionary of the data to save.
     """
     for key, item in dictionary.items():
-        LOGGER.debug(f"Saving key: {key}")
+        logger.debug(f"Saving key: {key}")
         if item is None:
-            LOGGER.debug(f"Item '{key}' is None. Skipping.")
+            logger.debug(f"Item '{key}' is None. Skipping.")
         # Make sure the key is a string
         key = str(key)
 
@@ -984,7 +978,7 @@ def dict_to_hdf5(  # noqa: C901 # pylint: disable=too-many-statements
             # Lists need to be converted to numpy arrays, the method varies slightly
             # depending on the array's structure/ layout
             if isinstance(item, list):
-                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+                logger.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 if any(x is None for x in item):
                     item = [np.nan if x is None else x for x in item]
                 arr = np.array(item)
@@ -1002,34 +996,34 @@ def dict_to_hdf5(  # noqa: C901 # pylint: disable=too-many-statements
                 open_hdf5_file.create_dataset(name=group_path + key, data=arr, compression="gzip")
             # Strings need to be encoded to bytes, but can not be compressed
             elif isinstance(item, str):
-                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+                logger.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 open_hdf5_file.create_dataset(name=group_path + key, data=item.encode("utf8"))
             # Integers, floats are added directly to the hdf5 file
             elif isinstance(item, (int, float)):  # noqa: UP038
-                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+                logger.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 open_hdf5_file.create_dataset(name=group_path + key, data=item)
             # Numpy arrays can be compressed added directly to the hdf5 file
             elif isinstance(item, np.ndarray):  # noqa: UP038
-                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+                logger.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 open_hdf5_file.create_dataset(name=group_path + key, data=item, compression="gzip")
             # Path objects need to be converted to strings which can not be compressed
             elif isinstance(item, Path):
-                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+                logger.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 open_hdf5_file.create_dataset(name=group_path + key, data=str(item).encode("utf8"))
             # Dictionaries need to be recursively saved
             elif isinstance(item, dict):  # a sub-dictionary, so we need to recurse
-                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+                logger.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 dict_to_hdf5(open_hdf5_file, group_path + key + "/", item)
             # All classes defined in the classes submodule must be recursively saved
             elif isinstance(item, (GrainCrop | OrderedTrace | Node | DisorderedTrace | MatchedBranch | Molecule)):
-                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+                logger.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 dict_to_hdf5(open_hdf5_file, group_path + key + "/", convert_to_dict(item))
 
         else:  # attempt to save an item that is not a numpy array or a dictionary
             try:
                 open_hdf5_file[group_path + key] = item
             except Exception as e:
-                LOGGER.debug(f"Cannot save key '{key}' to HDF5. Item type: {type(item)}. Skipping. {e}")
+                logger.debug(f"Cannot save key '{key}' to HDF5. Item type: {type(item)}. Skipping. {e}")
 
 
 def _flatten(nested: list):
@@ -1068,19 +1062,19 @@ def hdf5_to_dict(open_hdf5_file: h5py.File, group_path: str) -> dict:
     """
     data_dict = {}
     for key, item in open_hdf5_file[group_path].items():
-        LOGGER.debug(f"Loading hdf5 key: {key}")
+        logger.debug(f"Loading hdf5 key: {key}")
         if isinstance(item, h5py.Group):
-            LOGGER.debug(f" {key} is a group")
+            logger.debug(f" {key} is a group")
             data_dict[key] = hdf5_to_dict(open_hdf5_file, group_path + key + "/")
         # Decode byte strings to utf-8. The data type "O" is a byte string.
         elif isinstance(item, h5py.Dataset) and item.dtype == "O":
-            LOGGER.debug(f" {key} is a byte string")
+            logger.debug(f" {key} is a byte string")
             data_dict[key] = item[()].decode("utf-8")
-            LOGGER.debug(f" {key} type: {type(data_dict[key])}")
+            logger.debug(f" {key} type: {type(data_dict[key])}")
         else:
-            LOGGER.debug(f" {key} is other type of dataset")
+            logger.debug(f" {key} is other type of dataset")
             data_dict[key] = item[()]
-            LOGGER.debug(f" {key} type: {type(data_dict[key])}")
+            logger.debug(f" {key} type: {type(data_dict[key])}")
     return data_dict
 
 
@@ -1098,7 +1092,7 @@ def save_topostats_file(output_dir: Path, topostats_object: TopoStats, topostats
     topostats_version : str
         Version to save as, defaults to ''__release__''.
     """
-    LOGGER.info(f"[{topostats_object.filename}] : Saving image to .topostats file")
+    logger.info(f"[{topostats_object.filename}] : Saving image to .topostats file")
     if ".topostats" not in topostats_object.filename:
         # Remove everything after the last period in filename)
         filename = topostats_object.filename.rsplit(".", 1)[0]

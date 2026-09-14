@@ -1,15 +1,10 @@
 """Skeletonize molecules."""
 
-import logging
 from collections.abc import Callable
 
 import numpy as np
 import numpy.typing as npt
 from skimage.morphology import medial_axis, skeletonize, thin
-
-from topostats.logs.logs import LOGGER_NAME
-
-LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 class getSkeleton:  # pylint: disable=too-few-public-methods

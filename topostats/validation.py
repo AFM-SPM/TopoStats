@@ -1,14 +1,10 @@
 """Validation of configuration."""
 
-import logging
 import os
 from pathlib import Path
 
+from loguru import logger
 from schema import And, Optional, Or, Schema, SchemaError
-
-from topostats.logs.logs import LOGGER_NAME
-
-LOGGER = logging.getLogger(LOGGER_NAME)
 
 # pylint: disable=line-too-long
 # pylint: disable=too-many-lines
@@ -29,7 +25,6 @@ def validate_config(config: dict, schema: Schema, config_type: str) -> None:
     """
     try:
         schema.validate(config)
-        LOGGER.info(f"The {config_type} is valid.")
     except SchemaError as schema_error:
         raise SchemaError(
             f"There is an error in your {config_type} configuration. "

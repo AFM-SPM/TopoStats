@@ -9,12 +9,12 @@ from typing import Any
 import keras
 import numpy as np
 import numpy.typing as npt
+from loguru import logger
 from skimage import morphology
 from skimage.measure import label, regionprops
 from skimage.morphology import dilation
 
 from topostats.classes import GrainCrop, TopoStats
-from topostats.logs.logs import LOGGER_NAME
 from topostats.mask_manipulation import multi_class_skeletonise_and_join_close_ends
 from topostats.unet_masking import (
     iou_loss,
@@ -24,8 +24,6 @@ from topostats.unet_masking import (
     predict_unet,
 )
 from topostats.utils import _get_grain_mask, flatten_multi_class_tensor, get_grain_thresholds, update_background_class
-
-LOGGER = logging.getLogger(LOGGER_NAME)
 
 # pylint: disable=fixme
 # pylint: disable=line-too-long
@@ -477,7 +475,7 @@ class Grains:
     # pylint: disable=too-many-statements
     def find_grains(self) -> None:
         """Find grains."""
-        LOGGER.debug(f"[{self.filename}] : Thresholding method (grains) : {self.threshold_method}")
+        logger.debug(f"[{self.filename}] : Thresholding method (grains) : {self.threshold_method}")
         assert self.threshold_method is not None, "Threshold method must be specified"  # type safety
         # calculate thresholds based on configuration
         self.thresholds = get_grain_thresholds(
@@ -492,7 +490,7 @@ class Grains:
 
         # iterate over the thresholds
         for i, threshold in enumerate(self.thresholds):
-            LOGGER.debug(f"[{self.filename}] : Finding grains, threshold: ({threshold})")
+            logger.debug(f"[{self.filename}] : Finding grains, threshold: ({threshold})")
             self.mask_images[i] = {}
 
             traditional_full_mask_tensor = Grains.multi_class_thresholding(
@@ -526,7 +524,7 @@ class Grains:
             # Connect loose ends in the grain mask
             if self.endpoint_connection_config is not None:
                 if self.endpoint_connection_config["run"]:
-                    LOGGER.info(f"{self.filename} : Connecting grain mask endpoints")
+                    logger.info(f"{self.filename} : Connecting grain mask endpoints")
                     endpoint_connection_config = self.endpoint_connection_config.copy()
                     endpoint_connection_config.pop("run")
                     traditional_full_mask_tensor = multi_class_skeletonise_and_join_close_ends(
@@ -576,7 +574,7 @@ class Grains:
                     )
                     if self.endpoint_connection_config is not None:
                         if self.endpoint_connection_config["run"]:
-                            LOGGER.info(f"[{self.filename}] : Connecting DL grain mask endpoints.")
+                            logger.info(f"[{self.filename}] : Connecting DL grain mask endpoints.")
                             endpoint_connection_config = self.endpoint_connection_config.copy()
                             endpoint_connection_config.pop("run")
                             # Reconstruct full mask tensor from the UNet-updated graincrops. (Messy but needed).
@@ -743,7 +741,7 @@ class Grains:
         dict[int, GrainCrop]
             Dictionary of (hopefully) improved grain crops.
         """
-        LOGGER.debug(f"[{filename}] : Running UNet model on grains")
+        logger.debug(f"[{filename}] : Running UNet model on grains")
 
         # When debugging, you might find that the custom_objects are incorrect. This is entirely based on what the model used
         # for its loss during training and so this will need to be changed a lot.
@@ -760,18 +758,18 @@ class Grains:
                 unet_config["model_path"], custom_objects={"mean_iou": mean_iou, "iou_loss": iou_loss}, compile=False
             )
         except Exception as e:
-            LOGGER.debug(f"Python executable: {sys.executable}")
-            LOGGER.debug(f"Keras version: {keras.__version__}")
-            LOGGER.debug(f"Model path: {unet_config['model_path']}")
+            logger.debug(f"Python executable: {sys.executable}")
+            logger.debug(f"Keras version: {keras.__version__}")
+            logger.debug(f"Model path: {unet_config['model_path']}")
             raise e
 
         # unet_model = keras.models.load_model(unet_config["model_path"], custom_objects={"mean_iou": mean_iou})
-        LOGGER.debug(f"Output shape of UNet model: {unet_model.output_shape}")
+        logger.debug(f"Output shape of UNet model: {unet_model.output_shape}")
 
         new_graincrops: dict[int, GrainCrop] = {}
         num_empty_removed_grains = 0
         for grain_number, graincrop in graincrops.items():
-            LOGGER.debug(f"Unet predicting mask for grain {grain_number} of {len(graincrops)}")
+            logger.debug(f"Unet predicting mask for grain {grain_number} of {len(graincrops)}")
             # Run the UNet on the region. This is allowed to be a single class
             # as we can add a background class afterwards if needed.
             # Remember that this region is cropped from the original image, so it's not
@@ -785,7 +783,7 @@ class Grains:
                 lower_norm_bound=unet_config["lower_norm_bound"],
             )
             assert len(predicted_mask.shape) == 3
-            LOGGER.debug(f"Predicted mask shape: {predicted_mask.shape}")
+            logger.debug(f"Predicted mask shape: {predicted_mask.shape}")
 
             if unet_config["remove_disconnected_grains"]:
                 # Remove grains that are not connected to the original grain
@@ -819,7 +817,7 @@ class Grains:
                     threshold_idx=graincrop.threshold_idx,
                 )
 
-        LOGGER.debug(f"Number of empty removed grains: {num_empty_removed_grains}")
+        logger.debug(f"Number of empty removed grains: {num_empty_removed_grains}")
 
         return new_graincrops
 

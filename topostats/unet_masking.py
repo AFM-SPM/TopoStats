@@ -1,16 +1,11 @@
 """Segment grains using a U-Net model."""
 
-import logging
-
 import keras
 import numpy as np
 import numpy.typing as npt
 import tensorflow as tf
 from PIL import Image
-
-from topostats.logs.logs import LOGGER_NAME
-
-LOGGER = logging.getLogger(LOGGER_NAME)
+from loguru import logger
 
 # pylint: disable=too-many-locals
 
@@ -146,13 +141,13 @@ def predict_unet(
     """
     # Strip the batch dimension from the model input shape
     image_shape: tuple[int, int] = model_input_shape[1:3]
-    LOGGER.info(f"Model input shape: {model_input_shape}")
+    logger.info(f"Model input shape: {model_input_shape}")
 
     # Make a copy of the original image
     original_image = image.copy()
 
     # Run the model on a single image
-    LOGGER.info("Preprocessing image for Unet prediction...")
+    logger.info("Preprocessing image for Unet prediction...")
 
     # Normalise the image
     image = np.clip(image, lower_norm_bound, upper_norm_bound)
@@ -165,17 +160,17 @@ def predict_unet(
     image_resized_np: npt.NDArray[np.float32] = np.array(image_resized)
 
     # Predict the mask
-    LOGGER.info("Running Unet & predicting mask")
+    logger.info("Running Unet & predicting mask")
     try:
         prediction: npt.NDArray[np.float32] = model.predict(np.expand_dims(image_resized_np, axis=(0, 3)))
-        LOGGER.info(f"Unet finished predicted mask. Prediction shape: {prediction.shape}")
+        logger.info(f"Unet finished predicted mask. Prediction shape: {prediction.shape}")
     except Exception as e:
-        LOGGER.error(f"Unet failed to predict a mask, trying padding the image with RGB channels... Error: {e}")
+        logger.error(f"Unet failed to predict a mask, trying padding the image with RGB channels... Error: {e}")
         # If the model fails to predict, try padding the image with RGB channels
         image_resized_np_rgb = np.repeat(image_resized_np[:, :, np.newaxis], 3, axis=2)
         # axis = 2 since the image is now 3D with 3 channels
         prediction: npt.NDArray[np.float32] = model.predict(np.expand_dims(image_resized_np_rgb, axis=0))
-        LOGGER.info(f"Unet finished predicted mask. Prediction shape: {prediction.shape}")
+        logger.info(f"Unet finished predicted mask. Prediction shape: {prediction.shape}")
 
     # Threshold the predicted mask
     predicted_mask: npt.NDArray[np.bool_] = prediction > confidence

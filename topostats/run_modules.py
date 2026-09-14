@@ -8,19 +8,18 @@ wrapper which runs various functions from the ''processing'' module in parallel.
 import argparse
 import logging
 import re
-import sys
-from contextlib import redirect_stderr, redirect_stdout
 from collections import defaultdict
+from contextlib import redirect_stderr, redirect_stdout
 from datetime import datetime, timezone
 from functools import partial
 from importlib import resources
 from multiprocessing import Pool
 from pathlib import Path
 from pkgutil import get_data
-from pprint import pformat
 
 import pandas as pd
 import yaml
+from loguru import logger
 from tqdm import tqdm
 
 import topostats
@@ -28,13 +27,13 @@ from topostats import get_topostats_commit, get_topostats_version
 from topostats.config import reconcile_config_args, update_config, update_plotting_config
 from topostats.io import (
     LoadScans,
+    LogStream,
     find_files,
     read_yaml,
     write_csv,
     write_yaml,
-    LogStream,
 )
-from topostats.logs.logs import LOGGER_NAME, setup_logger
+from topostats.logs.logs import setup_loguru
 from topostats.plotting import toposum
 from topostats.processing import (
     check_run_steps,
@@ -50,66 +49,11 @@ from topostats.processing import (
 )
 from topostats.validation import DEFAULT_CONFIG_SCHEMA, PLOTTING_SCHEMA, SUMMARY_SCHEMA, validate_config
 
-# We already setup the logger in __init__.py and it is idempotent so calling it here returns the same object as from
-# __init__.py
-# Ref : https://stackoverflow.com/a/57799639/1444043
-# LOGGER = setup_logger(LOGGER_NAME)
-LOGGER = logging.getLogger(LOGGER_NAME)
-
-
 # pylint: disable=too-many-branches
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-statements
 # pylint: disable=unnecessary-dict-index-lookup
 # pylint: disable=too-many-nested-blocks
-
-
-def _set_logging(log_level: str | None) -> None:
-    """
-    Set the logging level.
-
-    Parameters
-    ----------
-    log_level : str
-        String for the desired log-level.
-    """
-    if log_level == "warning":
-        LOGGER.setLevel("WARNING")
-    elif log_level == "error":
-        LOGGER.setLevel("ERROR")
-    elif log_level == "debug":
-        LOGGER.setLevel("DEBUG")
-    else:
-        LOGGER.setLevel("INFO")
-
-
-def _log_setup(config: dict, args: argparse.Namespace | None, img_files: dict) -> None:
-    """
-    Log the current configuration.
-
-    Parameters
-    ----------
-    config : dict
-        Dictionary of configuration options.
-    args : argparse.Namespace | None
-        Arguments function was invoked with.
-    img_files : dict
-        Dictionary of image files that have been found.
-    """
-    LOGGER.debug(f"Plotting configuration after update :\n{pformat(config['plotting'], indent=4)}")
-
-    LOGGER.info(f"Configuration file loaded from      : {args.config_file}")
-    LOGGER.info(f"Scanning for images in              : {config['base_dir']}")
-    LOGGER.info(f"Output directory                    : {str(config['output_dir'])}")
-    LOGGER.info(f"Looking for images with extension   : {config['file_ext']}")
-    LOGGER.info(f"Images with extension {config['file_ext']} in {config['base_dir']} : {len(img_files)}")
-    if len(img_files) == 0:
-        LOGGER.error(f"No images with extension {config['file_ext']} in {config['base_dir']}")
-        LOGGER.error("Please check your configuration and directories.")
-        sys.exit()
-    LOGGER.info(f"Thresholding method (Filtering)     : {config['filter']['threshold_method']}")
-    LOGGER.info(f"Thresholding method (Grains)        : {config['grains']['threshold_method']}")
-    LOGGER.debug(f"Configuration after update         : \n{pformat(config, indent=4)}")  # noqa: T203
 
 
 def _parse_configuration(args: argparse.Namespace | None = None) -> tuple[dict, dict]:
@@ -159,7 +103,6 @@ def _parse_configuration(args: argparse.Namespace | None = None) -> tuple[dict, 
     # Ensures each image has all plotting options which are passed as **kwargs
     config["plotting"] = update_plotting_config(config["plotting"])
     img_files = find_files(config["base_dir"], file_ext=config["file_ext"])
-    _log_setup(config, args, img_files)
     return config, img_files
 
 
@@ -177,13 +120,10 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     config, img_files = _parse_configuration(args)
 
     # Set up logger
-    setup_logger(
-        output_dir=config["output_dir"],
-        log_name=LOGGER_NAME,
-    )
+    setup_loguru(output_dir=config["output_dir"], level=config["log_level"])
+
     # Set logging level
-    _set_logging(config["log_level"])
-    LOGGER.info(f"TopoStats version : {get_topostats_version()} {get_topostats_commit()}")
+    logger.info(f"TopoStats version : {get_topostats_version()} {get_topostats_commit()}")
 
     processing_function = partial(
         process_scan,
@@ -206,11 +146,9 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     output_full_stats = config["output_stats"] == "full"
 
     # Catch all logging outputs from loading the data
-    stdout_log = LogStream(LOGGER, logging.INFO)
-    stdout_err = LogStream(LOGGER, logging.ERROR)
-    with redirect_stdout(stdout_log), redirect_stderr(stdout_err):
-        all_scan_data = LoadScans(img_files, config=config)
-        all_scan_data.get_data()
+    all_scan_data = LoadScans(img_files, config=config)
+    all_scan_data.get_data()
+
     # Get a dictionary of all the image data dictionaries.
     # Keys are the image names
     # Values are the individual image data dictionaries
@@ -255,7 +193,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
 
                 pbar.update()
                 # Display completion message for the image
-                LOGGER.info(f"[{filename}] Processing completed.")
+                logger.info(f"[{filename}] Processing completed.")
     # Concatenate all the dictionary's values into a dataframe. Ignore the keys since
     # the dataframes have the file names in them already.
     image_stats_all_df = pd.concat(image_stats_all.values())
@@ -281,15 +219,15 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
             )
             grain_stats_additions.columns = ["total_contour_length", "mean_end_to_end_distance"]
         except ValueError as error:
-            LOGGER.error(
+            logger.error(
                 "No molecules found in any images."
                 "Either enable tracing or consider adjusting ordered tracing / splining parameters."
             )
-            LOGGER.error(error)
+            logger.error(error)
             grain_stats_additions = None
     else:
         # Skip additional stats merger if splining was not run
-        LOGGER.warning("Splining has been disabled, skipping grain stats additions.")
+        logger.warning("Splining has been disabled, skipping grain stats additions.")
         grain_stats_additions = None
 
     # ns-rse 2025-12-23 - there is a common pattern here, could we abstract this to a factory method?
@@ -299,12 +237,12 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
             grain_stats_all.reset_index(inplace=True)
             grain_stats_all.set_index(["image", "grain_number"], inplace=True)
         except ValueError as error:
-            LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
-            LOGGER.error(error)
+            logger.error("No grains found in any images, consider adjusting your thresholds.")
+            logger.error(error)
         if grain_stats_additions is not None:
             grain_stats_all = grain_stats_all.merge(grain_stats_additions, on=["image", "grain_number"], how="left")
         else:
-            LOGGER.warning("No molecule statistics to merge with grain statistics.")
+            logger.warning("No molecule statistics to merge with grain statistics.")
         # Write statistics to CSV if there is data.
         if isinstance(grain_stats_all, pd.DataFrame) and not grain_stats_all.isna().values.all():
             grain_stats_all = write_csv(
@@ -315,10 +253,10 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                 index=["image", "grain_number", "class", "subgrain"],
                 output_dir=config["output_dir"],
             )
-            LOGGER.info(f"Saved grain stats to : {config['output_dir']}/grain_statistics.csv.")
+            logger.info(f"Saved grain stats to : {config['output_dir']}/grain_statistics.csv.")
     else:
         images_processed = 0
-        LOGGER.warning("There are no grainstats statistics to write to CSV.")
+        logger.warning("There are no grainstats statistics to write to CSV.")
 
     # Optional output files
     if output_full_stats:
@@ -327,7 +265,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
             try:
                 branch_stats_all = pd.concat(branch_stats_all.values())
             except ValueError as error:
-                LOGGER.error(error)
+                logger.error(error)
             if isinstance(branch_stats_all, pd.DataFrame) and not branch_stats_all.isna().values.all():
                 branch_stats_all = write_csv(
                     df=branch_stats_all,
@@ -336,16 +274,16 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                     index=["image", "grain_number", "node", "branch"],
                     output_dir=config["output_dir"],
                 )
-                LOGGER.info(f"Saved matched branch stats to : {config['output_dir']}/matched_branch_statistics.csv.")
+                logger.info(f"Saved matched branch stats to : {config['output_dir']}/matched_branch_statistics.csv.")
         else:
-            LOGGER.warning("There are no matched branch statistics to write to CSV.")
+            logger.warning("There are no matched branch statistics to write to CSV.")
         # Disordered trace statistics
         if disordered_tracing_all is not None:
             try:
                 disordered_tracing_all = pd.concat(disordered_tracing_all.values())
             except ValueError as error:
-                LOGGER.error("No skeletons found in any images, consider adjusting disordered tracing parameters.")
-                LOGGER.error(error)
+                logger.error("No skeletons found in any images, consider adjusting disordered tracing parameters.")
+                logger.error(error)
             if isinstance(disordered_tracing_all, pd.DataFrame) and not disordered_tracing_all.isna().values.all():
                 disordered_tracing_all = write_csv(
                     df=disordered_tracing_all,
@@ -354,9 +292,9 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                     index=["image", "grain_number", "index"],
                     output_dir=config["output_dir"],
                 )
-                LOGGER.info(f"Saved disordered tracing stats to : {config['output_dir']}/branch_statistics.csv.")
+                logger.info(f"Saved disordered tracing stats to : {config['output_dir']}/branch_statistics.csv.")
         else:
-            LOGGER.warning("There are no disordered tracing statistics to write to CSV.")
+            logger.warning("There are no disordered tracing statistics to write to CSV.")
 
         # Molecule statistics
         if molecule_stats_all is not None:
@@ -368,12 +306,12 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                     index=["image", "grain_number"],
                     output_dir=config["output_dir"],
                 )
-                LOGGER.info(f"Saved molecule stats to : {config['output_dir']}/molecule_statistics.csv.")
+                logger.info(f"Saved molecule stats to : {config['output_dir']}/molecule_statistics.csv.")
         else:
-            LOGGER.warning("There are no molecule tracing statistics to write to CSV.")
+            logger.warning("There are no molecule tracing statistics to write to CSV.")
 
     else:
-        LOGGER.info(
+        logger.info(
             "Writing 'molecule_statistics.csv', 'branch_statistics.csv' and 'matched_branch_statistics.csv' skipped"
         )
 
@@ -381,7 +319,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     config["plotting"].pop("plot_dict")
     write_yaml(config, output_dir=config["output_dir"])
     images_processed = len(grain_stats_all["image"].unique())
-    LOGGER.debug(f"Images processed : {images_processed}")
+    logger.debug(f"Images processed : {images_processed}")
 
     # Summary Statistics and Plots
     if config["summary_stats"]["run"]:
@@ -405,7 +343,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
         # Load variable to label mapping
         plotting_yaml = (resources.files(__package__) / "var_to_label.yaml").read_text()
         summary_config["var_to_label"] = yaml.safe_load(plotting_yaml)
-        LOGGER.info("[plotting] Default variable to labels mapping loaded.")
+        logger.info("[plotting] Default variable to labels mapping loaded.")
 
         # If we don't have a dataframe or we do and it is all NaN there is nothing to plot
         if isinstance(grain_stats_all, pd.DataFrame) and not grain_stats_all.isna().values.all():
@@ -414,18 +352,18 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                 # needs creating
                 summary_config["output_dir"] = Path(config["output_dir"]) / "summary_distributions"
                 summary_config["output_dir"].mkdir(parents=True, exist_ok=True)
-                LOGGER.info(f"Summary plots and statistics will be saved to : {summary_config['output_dir']}")
+                logger.info(f"Summary plots and statistics will be saved to : {summary_config['output_dir']}")
 
                 # Plot summaries
                 summary_config["df"] = grain_stats_all.reset_index()
                 toposum(summary_config)
             else:
-                LOGGER.warning(
+                logger.warning(
                     "There are fewer than two grains that have been detected, so"
                     " summary plots cannot be made for this image."
                 )
         else:
-            LOGGER.warning(
+            logger.warning(
                 "There are no results to plot, either...\n\n"
                 "* you have disabled grains/grainstats etc.\n"
                 "* no grains have been detected across all scans.\n"
@@ -486,12 +424,12 @@ def filters(args: argparse.Namespace | None = None) -> None:
                 pbar.update()
 
                 # Display completion message for the image
-                LOGGER.info(f"[{img}] Filtering completed.")
+                logger.info(f"[{img}] Filtering completed.")
 
     # Write config to file
     config["plotting"].pop("plot_dict")
     write_yaml(config, output_dir=config["output_dir"])
-    LOGGER.debug(f"Images processed : {len(results)}")
+    logger.debug(f"Images processed : {len(results)}")
     # Update config with plotting defaults for printing
     completion_message(
         config, img_files, summary_config=None, images_processed=sum(results.values()), start_time=start_time
@@ -537,12 +475,12 @@ def grains(args: argparse.Namespace | None = None) -> None:
                 pbar.update()
 
                 # Display completion message for the image
-                LOGGER.info(f"[{img}] Grain detection completed (NB - Filtering was *not* re-run).")
+                logger.info(f"[{img}] Grain detection completed (NB - Filtering was *not* re-run).")
 
     # Write config to file
     config["plotting"].pop("plot_dict")
     write_yaml(config, output_dir=config["output_dir"])
-    LOGGER.debug(f"Images processed : {len(results)}")
+    logger.debug(f"Images processed : {len(results)}")
     # Update config with plotting defaults for printing
     completion_message(
         config, img_files, summary_config=None, images_processed=sum(results.values()), start_time=start_time
@@ -593,7 +531,7 @@ def grainstats(args: argparse.Namespace | None = None) -> None:
                 pbar.update()
 
                 # Display completion message for the image
-                LOGGER.info(f"[{filename}] Grainstats completed (NB - Filtering was *not* re-run).")
+                logger.info(f"[{filename}] Grainstats completed (NB - Filtering was *not* re-run).")
 
     # Concatenate all the dictionary's values into a dataframe. Ignore the keys since
     # the dataframes have the file names in them already.
@@ -601,13 +539,13 @@ def grainstats(args: argparse.Namespace | None = None) -> None:
         grain_stats_all_df = pd.concat(grain_stats_all.values())
         grain_stats_all_df.to_csv(config["output_dir"] / "grain_statistics.csv")
     except ValueError as error:
-        LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
-        LOGGER.error(error)
+        logger.error("No grains found in any images, consider adjusting your thresholds.")
+        logger.error(error)
 
     # Write config to file
     config["plotting"].pop("plot_dict")
     write_yaml(config, output_dir=config["output_dir"])
-    LOGGER.debug(f"Images processed : {len(grain_stats_all)}")
+    logger.debug(f"Images processed : {len(grain_stats_all)}")
     # Update config with plotting defaults for printing
     completion_message(
         config, img_files, summary_config=None, images_processed=grain_stats_all_df.shape[0], start_time=start_time
@@ -690,14 +628,14 @@ def bruker_rename(args: argparse.Namespace | None = None) -> None:
         config["file_ext"] == ".spm"
     ), "Can only rename old .spm files, change your file-ext in config or command line"
     all_spm_files = find_files(config["base_dir"], file_ext=config["file_ext"])
-    LOGGER.info(f"Total Bruker files found : {len(all_spm_files)}")
+    logger.info(f"Total Bruker files found : {len(all_spm_files)}")
     OLD_BRUKER_RE = re.compile(r"\.\d+$")
     old_spm_files = [spm_file for spm_file in all_spm_files if OLD_BRUKER_RE.match(spm_file.suffix)]
-    LOGGER.info(f"Old style files found    : {len(old_spm_files)}")
-    LOGGER.info("Renaming files...")
+    logger.info(f"Old style files found    : {len(old_spm_files)}")
+    logger.info("Renaming files...")
     # Could rename files using list comprehension (no logging though)
     # [spm_file.rename(f"{spm_file}.spm") for spm_file in old_spm_files]
     # Instead loop with logging showing each rename
     for spm_file in old_spm_files:
         spm_file.rename(f"{spm_file}.spm")
-        LOGGER.info(f"{spm_file.relative_to(config['base_dir'])} > {spm_file.relative_to(config['base_dir'])}.spm")
+        logger.info(f"{spm_file.relative_to(config['base_dir'])} > {spm_file.relative_to(config['base_dir'])}.spm")

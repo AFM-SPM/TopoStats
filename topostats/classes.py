@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 import re
 from pathlib import Path
 from typing import Any
@@ -12,11 +11,8 @@ import numpy.typing as npt
 from pydantic import ConfigDict
 from pydantic.dataclasses import dataclass
 
-from topostats.logs.logs import LOGGER_NAME
 from topostats.statistics import image_statistics
 from topostats.utils import update_background_class
-
-LOGGER = logging.getLogger(LOGGER_NAME)
 
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-arguments
@@ -269,13 +265,13 @@ class GrainCrop:
                     or np.any(padded_region_left)
                     or np.any(padded_region_right)
                 ):
-                    LOGGER.warning("Padding region is not blank, setting to blank")
+                    logger.warning("Padding region is not blank, setting to blank")
                     value[: self.padding, :, class_index] = 0
                     value[-self.padding :, :, class_index] = 0
                     value[:, : self.padding, class_index] = 0
                     value[:, -self.padding :, class_index] = 0
         except IndexError as e:
-            LOGGER.error(f"[{self.filename}] : Error mask is missing layers.", exc_info=e)
+            logger.error(f"[{self.filename}] : Error mask is missing layers.", exc_info=e)
 
         # Update background class in case the mask has been edited
         value = update_background_class(value)
@@ -651,7 +647,7 @@ class GrainCrop:
                 f" self.threshold_idx  : {self.threshold_idx}\n"
                 f" other.threshold_idx : {other.threshold_idx}"
             )
-        LOGGER.info("Cannot find difference between graincrops")
+        logger.info("Cannot find difference between graincrops")
 
 
 def validate_full_mask_tensor_shape(array: npt.NDArray[np.bool_]) -> npt.NDArray[np.bool_]:

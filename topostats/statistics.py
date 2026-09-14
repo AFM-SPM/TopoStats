@@ -1,13 +1,7 @@
 """Function for calculating statistics about a whole image, for example number of grains or surface roughness."""
 
-import logging
-
 import numpy as np
 import numpy.typing as npt
-
-from topostats.logs.logs import LOGGER_NAME
-
-LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 def image_statistics(

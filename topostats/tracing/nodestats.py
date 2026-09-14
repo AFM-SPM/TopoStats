@@ -1,17 +1,16 @@
 """Perform Crossing Region Processing and Analysis."""
 
-import logging
 from itertools import combinations
 
 import networkx as nx
 import numpy as np
 import numpy.typing as npt
+from loguru import logger
 from scipy.ndimage import binary_dilation
 from scipy.signal import argrelextrema
 from skimage.morphology import label
 
 from topostats.classes import GrainCrop, MatchedBranch, Node, TopoStats, UnMatchedBranch
-from topostats.logs.logs import LOGGER_NAME
 from topostats.measure.geometry import (
     calculate_shortest_branch_distances,
     connect_best_matches,
@@ -21,8 +20,6 @@ from topostats.tracing.pruning import prune_skeleton
 from topostats.tracing.skeletonize import getSkeleton
 from topostats.tracing.tracingfuncs import order_branch, order_branch_from_start
 from topostats.utils import ResolutionError, convolve_skeleton
-
-LOGGER = logging.getLogger(LOGGER_NAME)
 
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-positional-arguments
@@ -143,10 +140,10 @@ class nodeStats:
         dict[int, npt.NDArray]
             Dictionary of images.
         """
-        LOGGER.debug(f"Node Stats - Processing Grain: {self.n_grain}")
+        logger.debug(f"Node Stats - Processing Grain: {self.n_grain}")
         self.grain_crop.convolved_skeleton = convolve_skeleton(self.skeleton)
         if self.grain_crop.convolved_skeleton.max() == 3:  # check if any nodes are crossings
-            LOGGER.debug(f"[{self.filename}] : Nodestats - {self.n_grain} contains crossings.")
+            logger.debug(f"[{self.filename}] : Nodestats - {self.n_grain} contains crossings.")
             # convolve to see crossing and end points
             # self.grain_crop.convolved_skeleton = self.tidy_branches(self.grain_crop.convolved_skeleton, self.image)
             # reset skeleton var as tidy branches may have modified it
@@ -156,7 +153,7 @@ class nodeStats:
             # get graph of skeleton
             self.whole_skel_graph = self.skeleton_image_to_graph(self.skeleton)
             # connect the close nodes
-            LOGGER.debug(f"[{self.filename}] : Nodestats - {self.n_grain} connecting close nodes.")
+            logger.debug(f"[{self.filename}] : Nodestats - {self.n_grain} connecting close nodes.")
             self.connected_nodes = self.connect_close_nodes(
                 self.grain_crop.convolved_skeleton, node_width=self.node_joining_length
             )
@@ -167,11 +164,11 @@ class nodeStats:
             # obtain a mask of node centers and their count
             self.node_centre_mask, self.num_nodes = self.highlight_node_centres(self.connected_nodes)
             # Begin the hefty crossing analysis
-            LOGGER.debug(f"[{self.filename}] : Nodestats - {self.n_grain} analysing found crossings.")
+            logger.debug(f"[{self.filename}] : Nodestats - {self.n_grain} analysing found crossings.")
             self.analyse_nodes(max_branch_length=self.branch_pairing_length)
             self.compile_metrics()
         else:
-            LOGGER.debug(f"[{self.filename}] : Nodestats - {self.n_grain} has no crossings.")
+            logger.debug(f"[{self.filename}] : Nodestats - {self.n_grain} has no crossings.")
         # Add the number of nodes to the grain's stats for all of its subgrains.
         for subgrains in self.grain_crop.stats.values():
             for subgrain_stats in subgrains.values():
@@ -312,7 +309,7 @@ class nodeStats:
             max_idx = idxs[np.argmax(counts[1:]) + 1]
             return np.where(labelled_mask == max_idx, 1, 0)
         except ValueError as e:
-            LOGGER.debug(f"{e}: mask is empty.")
+            logger.debug(f"{e}: mask is empty.")
             return mask
 
     def connect_close_nodes(self, conv_skeleton: npt.NDArray, node_width: float = 2.85) -> npt.NDArray:
@@ -478,7 +475,7 @@ class nodeStats:
         dilate = binary_dilation(self.skeleton, iterations=2)
         # This flag determines whether to use average of 3 traces in calculation of FWHM
         average_trace_advised = dilate[self.smoothed_mask == 1].sum() == dilate.sum()
-        LOGGER.debug(f"[{self.filename}] : Branch height traces will be averaged: {average_trace_advised}")
+        logger.debug(f"[{self.filename}] : Branch height traces will be averaged: {average_trace_advised}")
         # Iterate over the nodes and analyse the branches
         matched_branches = None
         branch_image = None
@@ -506,13 +503,13 @@ class nodeStats:
 
             # Stop processing if nib (node has 2 branches)
             if branch_start_coords.shape[0] <= 2:
-                LOGGER.debug(
+                logger.debug(
                     f"node {node_no} has only two branches - skipped & nodes removed.{len(node_coords)}"
                     "pixels in nib node."
                 )
             else:
                 try:
-                    LOGGER.debug(f"Node: {node_count}")
+                    logger.debug(f"Node: {node_count}")
 
                     # Analyse the node branches
                     (
@@ -575,7 +572,7 @@ class nodeStats:
                     # angles_between_vectors_along_branch
 
                 except ResolutionError:
-                    LOGGER.debug(f"Node stats skipped as resolution too low: {self.pixel_to_nm_scaling}nm per pixel")
+                    logger.debug(f"Node stats skipped as resolution too low: {self.pixel_to_nm_scaling}nm per pixel")
                     error = True
                 assert reduced_node_area is not None, "Reduced node area is not defined."
                 assert branch_image is not None, "Branch image is not defined."
@@ -651,7 +648,7 @@ class nodeStats:
 
         # Determine branches that were not able to be paired
         unpaired_branches = np.delete(np.arange(0, branch_start_coords.shape[0]), pairs.flatten())
-        LOGGER.debug(f"Unpaired branches: {unpaired_branches}")
+        logger.debug(f"Unpaired branches: {unpaired_branches}")
         # Ensure that unpaired branches start at index I where I is the number of paired branches.
         branch_label = branch_image.max()
         # Add the unpaired branches back to the branch image
@@ -735,7 +732,7 @@ class nodeStats:
             The confidence of the crossing. Optional.
         """
         if not p_to_nm <= resolution_threshold:
-            LOGGER.debug(f"Resolution {p_to_nm} is below suggested {resolution_threshold}, node difficult to analyse.")
+            logger.debug(f"Resolution {p_to_nm} is below suggested {resolution_threshold}, node difficult to analyse.")
 
         # Pixel-wise order the branches coming from the node and calculate the starting vector for each branch
         ordered_branches, singlet_branch_vectors = nodeStats.get_ordered_branches_and_vectors(
@@ -874,7 +871,7 @@ class nodeStats:
                 AssertionError,
                 IndexError,
             ) as e:  # Assertion - avg trace not advised, Index - wiggy branches
-                LOGGER.debug(f"[{filename}] : avg trace failed with {e}, single trace only.")
+                logger.debug(f"[{filename}] : avg trace failed with {e}, single trace only.")
                 average_trace_advised = False
                 distances = nodeStats.coord_dist_rad(single_branch_coords, np.array([node_coords[0], node_coords[1]]))
                 zero_dist = distances[
@@ -1028,9 +1025,9 @@ class nodeStats:
         norm = np.diag(dot) ** 0.5
         cos_angles = dot / (norm.reshape(-1, 1) @ norm.reshape(1, -1))
         np.fill_diagonal(cos_angles, 1)  # ensures vector_x • vector_x angles are 0
-        LOGGER.debug(f"\n{vectors=}\n")
-        LOGGER.debug(f"\n{norm=}\n")
-        LOGGER.debug(f"\n{cos_angles=}\n")
+        logger.debug(f"\n{vectors=}\n")
+        logger.debug(f"\n{norm=}\n")
+        logger.debug(f"\n{cos_angles=}\n")
         # ns-rse 2025-09-24 : Sometimes this raise a warning
         #   /home/neil/work/git/hub/AFM-SPM/TopoStats/topostats/tracing/nodestats.py:1129:
         #       RuntimeWarning: invalid value encountered in arccos
@@ -1751,7 +1748,7 @@ def nodestats_image(
     nodestats_branch_images = {}
 
     if topostats_object.grain_crops is not None:
-        LOGGER.info(f"[{topostats_object.filename}] : There are {len(topostats_object.grain_crops)} grains")
+        logger.info(f"[{topostats_object.filename}] : There are {len(topostats_object.grain_crops)} grains")
         for n_grain, grain_crop in topostats_object.grain_crops.items():
             nodestats = None  # reset the nodestats variable
             if grain_crop.disordered_trace is not None:
@@ -1765,7 +1762,7 @@ def nodestats_image(
                         pair_odd_branches=pair_odd_branches,
                     )
                     _, node_image_dict = nodestats.get_node_stats()
-                    LOGGER.info(f"[{topostats_object.filename}] : Nodestats processed {n_grain + 1}")
+                    logger.info(f"[{topostats_object.filename}] : Nodestats processed {n_grain + 1}")
 
                     # compile images
                     nodestats_images = {
@@ -1783,7 +1780,7 @@ def nodestats_image(
                             grain_crop.bbox[0] : grain_crop.bbox[2], grain_crop.bbox[1] : grain_crop.bbox[3]
                         ] += crop
                 except Exception as e:  # pylint: disable=broad-exception-caught
-                    LOGGER.error(
+                    logger.error(
                         f"[{topostats_object.filename}] : Nodestats for grain {n_grain} failed. "
                         "Please consider raising an issue on GitHub. Error: ",
                         exc_info=e,
