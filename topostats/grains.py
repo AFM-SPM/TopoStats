@@ -2,13 +2,17 @@
 
 # pylint: disable=no-name-in-module
 
+import importlib.util
 import logging
 import sys
+from pathlib import Path
 from typing import Any
 
 import keras
 import numpy as np
 import numpy.typing as npt
+import torch
+from ruamel.yaml import YAML
 from skimage import morphology
 from skimage.measure import label, regionprops
 from skimage.morphology import dilation
@@ -17,9 +21,11 @@ from topostats.classes import GrainCrop, TopoStats
 from topostats.logs.logs import LOGGER_NAME
 from topostats.mask_manipulation import multi_class_skeletonise_and_join_close_ends
 from topostats.unet_masking import (
+    get_device,
     iou_loss,
     make_bounding_box_square,
     mean_iou,
+    model_predict,
     pad_bounding_box_cutting_off_at_image_bounds,
     predict_unet,
 )
@@ -36,6 +42,64 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-public-methods
 # pylint: disable=bare-except
 # pylint: disable=dangerous-default-value
+
+
+def load_torch_model_bundle(
+    bundle_dir: Path,
+) -> tuple[torch.nn.Module, dict[str, Any], dict[str, Any]]:
+    """
+    Load a PyTorch model bundle from a directory.
+
+    Parameters
+    ----------
+    bundle_dir : Path
+        Path to the directory containing the model bundle.
+    device : torch.device
+        Device to load the model onto.
+
+    Returns
+    -------
+    torch.nn.Module
+        Loaded PyTorch model.
+    dict[str, Any]
+        Model training snapshot metadata.
+    dict[str, Any]
+        Model training configuration.
+    """
+    device = get_device()
+    yaml = YAML(typ="safe")
+    with open(bundle_dir / "training_metadata.yaml") as file:
+        training_metadata = yaml.load(file)
+
+    with open(bundle_dir / "config.yaml") as file:
+        training_config = yaml.load(file)
+
+    # load the model's python file and import it as a module so it can be used to load the model weights
+    module_path = bundle_dir / "model.py"
+    specification = importlib.util.spec_from_file_location("model_plugin", module_path)
+    if specification is None or specification.loader is None:
+        raise ImportError(f"Could not load module from {module_path}")
+    model_module = importlib.util.module_from_spec(specification)
+    # load the module
+    specification.loader.exec_module(model_module)
+
+    combined_training_metadata_and_config = {**training_metadata, **training_config}
+
+    model: torch.nn.Module = model_module.create_model(config=combined_training_metadata_and_config)
+
+    assert isinstance(model, torch.nn.Module), "Loaded model is not a torch.nn.Module"
+    # load the model weights
+    model.load_state_dict(
+        torch.load(
+            bundle_dir / "model_state_dict.pth",
+            map_location=device,
+            weights_only=True,
+        )
+    )
+    model.to(device)
+    model.eval()
+
+    return model, training_metadata, training_config
 
 
 def validate_full_mask_tensor_shape(array: npt.NDArray[np.bool_]) -> npt.NDArray[np.bool_]:
@@ -751,37 +815,75 @@ class Grains:
         # https://github.com/keras-team/keras/issues/19441 which also has an experimental fix that we can try but
         # I haven't tested it yet.
 
-        try:
-            unet_model = keras.models.load_model(
-                unet_config["model_path"], custom_objects={"mean_iou": mean_iou, "iou_loss": iou_loss}, compile=False
-            )
-        except Exception as e:
-            LOGGER.debug(f"Python executable: {sys.executable}")
-            LOGGER.debug(f"Keras version: {keras.__version__}")
-            LOGGER.debug(f"Model path: {unet_config['model_path']}")
-            raise e
+        model_type = unet_config["model_type"]
+        confidence = unet_config["confidence"]
+        assert isinstance(confidence, float), f"Confidence must be a float, got {type(confidence)}"
+        upper_norm_bound = unet_config["upper_norm_bound"]
+        assert isinstance(upper_norm_bound, float), f"Upper norm bound must be a float, got {type(upper_norm_bound)}"
+        lower_norm_bound = unet_config["lower_norm_bound"]
+        assert isinstance(lower_norm_bound, float), f"Lower norm bound must be a float, got {type(lower_norm_bound)}"
 
-        # unet_model = keras.models.load_model(unet_config["model_path"], custom_objects={"mean_iou": mean_iou})
-        LOGGER.debug(f"Output shape of UNet model: {unet_model.output_shape}")
+        if model_type == "tensorflow":
+
+            # Load the model
+            try:
+                tensorflow_model = keras.models.load_model(
+                    unet_config["model_path"],
+                    custom_objects={"mean_iou": mean_iou, "iou_loss": iou_loss},
+                    compile=False,
+                )
+            except Exception as e:
+                LOGGER.debug(f"Python executable: {sys.executable}")
+                LOGGER.debug(f"Keras version: {keras.__version__}")
+                LOGGER.debug(f"Model path: {unet_config['model_path']}")
+                raise e
+
+        elif model_type == "pytorch":
+            # load torch model
+            model_path = unet_config["model_path"]
+            assert model_path is not None
+            assert isinstance(model_path, str)
+            model_path = Path(model_path)
+            model, snapshot_metadata, model_configuration = load_torch_model_bundle(bundle_dir=model_path)
+            # get the input size since unlike tensorflow, it's not stored in the model itself
+            model_input_size = model_configuration["model_input_size"]
+            assert isinstance(model_input_size, int), f"Model input size must be an int, got {type(model_input_size)}"
 
         new_graincrops: dict[int, GrainCrop] = {}
         num_empty_removed_grains = 0
         for grain_number, graincrop in graincrops.items():
             LOGGER.debug(f"Unet predicting mask for grain {grain_number} of {len(graincrops)}")
-            # Run the UNet on the region. This is allowed to be a single class
-            # as we can add a background class afterwards if needed.
-            # Remember that this region is cropped from the original image, so it's not
-            # the same size as the original image.
-            predicted_mask = predict_unet(
-                image=graincrop.image,
-                model=unet_model,
-                confidence=unet_config["confidence"],
-                model_input_shape=unet_model.input_shape,
-                upper_norm_bound=unet_config["upper_norm_bound"],
-                lower_norm_bound=unet_config["lower_norm_bound"],
-            )
+
+            if model_type == "tensorflow":
+                predicted_mask = predict_unet(
+                    image=graincrop.image,
+                    model=tensorflow_model,
+                    confidence=confidence,
+                    model_input_shape=tensorflow_model.input_shape,
+                    upper_norm_bound=upper_norm_bound,
+                    lower_norm_bound=lower_norm_bound,
+                )
+            elif model_type == "pytorch":
+                predicted_mask = model_predict(
+                    image=graincrop.image,
+                    model=model,
+                    model_input_size=model_input_size,
+                    confidence=confidence,
+                    upper_norm_bound=upper_norm_bound,
+                    lower_norm_bound=lower_norm_bound,
+                )
+            else:
+                raise ValueError(f"Unknown model type: {model_type}")
+
             assert len(predicted_mask.shape) == 3
-            LOGGER.debug(f"Predicted mask shape: {predicted_mask.shape}")
+            LOGGER.info(f"Predicted mask shape: {predicted_mask.shape}")
+
+            # move the channel dimension to the back
+            predicted_mask = np.moveaxis(predicted_mask, 0, -1)
+
+            LOGGER.info(
+                f"predicted mask shape before disconnected grain removal: {predicted_mask.shape}, dtype: {predicted_mask.dtype}, min: {predicted_mask.min()}, max: {predicted_mask.max()}"
+            )
 
             if unet_config["remove_disconnected_grains"]:
                 # Remove grains that are not connected to the original grain
@@ -791,9 +893,17 @@ class Grains:
                     predicted_grain_tensor=predicted_mask,
                 )
 
+            LOGGER.info("after disconnected grain removal:")
+            for class_index in range(1, predicted_mask.shape[2]):
+                predicted_mask_class = predicted_mask[:, :, class_index]
+                LOGGER.info(
+                    f"predicted mask channel {class_index}, shape{predicted_mask_class.shape}, dtype: {predicted_mask_class.dtype}, min: {predicted_mask_class.min()}, max: {predicted_mask_class.max()}"
+                )
+
             # Check if all of the non-background classes are empty
             if np.sum(predicted_mask[:, :, 1:]) == 0:
                 num_empty_removed_grains += 1
+                print(f"[{filename}] : model predicted empty mask for grain {grain_number}, removing grain")
             else:
                 # @ns-rse 2025-10-14 - do we need to instantiate a new instance here? I don't think we do as
                 #                      we have setter methods so could just update the .mask attribute in

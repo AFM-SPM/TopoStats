@@ -241,6 +241,11 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             },
             "unet_config": {
                 "model_path": Or(None, str),
+                "model_type": Or(
+                    "tensorflow",
+                    "pytorch",
+                    error="Invalid value in config for 'grains.unet_config.model_type', valid values are 'tensorflow' or 'pytorch'",
+                ),
                 "upper_norm_bound": float,
                 "lower_norm_bound": float,
                 "remove_disconnected_grains": bool,
