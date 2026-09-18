@@ -21,6 +21,41 @@ VMAX = 4
 IMGPLOTARGS: dict = {"cmap": CMAP, "vmin": VMIN, "vmax": VMAX}
 
 
+def create_unique_grain_id(
+    grain_filename: str,
+    grain_x_coord: float,
+    grain_y_coord: float,
+) -> str:
+    """
+    Create a unique grain id based on the filename and the position of the grain.
+
+    This should hopefully be resistant to dataset changes.
+
+
+    Parameters
+    ----------
+    grain_filename : str
+        The filename of the grain.
+    grain_x_coord : float
+        The x-coordinate of the grain in nanometres.
+    grain_y_coord : float
+        The y-coordinate of the grain in nanometres.
+
+
+    Returns
+    -------
+    str
+        A unique grain id.
+    """
+    # round the coords to the nearest 5 nanometres
+    grain_x_coord = round(grain_x_coord / 5e-9) * 5e-9
+    grain_y_coord = round(grain_y_coord / 5e-9) * 5e-9
+    # deop the nanometre part of the coords
+    grain_x_coord = int(grain_x_coord * 1e9)
+    grain_y_coord = int(grain_y_coord * 1e9)
+    return f"{grain_filename}_{grain_x_coord}_x_{grain_y_coord}_y"
+
+
 class BaseDamageAnalysis(BaseModel):
     """Base class for damage classes."""
 
@@ -400,7 +435,9 @@ class UnanalysedMoleculeDataCollection(BaseDamageAnalysis):
 class UnanalysedGrain(BaseDamageAnalysis):
     """Data object to hold unanalysed grain data."""
 
-    global_grain_id: int | None = None
+    global_grain_id: str | None = None
+    x_position_nm: float
+    y_position_nm: float
     file_grain_id: int
     filename: str
     pixel_to_nm_scaling: float
@@ -442,8 +479,8 @@ class UnanalysedGrain(BaseDamageAnalysis):
 class UnanalysedGrainCollection(BaseDamageAnalysis):
     """Data object to hold a collection of unanalysed grains."""
 
-    unanalysed_grains: dict[int, UnanalysedGrain] = Field(default_factory=dict)
-    current_global_grain_id: int = 0
+    unanalysed_grains: dict[str, UnanalysedGrain] = Field(default_factory=dict)
+    omitted_grain_ids: set[str] = Field(default_factory=set)
 
     @computed_field
     @property
@@ -458,29 +495,30 @@ class UnanalysedGrainCollection(BaseDamageAnalysis):
     # pretty print
     def __str__(self) -> str:
         """Return a simplified string representation of the grain collection."""
-        grain_indexes = range(self.current_global_grain_id)
-        missing_grain_indexes = [index for index in grain_indexes if index not in self.unanalysed_grains]
         folder_counts_str = "".join([f"- {folder}: {count}\n" for folder, count in self.folder_counts.items()])
         return (
-            f"GrainModelCollection with {len(self.unanalysed_grains)} grains, with {len(missing_grain_indexes)} "
-            f"omitted grains: {missing_grain_indexes}.\nFolder counts:\n{folder_counts_str}"
+            f"GrainModelCollection with {len(self.unanalysed_grains)} grains, with {len(self.omitted_grain_ids)} "
+            f"omitted grains: {self.omitted_grain_ids}.\nFolder counts:\n{folder_counts_str}"
         )
 
     def add_grain(self, unanalysed_grain: UnanalysedGrain) -> None:
         """Add a grain to the collection, assigning it a global grain id."""
         # note: a grain might already have a global grain id if it came from another collection, but we can
         # just overwrite it.
-        unanalysed_grain.global_grain_id = self.current_global_grain_id
-        self.unanalysed_grains[self.current_global_grain_id] = unanalysed_grain
-        self.current_global_grain_id += 1
+        unanalysed_grain.global_grain_id = create_unique_grain_id(
+            grain_filename=unanalysed_grain.filename,
+            grain_x_coord=unanalysed_grain.x_position_nm,
+            grain_y_coord=unanalysed_grain.y_position_nm,
+        )
+        self.unanalysed_grains[unanalysed_grain.global_grain_id] = unanalysed_grain
 
-    def remove_grain(self, global_grain_id: int) -> None:
+    def remove_grain(self, global_grain_id: str) -> None:
         """Remove a grain from the collection by its global id."""
         if global_grain_id not in self.unanalysed_grains:
             raise KeyError(f"grain with global id {global_grain_id} not found in collection, cannot remove")
         del self.unanalysed_grains[global_grain_id]
 
-    def remove_grains(self, global_grain_ids: list[int] | set[int]) -> None:
+    def remove_grains(self, global_grain_ids: list[str] | set[str]) -> None:
         """Remove multiple grains from the collection by their global ids."""
         global_grain_ids_set = set(global_grain_ids)
         for grain_id in global_grain_ids_set:
@@ -574,6 +612,8 @@ class GrainModel(UnanalysedGrain):
         )
         return GrainModel(
             global_grain_id=unanalysed_grain.global_grain_id,
+            x_position_nm=unanalysed_grain.x_position_nm,
+            y_position_nm=unanalysed_grain.y_position_nm,
             file_grain_id=unanalysed_grain.file_grain_id,
             filename=unanalysed_grain.filename,
             pixel_to_nm_scaling=unanalysed_grain.pixel_to_nm_scaling,
@@ -889,8 +929,8 @@ class GrainModel(UnanalysedGrain):
 class GrainCollection(BaseDamageAnalysis):
     """Data object to hold a collection of analysed grains."""
 
-    grains: dict[int, GrainModel]
-    current_global_grain_id: int = 0
+    grains: dict[str, GrainModel]
+    omitted_grain_ids: set[str] = Field(default_factory=set)
 
     @computed_field
     @property
@@ -904,15 +944,21 @@ class GrainCollection(BaseDamageAnalysis):
 
     def __str__(self) -> str:
         """Return a simplified string representation of the grain collection."""
-        grain_indexes = range(self.current_global_grain_id)
-        missing_grain_indexes = [index for index in grain_indexes if index not in self.grains]
         folder_counts_str = "".join([f"- {folder}: {count}\n" for folder, count in self.folder_counts.items()])
         return (
-            f"GrainModelCollection with {len(self.grains)} grains, with {len(missing_grain_indexes)} "
-            f"omitted grains: {missing_grain_indexes}.\nFolder counts:\n{folder_counts_str}"
+            f"GrainModelCollection with {len(self.grains)} grains, with {len(self.omitted_grain_ids)} "
+            f"omitted grains: {self.omitted_grain_ids}.\nFolder counts:\n{folder_counts_str}"
         )
 
-    def __getitem__(self, key: int) -> GrainModel:
+    # def __str__(self) -> str:
+    #     """Return a simplified string representation of the grain collection."""
+    #     folder_counts_str = "".join([f"- {folder}: {count}\n" for folder, count in self.folder_counts.items()])
+    #     return (
+    #         f"GrainModelCollection with {len(self.grains)} grains, with {len(missing_grain_indexes)} "
+    #         f"omitted grains: {missing_grain_indexes}.\nFolder counts:\n{folder_counts_str}"
+    #     )
+
+    def __getitem__(self, key: str) -> GrainModel:
         """Get a grain from the collection by its global id."""
         return self.grains[key]
 
@@ -920,15 +966,15 @@ class GrainCollection(BaseDamageAnalysis):
         """Get the number of grains in the collection."""
         return len(self.grains)
 
-    def __contains__(self, key: int) -> bool:
+    def __contains__(self, key: str) -> bool:
         """Check if a grain with a given global id is in the collection."""
         return key in self.grains
 
-    def items(self) -> Generator[tuple[int, GrainModel], None, None]:
+    def items(self) -> Generator[tuple[str, GrainModel], None, None]:
         """Get the items of the grain collection, yielding tuples of global grain id and grain."""
         return (item for item in self.grains.items())
 
-    def keys(self) -> Generator[int, None, None]:
+    def keys(self) -> Generator[str, None, None]:
         """Get the keys of the grain collection."""
         return (key for key in self.grains.keys())
 
@@ -936,7 +982,7 @@ class GrainCollection(BaseDamageAnalysis):
         """Get the values of the grain collection."""
         return (value for value in self.grains.values())
 
-    def get(self, key: int, default: GrainModel | None = None) -> GrainModel | None:
+    def get(self, key: str, default: GrainModel | None = None) -> GrainModel | None:
         """Get a grain from the collection by its global id, returning a default value if not present."""
         return self.grains.get(key, default)
 
@@ -944,17 +990,20 @@ class GrainCollection(BaseDamageAnalysis):
         """Add a grain to the collection, assigning it a global grain id."""
         # note: a grain might already have a global grain id if it came from another collection, but we can
         # just overwrite it.
-        grain_model.global_grain_id = self.current_global_grain_id
-        self.grains[self.current_global_grain_id] = grain_model
-        self.current_global_grain_id += 1
+        grain_model.global_grain_id = create_unique_grain_id(
+            grain_filename=grain_model.filename,
+            grain_x_coord=grain_model.x_position_nm,
+            grain_y_coord=grain_model.y_position_nm,
+        )
+        self.grains[grain_model.global_grain_id] = grain_model
 
-    def remove_grain(self, global_grain_id: int) -> None:
+    def remove_grain(self, global_grain_id: str) -> None:
         """Remove a grain from the collection by its global id."""
         if global_grain_id not in self.grains:
             raise KeyError(f"grain with global id {global_grain_id} not found in collection, cannot remove")
         del self.grains[global_grain_id]
 
-    def remove_grains(self, global_grain_ids: list[int] | set[int]) -> None:
+    def remove_grains(self, global_grain_ids: list[str] | set[str]) -> None:
         """Remove multiple grains from the collection by their global ids."""
         global_grain_ids_set = set(global_grain_ids)
         for grain_id in global_grain_ids_set:
@@ -985,12 +1034,12 @@ class GrainCollection(BaseDamageAnalysis):
                 # else raise the error as it is unexpected.
                 raise e
             grain_dict[global_grain_id] = grain_model
-        return GrainCollection(grains=grain_dict, current_global_grain_id=unanalysed_collection.current_global_grain_id)
+        return GrainCollection(grains=grain_dict)
 
     def sample(self, n: int, seed: int = 0) -> "GrainCollection":
         """Return a sample of n grains from each of the sample type combinations in the collection."""
         rng = np.random.default_rng(seed)
-        sample_dict: dict[int, GrainModel] = {}
+        sample_dict: dict[str, GrainModel] = {}
         # group grains by sample type combination - sample type and damage
         sample_type_groups: dict[tuple[str, float], list[GrainModel]] = {}
         for grain in self.grains.values():

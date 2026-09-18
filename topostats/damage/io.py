@@ -132,6 +132,14 @@ def load_grain_models_from_topo_files(  # noqa: C901
                 # get the bounding box for the grain, stored as the same value in each molecule's data so just grab from
                 # the first one
                 grain_bbox = grain_crop.bbox
+                grain_x_position_nm = grain_crop.stats["centre_x"]
+                assert isinstance(
+                    grain_x_position_nm, float
+                ), f"expected grain x position to be a float, but got {type(grain_x_position_nm)}"
+                grain_y_position_nm = grain_crop.stats["centre_y"]
+                assert isinstance(
+                    grain_y_position_nm, float
+                ), f"expected grain y position to be a float, but got {type(grain_y_position_nm)}"
 
                 # make the bounding box square and add some padding. bbox will be the same for all molecules so this is okay
                 bbox_square = make_bounding_box_square(
@@ -210,6 +218,8 @@ def load_grain_models_from_topo_files(  # noqa: C901
 
                 grain_model = UnanalysedGrain(
                     file_grain_id=grain_index,
+                    x_position_nm=grain_x_position_nm,
+                    y_position_nm=grain_y_position_nm,
                     filename=filename,
                     pixel_to_nm_scaling=pixel_to_nm_scaling,
                     folder=str(folder_name),
