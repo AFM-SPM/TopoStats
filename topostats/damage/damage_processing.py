@@ -617,7 +617,7 @@ def find_curvature_defects(  # noqa: C901
     curvature_threshold_absolute_pernm: float,
     curvature_turn_in_distance_turn_threshold_deg: float,
     connect_close_defect_threshold_nm: float | None,
-) -> set[int]:
+) -> set[str]:
     """
     Find curvature defects for all molecules in all grains in the grain collection.
 
@@ -765,7 +765,7 @@ def find_height_defects(  # noqa: C901
     connect_close_defect_threshold_nm: float | None,
     find_height_defects_close_to_curvature_defects: bool,
     curvature_defect_height_defect_search_range_nm: float,
-) -> set[int]:
+) -> set[str]:
     """
     Find height defects for all molecules in all grains in the grain collection.
 
@@ -788,7 +788,7 @@ def find_height_defects(  # noqa: C901
 
     Returns
     -------
-    set[int]
+    set[str]
         A set of global grain IDs for which height defect detection failed.
     """
     bad_grains = set()
@@ -951,7 +951,7 @@ def find_height_defects_near_curvature_defects(
 
 def find_defects_in_height_and_curvature(
     grain_collection: GrainCollection,
-    height_defect_method: Literal["iqr", "absolute"],
+    height_defect_method: Literal["iqr", "absolute", "percentage_of_median"],
     height_threshold_iqr_multiplier: float,
     height_threshold_absolute_nm: float,
     height_threshold_percentage_of_median: float,
@@ -962,7 +962,7 @@ def find_defects_in_height_and_curvature(
     connect_close_defect_threshold_nm: float | None,
     find_height_defects_close_to_curvature_defects: bool,
     curvature_defect_height_defect_search_range_nm: float,
-) -> set[int]:
+) -> set[str]:
     """
     Find defects in height and curvature for all molecules in all grains in the grain collection.
 
@@ -1000,7 +1000,7 @@ def find_defects_in_height_and_curvature(
 
     Returns
     -------
-    set[int]
+    set[str]
         A set of global grain IDs for which height or curvature defect detection failed.
     """
     bad_grains = set()
@@ -1261,6 +1261,7 @@ def calculate_defect_volume(
         )
         defect_distances_nm = np.cumsum(defect_distances_to_previous_points_nm)
     # calculate the volume of the defect by integrating the area under the curve of the defect heights
-    defect_volume = np.trapezoid(defect_heights, x=defect_distances_nm)
+    defect_volume = np.trapezoid(defect_heights, x=defect_distances_nm)  # type: ignore - np.trapezoid is not
+    # recognised by ty.
     assert defect_volume >= 0, f"defect volume is negative: {defect_volume}"
     return float(defect_volume)
