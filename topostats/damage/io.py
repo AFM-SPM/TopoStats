@@ -133,11 +133,11 @@ def load_grain_models_from_topo_files(  # noqa: C901
                 # the first one
                 grain_bbox = grain_crop.bbox
                 print(grain_crop.stats)
-                grain_x_position_nm = grain_crop.stats["1"]["0"]["centre_x"] # class index, subgrain index.
+                grain_x_position_nm = grain_crop.stats["1"]["0"]["centre_x"]  # class index, subgrain index.
                 assert isinstance(
                     grain_x_position_nm, float
                 ), f"expected grain x position to be a float, but got {type(grain_x_position_nm)}"
-                grain_y_position_nm = grain_crop.stats["1"]["0"]["centre_y"] # class index, subgrain index.
+                grain_y_position_nm = grain_crop.stats["1"]["0"]["centre_y"]  # class index, subgrain index.
                 assert isinstance(
                     grain_y_position_nm, float
                 ), f"expected grain y position to be a float, but got {type(grain_y_position_nm)}"
@@ -244,7 +244,6 @@ def load_grain_models_from_topo_files(  # noqa: C901
                 print(
                     f"error loading grain index {grain_index} from image {filename} in folder {folder_name}: {e} - skipping this grain."
                 )
-                raise e
                 continue
     return grain_model_collection
 
