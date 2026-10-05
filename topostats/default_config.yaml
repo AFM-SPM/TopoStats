@@ -32,7 +32,9 @@ filter:
 grains:
   run: true # Options : true, false
   # Thresholding by height
-  grain_crop_padding: 1 # Padding to apply to grains. Needs to be at least 1, more padding may help with unets.
+  grain_crop_padding_method: percentage # Method for determining the padding to add to the bounding box of grains during cropping. Options : pixels, percentage
+  grain_crop_padding_pixels: 1 # Padding to apply to grains. Needs to be at least 1, more padding may help with unets.
+  grain_crop_padding_percentage: 0.2 # Padding to apply to grains as a percentage of the crop size.
   threshold_method: std_dev # Options : std_dev, otsu, absolute, unet
   otsu_threshold_multiplier: 1.0
   threshold_std_dev:

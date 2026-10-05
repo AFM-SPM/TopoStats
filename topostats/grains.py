@@ -6,7 +6,7 @@ import importlib.util
 import logging
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import keras
 import numpy as np
@@ -197,7 +197,9 @@ class Grains:
     def __init__(
         self,
         topostats_object: TopoStats,
-        grain_crop_padding: int = 1,
+        grain_crop_padding_method: Literal["pixels", "percentage"] = "percentage",
+        grain_crop_padding_pixels: int = 1,
+        grain_crop_padding_percentage: float = 0.2,
         unet_config: dict[str, str | int | float | tuple[int | None, int, int, int] | None] | None = None,
         threshold_method: str | None = None,
         otsu_threshold_multiplier: float | None = None,
@@ -216,8 +218,12 @@ class Grains:
         ----------
         topostats_object : TopoStats
             TopoStats object.
-        grain_crop_padding : int
-            Padding to add to the bounding box of grains during cropping.
+        grain_crop_padding_method : Literal["pixels", "percentage"]
+            Method for determining the padding to add to the bounding box of grains during cropping.
+        grain_crop_padding_pixels : int
+            Padding in pixels to add to the bounding box of grains during cropping.
+        grain_crop_padding_percentage : float
+            Padding as a percentage of the image size to add to the bounding box of grains during cropping.
         unet_config : dict[str, str | int | float | tuple[int | None, int, int, int] | None]
             Configuration for the UNet model which is a dictionary with the following keys and values.
             model_path : str
@@ -337,7 +343,9 @@ class Grains:
         self.thresholds: dict[str, list[float]] | None = None
         self.mask_images: dict[str, dict[str, npt.NDArray]] = {}
         self.endpoint_connection_config: dict[str, Any] = endpoint_connection_config
-        self.grain_crop_padding = grain_crop_padding
+        self.grain_crop_padding_method: str = grain_crop_padding_method
+        self.grain_crop_padding_pixels = grain_crop_padding_pixels
+        self.grain_crop_padding_percentage = grain_crop_padding_percentage
         self.unet_config = config["unet_config"] if unet_config is None else unet_config
         self.vetting_config = config["vetting"] if vetting is None else vetting
         self.classes_to_merge = config["classes_to_merge"] if classes_to_merge is None else classes_to_merge
@@ -615,7 +623,9 @@ class Grains:
             traditional_graincrops = self.extract_grains_from_full_image_tensor(
                 image=self.image,
                 full_mask_tensor=traditional_full_mask_tensor,
-                padding=self.grain_crop_padding,
+                padding_method = self.grain_crop_padding_method,
+                padding_pixels=self.grain_crop_padding_pixels,
+                padding_percentage=self.grain_crop_padding_percentage,
                 pixel_to_nm_scaling=self.pixel_to_nm_scaling,
                 filename=self.filename,
             )
@@ -660,7 +670,9 @@ class Grains:
                             graincrops = self.extract_grains_from_full_image_tensor(
                                 image=self.image,
                                 full_mask_tensor=unet_full_mask_tensor,
-                                padding=self.grain_crop_padding,
+                                padding_method = self.grain_crop_padding_method,
+                                padding_pixels=self.grain_crop_padding_pixels,
+                                padding_percentage=self.grain_crop_padding_percentage,
                                 pixel_to_nm_scaling=self.pixel_to_nm_scaling,
                                 filename=self.filename,
                             )
@@ -1828,7 +1840,9 @@ class Grains:
         self,
         image: npt.NDArray[np.float32],
         full_mask_tensor: npt.NDArray[np.bool_],
-        padding: int,
+        padding_method: Literal["pixels", "percentage"],
+        padding_pixels: int,
+        padding_percentage: float,
         pixel_to_nm_scaling: float,
         filename: str,
     ) -> dict[int, GrainCrop]:
@@ -1877,6 +1891,18 @@ class Grains:
             # Get the bounding box for the region
             flat_bounding_box: tuple[int, int, int, int] = tuple(flat_region.bbox)  # min_row, min_col, max_row, max_col
 
+            # Determine padding
+            if padding_method == "pixels":
+                pass
+            elif padding_method == "percentage":
+                # Percentage of bbox size
+                padding_pixels = int(
+                    max(
+                        (flat_bounding_box[2] - flat_bounding_box[0]) * padding_percentage,
+                        (flat_bounding_box[3] - flat_bounding_box[1]) * padding_percentage
+                    )
+                )
+
             # Pad the mask
             padded_flat_bounding_box = pad_bounding_box_cutting_off_at_image_bounds(
                 crop_min_row=flat_bounding_box[0],
@@ -1884,7 +1910,7 @@ class Grains:
                 crop_max_row=flat_bounding_box[2],
                 crop_max_col=flat_bounding_box[3],
                 image_shape=(full_mask_tensor.shape[0], full_mask_tensor.shape[1]),
-                padding=padding,
+                padding=padding_pixels,
             )
 
             # Make the mask square
@@ -1931,7 +1957,7 @@ class Grains:
             graincrops[grain_number] = GrainCrop(
                 image=grain_cropped_image,
                 mask=grain_cropped_tensor,
-                padding=padding,
+                padding=padding_pixels,
                 bbox=square_flat_bounding_box,
                 pixel_to_nm_scaling=pixel_to_nm_scaling,
                 filename=filename,
