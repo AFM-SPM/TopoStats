@@ -44,7 +44,7 @@ def test_debug_process_file(tmp_path) -> None:
     import copy
 
     # config
-    config_path = Path("/Users/sylvi/topo_data/temp/config.yaml")
+    config_path = Path("/Users/sylvi/topo_data/debugging/config.yaml")
     assert config_path.exists()
     original_config = read_yaml(config_path)
     plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
@@ -52,7 +52,7 @@ def test_debug_process_file(tmp_path) -> None:
 
     # data
 
-    datafiles = Path("/Users/sylvi/topo_data/temp/data/").glob("*.topostats")
+    datafiles = Path("/Users/sylvi/topo_data/debugging/data/").glob("*.topostats")
     scans = LoadScans(list(datafiles), channel="Height", config=original_config)
     scans.get_data()
     image_dict = scans.img_dict

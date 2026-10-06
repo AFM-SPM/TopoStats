@@ -9,6 +9,7 @@ import tensorflow as tf
 import torch
 from PIL import Image
 
+from topostats.array_manipulation import pad_bounding_box_dynamically_at_limits
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -420,51 +421,12 @@ def make_bounding_box_square(
     return new_crop_min_row, new_crop_min_col, new_crop_max_row, new_crop_max_col
 
 
-def pad_bounding_box_cutting_off_at_image_bounds(
-    crop_min_row: int,
-    crop_min_col: int,
-    crop_max_row: int,
-    crop_max_col: int,
-    image_shape: tuple[int, int],
-    padding: int,
-) -> tuple[int, int, int, int]:
-    """
-    Pad a bounding box.
-
-    Parameters
-    ----------
-    crop_min_row : int
-        The minimum row index of the crop.
-    crop_min_col : int
-        The minimum column index of the crop.
-    crop_max_row : int
-        The maximum row index of the crop.
-    crop_max_col : int
-        The maximum column index of the crop.
-    image_shape : tuple[int, int]
-        The shape of the image.
-    padding : int
-        The padding to apply to the bounding box.
-
-    Returns
-    -------
-    tuple[int, int, int, int]
-        The new crop indices.
-    """
-    new_crop_min_row: int = max(0, crop_min_row - padding)
-    new_crop_min_col: int = max(0, crop_min_col - padding)
-    new_crop_max_row: int = min(image_shape[0], crop_max_row + padding)
-    new_crop_max_col: int = min(image_shape[1], crop_max_col + padding)
-
-    return new_crop_min_row, new_crop_min_col, new_crop_max_row, new_crop_max_col
-
-
 def pad_crop(
     crop: npt.NDArray,
     bbox: tuple[int, int, int, int],
     image_shape: tuple[int, int],
     padding: int,
-) -> npt.NDArray:
+) -> tuple[npt.NDArray, tuple[int, int, int, int], tuple[int, int, int, int]]:
     """
     Pad a crop.
 
@@ -481,15 +443,12 @@ def pad_crop(
 
     Returns
     -------
-    npt.NDArray
-        The padded crop.
+    tuple[npt.NDArray, tuple[int, int, int, int], tuple[int, int, int, int]]
+        The padded crop, the new bounding box, and the padding amounts actually applied.
     """
-    new_bounding_box = pad_bounding_box_cutting_off_at_image_bounds(
-        crop_min_row=bbox[0],
-        crop_min_col=bbox[1],
-        crop_max_row=bbox[2],
-        crop_max_col=bbox[3],
-        image_shape=image_shape,
+    new_bounding_box, padding_used = pad_bounding_box_dynamically_at_limits(
+        bbox=bbox,
+        limits=(0, 0, image_shape[0], image_shape[1]),
         padding=padding,
     )
 
@@ -500,14 +459,14 @@ def pad_crop(
         bbox[1] - new_bounding_box[1] : bbox[3] - new_bounding_box[1],
     ] = crop
 
-    return padded_crop, new_bounding_box
+    return padded_crop, new_bounding_box, padding_used
 
 
 def make_crop_square(
     crop: npt.NDArray,
     bbox: tuple[int, int, int, int],
     image_shape: tuple[int, int],
-) -> npt.NDArray:
+) -> tuple[npt.NDArray, tuple[int, int, int, int]]:
     """
     Make a crop square.
 
@@ -524,6 +483,8 @@ def make_crop_square(
     -------
     npt.NDArray
         The square crop.
+    tuple[int, int, int, int]
+        The new bounding box of the square crop.
     """
     new_bounding_box = make_bounding_box_square(
         crop_min_row=bbox[0],

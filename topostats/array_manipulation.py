@@ -113,7 +113,7 @@ def pad_bounding_box_dynamically_at_limits(
     bbox: tuple[int, int, int, int],
     limits: tuple[int, int, int, int],
     padding: int,
-) -> tuple[int, int, int, int]:
+) -> tuple[tuple[int, int, int, int], tuple[int, int, int, int]]:
     """
     Pad a bounding box within limits. If the padding would exceed the limits bounds, pad in the other direction.
 
@@ -128,8 +128,14 @@ def pad_bounding_box_dynamically_at_limits(
 
     Returns
     -------
-    tuple[int, int, int, int]
-        The new bounding box indices.
+    tuple[tuple[int, int, int, int], tuple[int, int, int, int]]
+        A tuple containing the new bounding box indices and the padding amounts actually applied.
+        (min_row, min_col, max_row, max_col), (pad_up, pad_left, pad_down, pad_right).
+
+    Raises
+    ------
+    ValueError
+        If the proposed padded size is larger than the limits size.
     """
     # check that the padded size is smaller than the limits
     bbox_height = bbox[2] - bbox[0]
@@ -178,10 +184,13 @@ def pad_bounding_box_dynamically_at_limits(
         pad_left_amount += padding - pad_right_amount
     # Return the new bounding box indices
     return (
-        bbox[0] - pad_up_amount,
-        bbox[1] - pad_left_amount,
-        bbox[2] + pad_down_amount,
-        bbox[3] + pad_right_amount,
+        (
+            bbox[0] - pad_up_amount,
+            bbox[1] - pad_left_amount,
+            bbox[2] + pad_down_amount,
+            bbox[3] + pad_right_amount,
+        ),
+        (pad_up_amount, pad_left_amount, pad_down_amount, pad_right_amount),
     )
 
 

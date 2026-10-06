@@ -9,6 +9,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from topostats.array_manipulation import pad_bounding_box_dynamically_at_limits
 from topostats.damage.classes import (
     UnanalysedGrain,
     UnanalysedGrainCollection,
@@ -17,7 +18,7 @@ from topostats.damage.classes import (
     combine_unanalysed_grain_collections,
 )
 from topostats.io import LoadScans
-from topostats.unet_masking import make_bounding_box_square, pad_bounding_box_cutting_off_at_image_bounds
+from topostats.unet_masking import make_bounding_box_square
 
 
 def get_dose_from_folder_name(folder_name: str) -> float:
@@ -150,12 +151,9 @@ def load_grain_models_from_topo_files(  # noqa: C901
                     crop_max_col=grain_bbox[3],
                     image_shape=(full_image.shape[0], full_image.shape[1]),
                 )
-                bbox_padded = pad_bounding_box_cutting_off_at_image_bounds(
-                    crop_min_row=bbox_square[0],
-                    crop_min_col=bbox_square[1],
-                    crop_max_row=bbox_square[2],
-                    crop_max_col=bbox_square[3],
-                    image_shape=(full_image.shape[0], full_image.shape[1]),
+                bbox_padded, padding_used = pad_bounding_box_dynamically_at_limits(
+                    bbox=bbox_square,
+                    limits=(0, 0, full_image.shape[0], full_image.shape[1]),
                     padding=bbox_padding,
                 )
                 # keep track of how much padding we have added to the original bbox on each side so we can adjust
@@ -235,7 +233,7 @@ def load_grain_models_from_topo_files(  # noqa: C901
                     molecule_data_collection=molecule_data_collection,
                     added_left=bbox_added_left,
                     added_top=bbox_added_top,
-                    padding=bbox_padding,
+                    padding=padding_used,
                     smallest_bounding_area=smallest_bounding_area,
                 )
 

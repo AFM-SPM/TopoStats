@@ -1217,7 +1217,7 @@ def test_dict_to_json(dictionary: dict, target: dict, tmp_path: Path) -> None:
                     0: GrainCrop(
                         image=np.array([[1, 2], [3, 4]]),
                         mask=np.array([[[0, 1], [1, 0]], [[1, 0], [0, 1]]]),
-                        padding=1,
+                        padding=(1, 1, 1, 1),
                         bbox=(0, 1, 0, 1),
                         pixel_to_nm_scaling=0.5,
                         filename="basic_graincrop",
@@ -1290,7 +1290,7 @@ def test_dict_to_json(dictionary: dict, target: dict, tmp_path: Path) -> None:
                     0: GrainCrop(
                         image=np.array([[1, 2], [3, 4]]),
                         mask=np.array([[[0, 1], [1, 0]], [[1, 0], [0, 1]]]),
-                        padding=1,
+                        padding=(1, 1, 1, 1),
                         bbox=(0, 1, 0, 1),
                         pixel_to_nm_scaling=0.5,
                         filename="basic_graincrop",

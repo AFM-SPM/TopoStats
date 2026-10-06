@@ -415,6 +415,8 @@ def test_calculate_distance_of_region_linear_array_region_spanning_end() -> None
                         length_nm=13.5,
                         position_along_trace_nm=5.0,
                         total_turn_radians=(7.844374577835551, 2.376881193972189),
+                        depth_nm=1.0,
+                        volume_nm3=2.0,
                     )
                 ]
             ),
@@ -434,6 +436,8 @@ def test_calculate_distance_of_region_linear_array_region_spanning_end() -> None
                         length_nm=14.5,
                         position_along_trace_nm=5.0,
                         total_turn_radians=(8.660066501151775, 2.376881193972189),
+                        depth_nm=1.0,
+                        volume_nm3=2.0,
                     )
                 ]
             ),
@@ -460,6 +464,8 @@ def test_calculate_distance_of_region_linear_array_region_spanning_end() -> None
                         length_nm=1.45,
                         position_along_trace_nm=5.0,
                         total_turn_radians=(0.0, 0.7933196031506369),
+                        depth_nm=1.0,
+                        volume_nm3=2.0,
                     ),
                     Gap(
                         start_index=5,
@@ -486,6 +492,8 @@ def test_calculate_distance_of_region_linear_array_region_spanning_end() -> None
                         length_nm=1.45,
                         position_along_trace_nm=5.0,
                         total_turn_radians=(0.0, 0.7933196031506369),
+                        depth_nm=1.0,
+                        volume_nm3=2.0,
                     ),
                     Gap(
                         start_index=5,
@@ -512,6 +520,8 @@ def test_calculate_distance_of_region_linear_array_region_spanning_end() -> None
                         length_nm=0.55,
                         position_along_trace_nm=0.0,
                         total_turn_radians=(0.0, 0.0),
+                        depth_nm=1.0,
+                        volume_nm3=2.0,
                     ),
                     Gap(
                         start_index=1,
@@ -526,6 +536,8 @@ def test_calculate_distance_of_region_linear_array_region_spanning_end() -> None
                         length_nm=0.95,
                         position_along_trace_nm=13.5,
                         total_turn_radians=(0.0, 0.0),
+                        depth_nm=1.0,
+                        volume_nm3=2.0,
                     ),
                 ]
             ),
@@ -551,6 +563,8 @@ def test_calculate_distance_of_region_linear_array_region_spanning_end() -> None
                         end_index=0,
                         length_nm=2.5,
                         position_along_trace_nm=13.5,
+                        depth_nm=1.0,
+                        volume_nm3=2.0,
                         total_turn_radians=(0.8156919233162236, 0.0),
                     ),
                 ]
@@ -630,6 +644,8 @@ def test_get_defects_and_gaps_from_bool_array(
                         length_nm=9,
                         position_along_trace_nm=0.0,
                         total_turn_radians=(0.0, 0.0),
+                        depth_nm=1.0,
+                        volume_nm3=2.0,
                     ),
                 ]
             ),
@@ -653,6 +669,8 @@ def test_get_defects_and_gaps_from_bool_array(
                         length_nm=1,
                         position_along_trace_nm=0.0,
                         total_turn_radians=(0.0, 0.0),
+                        depth_nm=1.0,
+                        volume_nm3=2.0,
                     ),
                     Gap(
                         start_index=7,
@@ -676,6 +694,8 @@ def test_get_defects_and_gaps_from_bool_array(
                         length_nm=1,
                         position_along_trace_nm=0.0,
                         total_turn_radians=(0.0, 0.0),
+                        depth_nm=1.0,
+                        volume_nm3=2.0,
                     ),
                     Gap(
                         start_index=7,
@@ -699,6 +719,8 @@ def test_get_defects_and_gaps_from_bool_array(
                         length_nm=1,
                         position_along_trace_nm=0.0,
                         total_turn_radians=(0.0, 0.0),
+                        depth_nm=1.0,
+                        volume_nm3=2.0,
                     ),
                     Gap(
                         start_index=1,
@@ -722,6 +744,8 @@ def test_get_defects_and_gaps_from_bool_array(
                         length_nm=1,
                         position_along_trace_nm=0.0,
                         total_turn_radians=(0.0, 0.0),
+                        depth_nm=1.0,
+                        volume_nm3=2.0,
                     ),
                     Gap(
                         start_index=1,
@@ -752,6 +776,8 @@ def test_get_defects_and_gaps_from_bool_array(
                         length_nm=1,
                         position_along_trace_nm=0.0,
                         total_turn_radians=(0.0, 0.0),
+                        depth_nm=1.0,
+                        volume_nm3=2.0,
                     ),
                 ],
             ),
@@ -775,6 +801,8 @@ def test_get_defects_and_gaps_from_bool_array(
                         length_nm=1,
                         position_along_trace_nm=0.0,
                         total_turn_radians=(0.0, 0.0),
+                        depth_nm=1.0,
+                        volume_nm3=2.0,
                     ),
                 ],
             ),
@@ -798,6 +826,8 @@ def test_get_defects_and_gaps_from_bool_array(
                         length_nm=1,
                         position_along_trace_nm=0.0,
                         total_turn_radians=(0.0, 0.0),
+                        depth_nm=1.0,
+                        volume_nm3=2.0,
                     ),
                     Gap(
                         start_index=4,
@@ -812,6 +842,8 @@ def test_get_defects_and_gaps_from_bool_array(
                         length_nm=2,
                         position_along_trace_nm=0.0,
                         total_turn_radians=(0.0, 0.0),
+                        depth_nm=1.0,
+                        volume_nm3=2.0,
                     ),
                     Gap(
                         start_index=8,
@@ -839,6 +871,8 @@ def test_get_defects_and_gaps_from_bool_array(
                         length_nm=1,
                         position_along_trace_nm=0.0,
                         total_turn_radians=(0.0, 0.0),
+                        depth_nm=1.0,
+                        volume_nm3=2.0,
                     ),
                     Gap(
                         start_index=4,
@@ -853,6 +887,8 @@ def test_get_defects_and_gaps_from_bool_array(
                         length_nm=1,
                         position_along_trace_nm=0.0,
                         total_turn_radians=(0.0, 0.0),
+                        depth_nm=1.0,
+                        volume_nm3=2.0,
                     ),
                     Gap(
                         start_index=8,
@@ -883,6 +919,8 @@ def test_get_defects_and_gaps_from_bool_array(
                         length_nm=1,
                         position_along_trace_nm=0.0,
                         total_turn_radians=(0.0, 0.0),
+                        depth_nm=1.0,
+                        volume_nm3=2.0,
                     ),
                     Gap(
                         start_index=4,
@@ -897,6 +935,8 @@ def test_get_defects_and_gaps_from_bool_array(
                         length_nm=1,
                         position_along_trace_nm=0.0,
                         total_turn_radians=(0.0, 0.0),
+                        depth_nm=1.0,
+                        volume_nm3=2.0,
                     ),
                     Gap(
                         start_index=8,
@@ -911,6 +951,8 @@ def test_get_defects_and_gaps_from_bool_array(
                         length_nm=1,
                         position_along_trace_nm=0.0,
                         total_turn_radians=(0.0, 0.0),
+                        depth_nm=1.0,
+                        volume_nm3=2.0,
                     ),
                     Gap(
                         start_index=12,

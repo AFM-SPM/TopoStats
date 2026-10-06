@@ -17,6 +17,7 @@ from skimage import morphology
 from skimage.measure import label, regionprops
 from skimage.morphology import dilation
 
+from topostats.array_manipulation import pad_bounding_box_dynamically_at_limits
 from topostats.classes import GrainCrop, TopoStats
 from topostats.logs.logs import LOGGER_NAME
 from topostats.mask_manipulation import multi_class_skeletonise_and_join_close_ends
@@ -26,7 +27,6 @@ from topostats.unet_masking import (
     make_bounding_box_square,
     mean_iou,
     model_predict,
-    pad_bounding_box_cutting_off_at_image_bounds,
     predict_unet,
 )
 from topostats.utils import _get_mask, flatten_multi_class_tensor, get_thresholds, update_background_class
@@ -623,7 +623,7 @@ class Grains:
             traditional_graincrops = self.extract_grains_from_full_image_tensor(
                 image=self.image,
                 full_mask_tensor=traditional_full_mask_tensor,
-                padding_method = self.grain_crop_padding_method,
+                padding_method=self.grain_crop_padding_method,
                 padding_pixels=self.grain_crop_padding_pixels,
                 padding_percentage=self.grain_crop_padding_percentage,
                 pixel_to_nm_scaling=self.pixel_to_nm_scaling,
@@ -670,7 +670,7 @@ class Grains:
                             graincrops = self.extract_grains_from_full_image_tensor(
                                 image=self.image,
                                 full_mask_tensor=unet_full_mask_tensor,
-                                padding_method = self.grain_crop_padding_method,
+                                padding_method=self.grain_crop_padding_method,
                                 padding_pixels=self.grain_crop_padding_pixels,
                                 padding_percentage=self.grain_crop_padding_percentage,
                                 pixel_to_nm_scaling=self.pixel_to_nm_scaling,
@@ -1010,13 +1010,8 @@ class Grains:
         region_properties = Grains.get_region_properties(labelled_regions)
         bounding_boxes = {index: region.bbox for index, region in enumerate(region_properties)}
         return {
-            index: pad_bounding_box_cutting_off_at_image_bounds(
-                crop_min_row=bbox[0],
-                crop_min_col=bbox[1],
-                crop_max_row=bbox[2],
-                crop_max_col=bbox[3],
-                image_shape=(grain_mask_tensor.shape[0], grain_mask_tensor.shape[1]),
-                padding=1,
+            index: pad_bounding_box_dynamically_at_limits(
+                bbox=bbox, limits=(0, 0, grain_mask_tensor.shape[0], grain_mask_tensor.shape[1]), padding=1
             )
             for index, bbox in bounding_boxes.items()
         }
@@ -1110,7 +1105,7 @@ class Grains:
     def get_individual_grain_crops(
         grain_mask_tensor: npt.NDArray,
         padding: int = 1,
-    ) -> tuple[list[npt.NDArray], list[npt.NDArray], int]:
+    ) -> tuple[list[npt.NDArray], list[tuple[int, int, int, int]], int, list[tuple[int, int, int, int]]]:
         """
         Get individual grain crops from an image tensor.
 
@@ -1129,13 +1124,16 @@ class Grains:
         -------
         list[npt.NDArray]
             List of individual grain crops.
-        list[npt.NDArray]
+        list[tuple[int, int, int, int]]
             List of bounding boxes for each grain.
         int
             Padding used for the bounding boxes.
+        tuple[int, int, int, int]
+            Padding used for the bounding boxes in the format (top, bottom, left, right).
         """
-        grain_crops = []
-        bounding_boxes = []
+        grain_crops: list[npt.NDArray] = []
+        bounding_boxes: list[tuple[int, int, int, int]] = []
+        paddings_used: list[tuple[int, int, int, int]] = []
 
         # Label the regions
         flattened_multi_class_mask = Grains.flatten_multi_class_tensor(grain_mask_tensor)
@@ -1164,12 +1162,9 @@ class Grains:
             bounding_box = region.bbox
 
             # Pad the bounding box
-            bounding_box = pad_bounding_box_cutting_off_at_image_bounds(
-                crop_min_row=bounding_box[0],
-                crop_min_col=bounding_box[1],
-                crop_max_row=bounding_box[2],
-                crop_max_col=bounding_box[3],
-                image_shape=(grain_mask_tensor.shape[0], grain_mask_tensor.shape[1]),
+            bounding_box, padding_used = pad_bounding_box_dynamically_at_limits(
+                bbox=bounding_box,
+                limits=(0, 0, grain_mask_tensor.shape[0], grain_mask_tensor.shape[1]),
                 padding=padding,
             )
 
@@ -1183,8 +1178,9 @@ class Grains:
             # Add the crop to the list
             grain_crops.append(grain_crop.astype(bool))
             bounding_boxes.append(bounding_box)
+            paddings_used.append(padding_used)
 
-        return grain_crops, bounding_boxes, padding
+        return grain_crops, bounding_boxes, padding, paddings_used
 
     @staticmethod
     def vet_numbers_of_regions_single_grain(
@@ -1899,17 +1895,14 @@ class Grains:
                 padding_pixels = int(
                     max(
                         (flat_bounding_box[2] - flat_bounding_box[0]) * padding_percentage,
-                        (flat_bounding_box[3] - flat_bounding_box[1]) * padding_percentage
+                        (flat_bounding_box[3] - flat_bounding_box[1]) * padding_percentage,
                     )
                 )
 
             # Pad the mask
-            padded_flat_bounding_box = pad_bounding_box_cutting_off_at_image_bounds(
-                crop_min_row=flat_bounding_box[0],
-                crop_min_col=flat_bounding_box[1],
-                crop_max_row=flat_bounding_box[2],
-                crop_max_col=flat_bounding_box[3],
-                image_shape=(full_mask_tensor.shape[0], full_mask_tensor.shape[1]),
+            padded_flat_bounding_box, padding_used = pad_bounding_box_dynamically_at_limits(
+                bbox=flat_bounding_box,
+                limits=(0, 0, full_mask_tensor.shape[0], full_mask_tensor.shape[1]),
                 padding=padding_pixels,
             )
 
@@ -1957,7 +1950,7 @@ class Grains:
             graincrops[grain_number] = GrainCrop(
                 image=grain_cropped_image,
                 mask=grain_cropped_tensor,
-                padding=padding_pixels,
+                padding=padding_used,
                 bbox=square_flat_bounding_box,
                 pixel_to_nm_scaling=pixel_to_nm_scaling,
                 filename=filename,

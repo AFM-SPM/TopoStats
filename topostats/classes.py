@@ -37,8 +37,8 @@ class GrainCrop:
         2-D Numpy array of the cropped image.
     mask : npt.NDArray[np.bool_]
         3-D Numpy tensor of the cropped mask.
-    padding : int
-        Padding added to the bounding box of the grain during cropping.
+    padding : tuple[int, int, int, int]
+        The padding (blank area) surrounding the grain in the crop, in the order (min_row, min_col, max_row, max_col).
     bbox : tuple[int, int, int, int]
         Bounding box of the crop including padding.
     pixel_to_nm_scaling : float
@@ -71,7 +71,7 @@ class GrainCrop:
         self,
         image: npt.NDArray[np.float32],
         mask: npt.NDArray[np.bool_],
-        padding: int,
+        padding: tuple[int, int, int, int],
         bbox: tuple[int, int, int, int],
         pixel_to_nm_scaling: float,
         thresholds: list[float],
@@ -95,8 +95,8 @@ class GrainCrop:
             2-D Numpy array of the cropped image.
         mask : npt.NDArray[np.bool_]
             3-D Numpy tensor of the cropped mask.
-        padding : int
-            Padding added to the bounding box of the grain during cropping.
+        padding : tuple[int, int, int, int]
+            The padding (blank area) surrounding the grain in the crop, in the order (min_row, min_col, max_row, max_col).
         bbox : tuple[int, int, int, int]
             Bounding box of the crop including padding.
         pixel_to_nm_scaling : float
@@ -267,10 +267,10 @@ class GrainCrop:
             for class_index in range(1, value.shape[2]):
                 class_mask = value[:, :, class_index]
 
-                padded_region_top = class_mask[: self.padding, :]
-                padded_region_bottom = class_mask[-self.padding :, :]
-                padded_region_left = class_mask[:, : self.padding]
-                padded_region_right = class_mask[:, -self.padding :]
+                padded_region_top = class_mask[: self.padding[0], :]
+                padded_region_bottom = class_mask[-self.padding[2] :, :]
+                padded_region_left = class_mask[:, : self.padding[1]]
+                padded_region_right = class_mask[:, -self.padding[3] :]
                 if (
                     np.any(padded_region_top)
                     or np.any(padded_region_bottom)
@@ -278,10 +278,10 @@ class GrainCrop:
                     or np.any(padded_region_right)
                 ):
                     LOGGER.warning("Padding region is not blank, setting to blank")
-                    value[: self.padding, :, class_index] = 0
-                    value[-self.padding :, :, class_index] = 0
-                    value[:, : self.padding, class_index] = 0
-                    value[:, -self.padding :, class_index] = 0
+                    value[: self.padding[0], :, class_index] = 0
+                    value[-self.padding[2] :, :, class_index] = 0
+                    value[:, : self.padding[1], class_index] = 0
+                    value[:, -self.padding[3] :, class_index] = 0
         except IndexError as e:
             LOGGER.error(f"[{self.filename}] : Error mask is missing layers.", exc_info=e)
 
@@ -290,25 +290,25 @@ class GrainCrop:
         self._mask: npt.NDArray[np.bool_] = value
 
     @property
-    def padding(self) -> int:
+    def padding(self) -> tuple[int, int, int, int]:
         """
         Getter for the ``padding`` attribute.
 
         Returns
         -------
-        int
+        tuple[int, int, int, int]
             The padding amount.
         """
         return self._padding
 
     @padding.setter
-    def padding(self, value: int) -> None:
+    def padding(self, value: tuple[int, int, int, int]) -> None:
         """
         Setter for the ``padding`` attribute.
 
         Parameters
         ----------
-        value : int
+        value : tuple[int, int, int, int]
             Padding amount.
 
         Raises
@@ -316,10 +316,10 @@ class GrainCrop:
         ValueError
             If the padding is not an integer or is less than 1.
         """
-        if not isinstance(value, int):
-            raise ValueError(f"Padding must be an integer, but is {value}")
-        if value < 1:
-            raise ValueError(f"Padding must be >= 1, but is {value}")
+        if not isinstance(value, tuple) or not all(isinstance(i, int) for i in value) or len(value) != 4:
+            raise ValueError(f"Padding must be a tuple of 4 integers, but is {value}")
+        if any(i < 1 for i in value):
+            raise ValueError(f"Padding must be >= 1 for all values, but is {value}")
         self._padding = value
 
     @property

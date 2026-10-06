@@ -453,7 +453,7 @@ class UnanalysedGrain(BaseDamageAnalysis):
     molecule_data_collection: UnanalysedMoleculeDataCollection
     added_left: int
     added_top: int
-    padding: int
+    padding: tuple[int, int, int, int]
     mask: npt.NDArray[np.bool_]
 
     def __str__(self) -> str:

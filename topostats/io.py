@@ -1062,6 +1062,19 @@ def dict_to_topostats(  # noqa: C901 # pylint: disable=too-many-locals,too-many-
             image = crop["image"] if "image" in crop.keys() else None
             mask = crop["mask"] if "mask" in crop.keys() else None
             padding = int(crop["padding"]) if "padding" in crop.keys() else None
+            if "padding" in crop.keys():
+                padding = crop["padding"]
+                try:
+                    padding = int(padding)
+                    # older versions of topostats saved padding as a single int, but now it is a tuple of 4 ints
+                    padding = (padding, padding, padding, padding)
+                except ValueError:
+                    # not an int, check if it is a list or tuple of 4 ints
+                    if isinstance(padding, (list, tuple)) and len(padding) == 4:
+                        padding = tuple(padding)
+                    else:
+                        raise ValueError(f"Invalid padding value: {padding}. Must be an int or a list/tuple of 4 ints.")
+
             bbox = crop["bbox"] if "bbox" in crop.keys() else None
             pixel_to_nm_scaling = crop["pixel_to_nm_scaling"] if "pixel_to_nm_scaling" in crop.keys() else None
             filename = crop["filename"] if "filename" in crop.keys() else None
