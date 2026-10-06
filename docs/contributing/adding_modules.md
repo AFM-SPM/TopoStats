@@ -131,7 +131,8 @@ filter_parser.set_defaults(func=run_modules.filters)
 <!-- markdownlint-disable MD029 -->
 
 3. Set the default function that will be called with `<module_name>_parser.set_defaults(func=run_modules.<function>)`
-which will call the function you have defined in `topostats/run_modules.py` which runs your module.
+   which will call the function you have defined in `topostats/run_modules.py` which runs your module.
+
 <!-- markdownlint-enable MD029 -->
 
 **NB** In the above substitute `<module_name>` for the meaningful name you have created for your module.
