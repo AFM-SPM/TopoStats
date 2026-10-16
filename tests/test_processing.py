@@ -37,11 +37,13 @@ RESOURCES = BASE_DIR / "tests/resources"
 
 def test_debug_process_file(tmp_path) -> None:
     """Debug processing a file."""
-    from topostats.io import read_yaml
-    import yaml
-    import importlib.resources as pkg_resources
-    import topostats
     import copy
+    import importlib.resources as pkg_resources
+
+    import yaml
+
+    import topostats
+    from topostats.io import read_yaml
 
     # config
     config_path = Path("/Users/sylvi/topo_data/debugging/config.yaml")

@@ -256,6 +256,7 @@ def get_defects_and_gaps_from_bool_array(
     trace_heights_nm: npt.NDArray[np.float64],
     circular: bool,
     distance_to_previous_points_nm: npt.NDArray[np.float64],
+    defect_minimum_length_nm: float,
     connect_close_defect_threshold_nm: float | None,
 ) -> OrderedDefectGapList:
     """
@@ -273,6 +274,8 @@ def get_defects_and_gaps_from_bool_array(
     distance_to_previous_points_nm : npt.NDArray[np.float64]
         An array of distances to the previous points in nanometers. This is used to calculate the lengths of the
         defects and gaps.
+    defect_minimum_length_nm : float
+        The minimum length of a defect in nanometers. Defects shorter than this length will be removed.
     connect_close_defect_threshold_nm : float
         The threshold in nanometers for considering two defects as close.
 
@@ -291,12 +294,21 @@ def get_defects_and_gaps_from_bool_array(
         )
 
     if connect_close_defect_threshold_nm is not None:
+        print(f"connecting close defects")
         defects, gaps = connect_close_defects(
             defects=defects,
             gaps=gaps,
             distance_to_previous_points_nm=distance_to_previous_points_nm,
             circular=circular,
             connect_close_defect_threshold_nm=connect_close_defect_threshold_nm,
+        )
+
+        defects, gaps = remove_too_short_defects(
+            defects=defects,
+            gaps=gaps,
+            distance_to_previous_points_nm=distance_to_previous_points_nm,
+            defect_minimum_length_nm=defect_minimum_length_nm,
+            circular=circular,
         )
 
     # Calculate the lengths of the defects and gaps
@@ -475,6 +487,219 @@ def calculate_defect_and_gap_lengths(
     return defects_and_gaps
 
 
+# noqa: C901
+def remove_too_short_defects(
+    defects: list[tuple[int, int]],
+    gaps: list[tuple[int, int]],
+    distance_to_previous_points_nm: npt.NDArray[np.float64],
+    defect_minimum_length_nm: float,
+    circular: bool,
+) -> tuple[list[tuple[int, int]], list[tuple[int, int]]]:
+    """
+    Remove defects that are shorter than the minimum length.
+
+    Defects and gaps are stored in a list of tuples.
+
+    defects: [(start_index, end_index), (start_index, end_index), ...]
+    gaps: [(start_index, end_index), (start_index, end_index), ...]
+
+    Defects and gaps align, meaning that the first defect is followed by the first gap, etc.
+
+    Parameters
+    ----------
+    defects : list[tuple[int, int]]
+        A list of tuples containing the start and end indexes of defects.
+    gaps : list[tuple[int, int]]
+        A list of tuples containing the start and end indexes of gaps.
+    distance_to_previous_points_nm : npt.NDArray[np.float64]
+        An array of distances to the previous points in nanometres.
+    defect_minimum_length_nm : float
+        The minimum length of a defect in nanometres. Defects shorter than this length will be removed.
+    circular : bool
+        If True, the trace is treated as circular, meaning that the end of the trace wraps around to the start.
+
+    Returns
+    -------
+    tuple[list[tuple[int, int]], list[tuple[int, int]]]
+        A tuple containing two lists:
+        - The defects as a list of tuples of start and end indexes.
+        - The gaps as a list of tuples of start and end indexes.
+    """
+    # Remove defects that are shorter than the minimum length, and merge any adjacent gaps.
+    filtered_defects: list[tuple[int, int]] = []
+    filtered_gaps: list[tuple[int, int]] = []
+
+    # If there are no defects, do nothing
+    if len(defects) == 0:
+        return defects, gaps
+
+    # If there are no gaps, do nothing
+    if len(gaps) == 0:
+        return defects, gaps
+
+    # Determine if we start with a defect or a gap.
+    first_defect = defects[0]
+    first_gap = gaps[0]
+    gap_index = 0
+    if first_gap[0] < first_defect[0]:
+        # first gap comes before the first defect, add the gap
+        filtered_gaps.append(first_gap)
+        gap_index = 1
+        # Check if there is not a second gap
+        if len(gaps) == 1:
+            # If there is only one gap, then have to check if the first defect is too short here
+            if len(defects) == 1:
+                start_index, end_index = first_defect
+                length_nm = calculate_distance_of_region(
+                    start_index=start_index,
+                    end_index=end_index,
+                    distance_to_previous_points_nm=distance_to_previous_points_nm,
+                    circular=circular,
+                )
+                if length_nm >= defect_minimum_length_nm:
+                    # print(f"keeping defect {first_defect} with length {length_nm:.2f} nm")
+                    # Keep the defect
+                    filtered_defects.append(first_defect)
+                else:
+                    # print(f"removing defect {first_defect} with length {length_nm:.2f} nm")
+                    # Don't add the defect
+                    # Remove the defect and merge the gap with the previous gap
+                    # There is guaranteed to be a previous gap but check anyway
+                    assert len(filtered_gaps) > 0, "There should be a previous gap to merge with."
+                    previous_gap = filtered_gaps[-1]
+                    merged_gap = (previous_gap[0], first_gap[1])
+                    # Apply the merged gap to the last gap in the filtered gaps list
+                    filtered_gaps[-1] = merged_gap
+            else:
+                raise ValueError("There is only one gap, but more than one defect. This should not happen.")
+
+            # Nothing more needs doing, all defects and gaps have been processed
+            return filtered_defects, filtered_gaps
+
+    # Filter out defects that are too short
+    for defect in defects:
+        # Check if there is a corresponding gap for this defect, if not, then we are at the end of the trace
+        if gap_index >= len(gaps):
+            # If there is no corresponding gap, then we are at the end of the trace, so we can just add the defect if it
+            # is long enough and return.
+            start_index, end_index = defect
+            length_nm = calculate_distance_of_region(
+                start_index=start_index,
+                end_index=end_index,
+                distance_to_previous_points_nm=distance_to_previous_points_nm,
+                circular=circular,
+            )
+            if length_nm >= defect_minimum_length_nm:
+                # print(f"keeping defect {defect} with length {length_nm:.2f} nm")
+                # Keep the defect
+                filtered_defects.append(defect)
+            else:
+                # print(f"removing defect {defect} with length {length_nm:.2f} nm")
+                # Don't add the defect
+                # Remove the defect and merge the gap with the previous gap
+                if len(filtered_gaps) > 0:
+                    previous_gap = filtered_gaps[-1]
+                    merged_gap = (previous_gap[0], previous_gap[1])
+                    # Apply the merged gap to the last gap in the filtered gaps list
+                    filtered_gaps[-1] = merged_gap
+            break
+        gap = gaps[gap_index]
+        start_index, end_index = defect
+        length_nm = calculate_distance_of_region(
+            start_index=start_index,
+            end_index=end_index,
+            distance_to_previous_points_nm=distance_to_previous_points_nm,
+            circular=circular,
+        )
+        if length_nm >= defect_minimum_length_nm:
+            # print(f"keeping defect {defect} with length {length_nm:.2f} nm")
+            # Keep the defect
+            filtered_defects.append(defect)
+            # Keep the gap that follows the defect
+            filtered_gaps.append(gap)
+        else:
+            # print(f"removing defect {defect} with length {length_nm:.2f} nm")
+            # Don't add the defect
+            # Remove the defect and merge the gap with the previous gap
+            if len(filtered_gaps) > 0:
+                previous_gap = filtered_gaps[-1]
+                merged_gap = (previous_gap[0], gap[1])
+                # Apply the merged gap to the last gap in the filtered gaps list
+                filtered_gaps[-1] = merged_gap
+            else:
+                # If there is no previous gap, we are at the start of the trace, handle this later
+                pass
+
+        gap_index += 1
+
+    # If there are no defects, left, then the whole trace is a gap
+    if len(filtered_defects) == 0:
+        # Set the filtered gaps to be the whole trace
+        filtered_gaps = [(0, len(distance_to_previous_points_nm) - 1)]
+        return filtered_defects, filtered_gaps
+
+    # Sort out the start and end gaps
+
+    first_defect = filtered_defects[0]
+    first_defect_first_index = first_defect[0]
+    if first_defect_first_index == 0:
+        # The first defect starts at the start of the trace, so we don't need to add / merge a start gap
+        pass
+    else:
+        # If the first gap starts at the start of the trace, then we might need to merge it with the last gap if
+        # the trace is circular. Else we might need to create a new gap at the start of the trace if linear.
+        if len(filtered_gaps) > 0:
+            first_gap = filtered_gaps[0]
+            if first_gap[0] == 0:
+                # First gap starts at the start of the trace, so don't need to add but might need to merge
+                if circular:
+                    last_gap = filtered_gaps[-1]
+                    last_defect = filtered_defects[-1]
+                    # Check if the trace ends in a gap
+                    if last_gap[1] > last_defect[1]:
+                        # The trace ends in a gap, so need to merge the first and last gaps
+                        merged_gap = (last_gap[0], first_gap[1])
+                        filtered_gaps[-1] = merged_gap
+                    else:
+                        # The circular trace ends in a defect, so can skip merging
+                        pass
+                else:
+                    # Linear with first gap at start, so can skip merging
+                    pass
+            else:
+                # First gap does not start at the start of the trace, so might need to create a new gap at the start
+                # of the trace if linear or if the circular trace ends in a defect.
+                if circular:
+                    # If circular trace ends in a defect, we can create a new gap at the start of the trace
+                    last_gap = filtered_gaps[-1]
+                    last_defect = filtered_defects[-1]
+                    if last_gap[1] > last_defect[1]:
+                        # The circular trace ends in a gap, so we need to extend the last gap to the start of the first
+                        # defect
+                        merged_gap = (last_gap[0], first_defect[0] - 1)
+                        filtered_gaps[-1] = merged_gap
+                    else:
+                        # The circular trace ends in a defect, so we can create a new gap at the start of the trace
+                        new_gap = (0, first_gap[1])
+                        filtered_gaps.insert(0, new_gap)
+                else:
+                    # Linear trace so just create a new gap at the start of the trace
+                    new_gap = (0, first_gap[1])
+                    filtered_gaps.insert(0, new_gap)
+        else:
+            # If the first defect starts at the start of the trace, create a gap at the end
+            if filtered_defects[0][0] == 0:
+                # Defect starts at start of trace
+                new_gap = (first_defect[1] + 1, len(distance_to_previous_points_nm) - 1)
+                filtered_gaps.append(new_gap)
+            else:
+                # Prepend a gap at the start of the trace
+                new_gap = (0, first_defect[0] - 1)
+                filtered_gaps.insert(0, new_gap)
+
+    return filtered_defects, filtered_gaps
+
+
 def calculate_defect_and_gap_turns(
     defects: list[tuple[str, int, int, float, float]],
     trace_points: npt.NDArray[np.float64],
@@ -617,6 +842,7 @@ def find_curvature_defects(  # noqa: C901
     curvature_threshold_absolute_pernm: float,
     curvature_turn_in_distance_turn_threshold_deg: float,
     connect_close_defect_threshold_nm: float | None,
+    minimum_defect_length_nm: float,
 ) -> set[str]:
     """
     Find curvature defects for all molecules in all grains in the grain collection.
@@ -637,6 +863,8 @@ def find_curvature_defects(  # noqa: C901
         The turn threshold in degrees for the "turn_in_distance" method for curvature defect detection.
     connect_close_defect_threshold_nm : float | None
         The distance in nanometres between defects below which two defects will be connected into one defect.
+    minimum_defect_length_nm : float
+        The minimum length in nanometres for a defect to be considered valid. Defects shorter than this length will be removed.
 
     Returns
     -------
@@ -676,6 +904,7 @@ def find_curvature_defects(  # noqa: C901
                         molecule_data.spline_coords_nm, circular=molecule_data.circular
                     ),
                     circular=molecule_data.circular,
+                    defect_minimum_length_nm=minimum_defect_length_nm,
                     connect_close_defect_threshold_nm=connect_close_defect_threshold_nm,
                 )
 
@@ -710,6 +939,7 @@ def find_curvature_defects(  # noqa: C901
                         molecule_data.spline_coords_nm, circular=molecule_data.circular
                     ),
                     circular=molecule_data.circular,
+                    defect_minimum_length_nm=minimum_defect_length_nm,
                     connect_close_defect_threshold_nm=connect_close_defect_threshold_nm,
                 )
 
@@ -744,6 +974,7 @@ def find_curvature_defects(  # noqa: C901
                         molecule_data.spline_coords_nm, circular=molecule_data.circular
                     ),
                     circular=molecule_data.circular,
+                    defect_minimum_length_nm=minimum_defect_length_nm,
                     connect_close_defect_threshold_nm=connect_close_defect_threshold_nm,
                 )
 
@@ -765,6 +996,7 @@ def find_height_defects(  # noqa: C901
     connect_close_defect_threshold_nm: float | None,
     find_height_defects_close_to_curvature_defects: bool,
     curvature_defect_height_defect_search_range_nm: float,
+    minimum_defect_length_nm: float,
 ) -> set[str]:
     """
     Find height defects for all molecules in all grains in the grain collection.
@@ -785,6 +1017,8 @@ def find_height_defects(  # noqa: C901
         using the "percentage_of_median" method.
     connect_close_defect_threshold_nm : float | None
         The distance in nanometres between defects below which two defects will be connected into one defect.
+    minimum_defect_length_nm : float
+        The minimum allowed length of a defect - else removed.
 
     Returns
     -------
@@ -805,6 +1039,7 @@ def find_height_defects(  # noqa: C901
                 )
                 iqr = np.percentile(heights_nm, 75) - np.percentile(heights_nm, 25)
                 height_threshold_iqr = np.percentile(heights_nm, 50) - height_threshold_iqr_multiplier * iqr
+                print(f"height threshold iqr: {height_threshold_iqr}")
                 height_defects_bool = heights_nm < height_threshold_iqr
 
                 if find_height_defects_close_to_curvature_defects:
@@ -827,6 +1062,7 @@ def find_height_defects(  # noqa: C901
                     ),
                     circular=molecule_data.circular,
                     connect_close_defect_threshold_nm=connect_close_defect_threshold_nm,
+                    defect_minimum_length_nm=minimum_defect_length_nm,
                 )
 
                 molecule_data.height_defect_data = MoleculeDefectData(ordered_defects_and_gaps=ordered_defect_gap_list)
@@ -857,11 +1093,13 @@ def find_height_defects(  # noqa: C901
                         coords_nm=spline_coords_nm, circular=molecule_data.circular
                     ),
                     circular=molecule_data.circular,
+                    defect_minimum_length_nm=minimum_defect_length_nm,
                     connect_close_defect_threshold_nm=connect_close_defect_threshold_nm,
                 )
 
                 molecule_data.height_defect_data = MoleculeDefectData(ordered_defects_and_gaps=ordered_defect_gap_list)
     elif height_defect_method == "percentage_of_median":
+        print(f"finding height defects : percentage of median")
         for _global_grain_id, grain_model in grain_collection.items():
             all_grain_heights = []
             for _molecule_id, molecule_data in grain_model.molecule_data_collection.items():
@@ -871,6 +1109,7 @@ def find_height_defects(  # noqa: C901
             all_grain_heights = np.array(all_grain_heights)
             median_height = np.median(all_grain_heights)
             height_threshold_percentage_of_median_value = median_height * height_threshold_percentage_of_median
+            print(f"height threshold percentage of median: {height_threshold_percentage_of_median_value}")
             for _molecule_id, molecule_data in grain_model.molecule_data_collection.items():
                 heights_nm = molecule_data.smoothed_spline_coords_heights
                 assert heights_nm is not None
@@ -901,6 +1140,7 @@ def find_height_defects(  # noqa: C901
                     ),
                     circular=molecule_data.circular,
                     connect_close_defect_threshold_nm=connect_close_defect_threshold_nm,
+                    defect_minimum_length_nm=minimum_defect_length_nm,
                 )
 
                 molecule_data.height_defect_data = MoleculeDefectData(ordered_defects_and_gaps=ordered_defect_gap_list)
@@ -955,9 +1195,11 @@ def find_defects_in_height_and_curvature(
     height_threshold_iqr_multiplier: float,
     height_threshold_absolute_nm: float,
     height_threshold_percentage_of_median: float,
+    height_defect_minimum_length_nm: float,
     curvature_defect_method: Literal["iqr", "absolute", "turn_in_distance"],
     curvature_threshold_iqr_multiplier: float,
     curvature_threshold_absolute_pernm: float,
+    curvature_defect_minimum_length_nm: float,
     curvature_turn_in_distance_turn_threshold_deg: float,
     connect_close_defect_threshold_nm: float | None,
     find_height_defects_close_to_curvature_defects: bool,
@@ -980,6 +1222,8 @@ def find_defects_in_height_and_curvature(
     height_threshold_percentage_of_median : float
         The percentage of the median height of each *grain* to use as a threshold for height defect detection
         when using the "percentage_of_median" method.
+    height_defect_minimum_length_nm : float
+        Minimum allowed length of a height defect - else removed.
     curvature_defect_method : Literal["iqr", "absolute"]
         The method to use for finding curvature defects. Options are "iqr" for interquartile range method or "absolute"
         for an absolute threshold in inverse nanometres.
@@ -987,6 +1231,8 @@ def find_defects_in_height_and_curvature(
         The multiplier for the interquartile range when using the "iqr" method for curvature defect detection.
     curvature_threshold_absolute_pernm : float
         The absolute threshold in inverse nanometres for curvature defect detection when using the "absolute" method.
+    curvature_defect_minimum_length_nm : float
+        Minimum allowed length of a curvature defect - else removed.
     turn_in_distance_turn_threshold_deg : float
         The threshold in degrees for turn in distance defect detection when using the "turn_in_distance" method for
         curvature defect detection. If the turn turns more than this value within the window length (defined
@@ -1013,6 +1259,7 @@ def find_defects_in_height_and_curvature(
         curvature_threshold_absolute_pernm=curvature_threshold_absolute_pernm,
         curvature_turn_in_distance_turn_threshold_deg=curvature_turn_in_distance_turn_threshold_deg,
         connect_close_defect_threshold_nm=connect_close_defect_threshold_nm,
+        minimum_defect_length_nm=curvature_defect_minimum_length_nm,
     )
     bad_grains.update(additional_bad_grains)
 
@@ -1025,6 +1272,7 @@ def find_defects_in_height_and_curvature(
         connect_close_defect_threshold_nm=connect_close_defect_threshold_nm,
         find_height_defects_close_to_curvature_defects=find_height_defects_close_to_curvature_defects,
         curvature_defect_height_defect_search_range_nm=curvature_defect_height_defect_search_range_nm,
+        minimum_defect_length_nm=height_defect_minimum_length_nm,
     )
     bad_grains.update(additional_bad_grains)
 
