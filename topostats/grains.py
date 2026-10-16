@@ -490,25 +490,25 @@ class Grains:
 
         self.topostats_object.full_mask_tensor = None
 
-        # iterate over the thresholds
+        # iterate over the thresholds (classes)
         for i, threshold in enumerate(self.thresholds):
             LOGGER.debug(f"[{self.filename}] : Finding grains, threshold: ({threshold})")
-            self.mask_images[i] = {}
+            self.mask_images = {}
 
             traditional_full_mask_tensor = Grains.multi_class_thresholding(
                 image=self.image,
-                thresholds=[threshold],
+                thresholds=self.thresholds,
                 image_name=self.filename,
             )
 
-            self.mask_images[i]["thresholded_grains"] = traditional_full_mask_tensor.copy()
+            self.mask_images["thresholded_grains"] = traditional_full_mask_tensor.copy()
 
             # pre-GrainCrop checks
 
             # Tidy border - done here and not in vetting to not make vetting dependent on image size argument.
             if self.remove_edge_intersecting_grains:
                 traditional_full_mask_tensor = Grains.tidy_border_tensor(grain_mask_tensor=traditional_full_mask_tensor)
-            self.mask_images[i]["tidied_border"] = traditional_full_mask_tensor.copy()
+            self.mask_images["tidied_border"] = traditional_full_mask_tensor.copy()
 
             # Remove objects with area too small to process
             traditional_full_mask_tensor = Grains.area_thresholding_tensor(
@@ -521,7 +521,7 @@ class Grains:
                 grain_mask_tensor=traditional_full_mask_tensor,
                 bbox_size_thresholds=(self.minimum_bbox_size_px, None),
             )
-            self.mask_images[i]["removed_objects_too_small_to_process"] = traditional_full_mask_tensor.copy()
+            self.mask_images["removed_objects_too_small_to_process"] = traditional_full_mask_tensor.copy()
 
             # Connect loose ends in the grain mask
             if self.endpoint_connection_config is not None:
@@ -544,7 +544,7 @@ class Grains:
                 pixel_to_nm_scaling=self.pixel_to_nm_scaling,
             )
 
-            self.mask_images[i]["area_thresholded"] = traditional_full_mask_tensor.copy()
+            self.mask_images["area_thresholded"] = traditional_full_mask_tensor.copy()
 
             # Extract GrainCrops from the full mask tensor
             traditional_graincrops = self.extract_grains_from_full_image_tensor(
@@ -553,7 +553,6 @@ class Grains:
                 padding=self.grain_crop_padding,
                 pixel_to_nm_scaling=self.pixel_to_nm_scaling,
                 filename=self.filename,
-                threshold_idx=i,
             )
 
             # If there are no grains, then later steps will fail, so skip the stages if no grains are found.
@@ -598,7 +597,6 @@ class Grains:
                                 padding=self.grain_crop_padding,
                                 pixel_to_nm_scaling=self.pixel_to_nm_scaling,
                                 filename=self.filename,
-                                threshold_idx=i,
                             )
                 else:
                     # otherwise use the traditional graincrops
@@ -611,7 +609,7 @@ class Grains:
 
                 # Set the unet tensor regardless of if the unet model was run, since the plotting expects it
                 # can be changed when we do a plotting overhaul
-                self.mask_images[i]["unet"] = full_mask_tensor.copy()
+                self.mask_images["unet"] = full_mask_tensor.copy()
 
                 # Vet the grains
                 if self.vetting_config is not None:
@@ -627,7 +625,7 @@ class Grains:
                     graincrops=graincrops_vetted,
                     image_shape=self.image.shape,
                 )
-                self.mask_images[i]["vetted"] = full_mask_tensor_vetted.copy()
+                self.mask_images["vetted"] = full_mask_tensor_vetted.copy()
 
                 # Mandatory check to remove any objects in any classes that are too small to process
                 graincrops_removed_too_small_to_process = Grains.graincrops_remove_objects_too_small_to_process(
@@ -652,22 +650,22 @@ class Grains:
                     graincrops=graincrops_merged_classes,
                     image_shape=self.image.shape,
                 )
-                self.mask_images[i]["merged_classes"] = full_mask_tensor_merged_classes.copy()
-                if self.topostats_object.full_mask_tensor is None:
-                    # If this threshold iteration is the first with graincrops found
-                    # Values can be directly assigned
-                    self.topostats_object.full_mask_tensor = full_mask_tensor_merged_classes
-                    self.topostats_object.grain_crops = graincrops_merged_classes
-                    self.grain_crops = graincrops_merged_classes
-                else:
-                    # If graincrops have already been found in a previous threshold iteration
-                    # assign unused key values to new graincrops to avoid replacing existing data
-                    self.topostats_object.full_mask_tensor += full_mask_tensor_merged_classes
-                    curr_crops = len(self.grain_crops)
-                    for graincrop_id, graincrop in graincrops_merged_classes.items():
-                        new_k = int(graincrop_id) + curr_crops
-                        self.grain_crops[new_k] = graincrop
-                        self.topostats_object.grain_crops[new_k] = graincrop
+                self.mask_images["merged_classes"] = full_mask_tensor_merged_classes.copy()
+                # if self.topostats_object.full_mask_tensor is None:
+                #     # If this threshold iteration is the first with graincrops found
+                #     # Values can be directly assigned
+                self.topostats_object.full_mask_tensor = full_mask_tensor_merged_classes
+                self.topostats_object.grain_crops = graincrops_merged_classes
+                self.grain_crops = graincrops_merged_classes
+                # else:
+                #     # If graincrops have already been found in a previous threshold iteration
+                #     # assign unused key values to new graincrops to avoid replacing existing data
+                #     self.topostats_object.full_mask_tensor += full_mask_tensor_merged_classes
+                #     curr_crops = len(self.grain_crops)
+                #     for graincrop_id, graincrop in graincrops_merged_classes.items():
+                #         new_k = int(graincrop_id) + curr_crops
+                #         self.grain_crops[new_k] = graincrop
+                #         self.topostats_object.grain_crops[new_k] = graincrop
             else:
                 # No grains found
                 self.grain_crops = None
@@ -816,7 +814,6 @@ class Grains:
                     ordered_trace=graincrop.ordered_trace,
                     threshold_method=graincrop.threshold_method,
                     thresholds=graincrop.thresholds,
-                    threshold_idx=graincrop.threshold_idx,
                 )
 
         LOGGER.debug(f"Number of empty removed grains: {num_empty_removed_grains}")
@@ -1639,7 +1636,6 @@ class Grains:
                 ordered_trace=graincrop.ordered_trace,
                 threshold_method=graincrop.threshold_method,
                 thresholds=graincrop.thresholds,
-                threshold_idx=graincrop.threshold_idx,
             )
 
         return passed_graincrops
@@ -1725,7 +1721,6 @@ class Grains:
         padding: int,
         pixel_to_nm_scaling: float,
         filename: str,
-        threshold_idx: int,
     ) -> dict[int, GrainCrop]:
         """
         Extract grains from the full image mask tensor.
@@ -1744,8 +1739,6 @@ class Grains:
             Pixel to nanometre scaling factor.
         filename : str
             Filename of the image.
-        threshold_idx : int
-            The index of the threshold used to find the grain.
 
         Returns
         -------
@@ -1838,7 +1831,6 @@ class Grains:
                 ordered_trace=None,
                 threshold_method=self.threshold_method,
                 thresholds=self.thresholds,
-                threshold_idx=threshold_idx,
             )
 
         return graincrops
