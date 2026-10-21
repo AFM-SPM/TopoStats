@@ -1092,7 +1092,24 @@ def dict_to_topostats(  # noqa: C901 # pylint: disable=too-many-locals,too-many-
         for grain, crop in dictionary["grain_crops"].items():
             image = crop["image"] if "image" in crop.keys() else None
             mask = crop["mask"] if "mask" in crop.keys() else None
-            padding = int(crop["padding"]) if "padding" in crop.keys() else None
+            if "padding" in crop.keys():
+                padding = crop["padding"]
+                try:
+                    padding = int(padding)
+                    # older versions of topostats saved padding as a single int, but now it is a tuple of 4 ints
+                    padding = (padding, padding, padding, padding)
+                except Exception as e:
+                    # not an int, check if it is a list or tuple of 4 ints
+                    if (
+                        isinstance(padding, tuple) or isinstance(padding, list) or isinstance(padding, np.ndarray)
+                    ) and len(padding) == 4:
+                        assert not isinstance(padding, int)  # (typing)
+                        # Turn the array into a tuple of ints, as it may be a numpy array of floats
+                        padding = tuple(int(x) for x in padding)
+                    else:
+                        raise ValueError(
+                            f"Invalid padding value: {padding}. Must be an int or a list/tuple of 4 ints. type: {type(padding)} len: {len(padding)}"
+                        ) from e
             bbox = crop["bbox"] if "bbox" in crop.keys() else None
             pixel_to_nm_scaling = crop["pixel_to_nm_scaling"] if "pixel_to_nm_scaling" in crop.keys() else None
             filename = crop["filename"] if "filename" in crop.keys() else None

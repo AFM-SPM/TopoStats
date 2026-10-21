@@ -125,7 +125,15 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 False,
                 error="Invalid value in config for grains.run, valid values are 'True' or 'False'",
             ),
-            "grain_crop_padding": int,
+            "grain_crop_padding_method": Or(
+                "pixels",
+                "percentage",
+                error=(
+                    "Invalid value in config for 'grains.grain_crop_padding_method', valid values are 'pixels' or 'percentage'"
+                ),
+            ),
+            "grain_crop_padding_pixels": int,
+            "grain_crop_padding_percentage": float,
             "threshold_method": Or(
                 "absolute",
                 "otsu",
@@ -222,6 +230,11 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             },
             "unet_config": {
                 "model_path": Or(None, str),
+                "model_type": Or(
+                    "tensorflow",
+                    "pytorch",
+                    error="Invalid value in config for 'grains.unet_config.model_type', valid values are 'tensorflow' or 'pytorch'",
+                ),
                 "upper_norm_bound": float,
                 "lower_norm_bound": float,
                 "remove_disconnected_grains": bool,
