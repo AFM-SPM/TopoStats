@@ -2516,107 +2516,107 @@ LOGGER.info('This is a log message.')
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>topostats/logs/logs.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-22">22</a></span>
-<span class="normal"><a href="#__codelineno-0-23">23</a></span>
-<span class="normal"><a href="#__codelineno-0-24">24</a></span>
-<span class="normal"><a href="#__codelineno-0-25">25</a></span>
-<span class="normal"><a href="#__codelineno-0-26">26</a></span>
-<span class="normal"><a href="#__codelineno-0-27">27</a></span>
-<span class="normal"><a href="#__codelineno-0-28">28</a></span>
-<span class="normal"><a href="#__codelineno-0-29">29</a></span>
-<span class="normal"><a href="#__codelineno-0-30">30</a></span>
-<span class="normal"><a href="#__codelineno-0-31">31</a></span>
-<span class="normal"><a href="#__codelineno-0-32">32</a></span>
-<span class="normal"><a href="#__codelineno-0-33">33</a></span>
-<span class="normal"><a href="#__codelineno-0-34">34</a></span>
-<span class="normal"><a href="#__codelineno-0-35">35</a></span>
-<span class="normal"><a href="#__codelineno-0-36">36</a></span>
-<span class="normal"><a href="#__codelineno-0-37">37</a></span>
-<span class="normal"><a href="#__codelineno-0-38">38</a></span>
-<span class="normal"><a href="#__codelineno-0-39">39</a></span>
-<span class="normal"><a href="#__codelineno-0-40">40</a></span>
-<span class="normal"><a href="#__codelineno-0-41">41</a></span>
-<span class="normal"><a href="#__codelineno-0-42">42</a></span>
-<span class="normal"><a href="#__codelineno-0-43">43</a></span>
-<span class="normal"><a href="#__codelineno-0-44">44</a></span>
-<span class="normal"><a href="#__codelineno-0-45">45</a></span>
-<span class="normal"><a href="#__codelineno-0-46">46</a></span>
-<span class="normal"><a href="#__codelineno-0-47">47</a></span>
-<span class="normal"><a href="#__codelineno-0-48">48</a></span>
-<span class="normal"><a href="#__codelineno-0-49">49</a></span>
-<span class="normal"><a href="#__codelineno-0-50">50</a></span>
-<span class="normal"><a href="#__codelineno-0-51">51</a></span>
-<span class="normal"><a href="#__codelineno-0-52">52</a></span>
-<span class="normal"><a href="#__codelineno-0-53">53</a></span>
-<span class="normal"><a href="#__codelineno-0-54">54</a></span>
-<span class="normal"><a href="#__codelineno-0-55">55</a></span>
-<span class="normal"><a href="#__codelineno-0-56">56</a></span>
-<span class="normal"><a href="#__codelineno-0-57">57</a></span>
-<span class="normal"><a href="#__codelineno-0-58">58</a></span>
-<span class="normal"><a href="#__codelineno-0-59">59</a></span>
-<span class="normal"><a href="#__codelineno-0-60">60</a></span>
-<span class="normal"><a href="#__codelineno-0-61">61</a></span>
-<span class="normal"><a href="#__codelineno-0-62">62</a></span>
-<span class="normal"><a href="#__codelineno-0-63">63</a></span>
-<span class="normal"><a href="#__codelineno-0-64">64</a></span>
-<span class="normal"><a href="#__codelineno-0-65">65</a></span>
-<span class="normal"><a href="#__codelineno-0-66">66</a></span>
-<span class="normal"><a href="#__codelineno-0-67">67</a></span>
-<span class="normal"><a href="#__codelineno-0-68">68</a></span>
-<span class="normal"><a href="#__codelineno-0-69">69</a></span>
-<span class="normal"><a href="#__codelineno-0-70">70</a></span>
-<span class="normal"><a href="#__codelineno-0-71">71</a></span>
-<span class="normal"><a href="#__codelineno-0-72">72</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22"></a><span class="k">def</span><span class="w"> </span><span class="nf">setup_logger</span><span class="p">(</span><span class="n">log_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">LOGGER_NAME</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">logging</span><span class="o">.</span><span class="n">Logger</span><span class="p">:</span>
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23"></a><span class="w">    </span><span class="sd">"""</span>
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24"></a><span class="sd">    Logger setup.</span>
-</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25"></a>
-</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26"></a><span class="sd">    The logger for the module is initialised when the module is loaded (as this functions is called from</span>
-</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27"></a><span class="sd">    __init__.py). This creates two stream handlers, one for general output and one for errors which are formatted</span>
-</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28"></a><span class="sd">    differently (there is greater information in the error formatter). To use in modules import the 'LOGGER_NAME' and</span>
-</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29"></a><span class="sd">    create a logger as shown in the Examples, it will inherit the formatting and direction of messages to the correct</span>
-</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30"></a><span class="sd">    stream.</span>
-</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31"></a>
-</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32"></a><span class="sd">    Parameters</span>
-</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33"></a><span class="sd">    ----------</span>
-</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34"></a><span class="sd">    log_name : str</span>
-</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35"></a><span class="sd">        Name under which logging information occurs.</span>
-</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36"></a>
-</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37"></a><span class="sd">    Returns</span>
-</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38"></a><span class="sd">    -------</span>
-</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39"></a><span class="sd">    logging.Logger</span>
-</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40"></a><span class="sd">        Logger object.</span>
-</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41"></a>
-</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42"></a><span class="sd">    Examples</span>
-</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43"></a><span class="sd">    --------</span>
-</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44"></a><span class="sd">    To use the logger in (sub-)modules have the following.</span>
-</span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45"></a>
-</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46"></a><span class="sd">        import logging</span>
-</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47"></a><span class="sd">        from topostats.logs.logs import LOGGER_NAME</span>
-</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48"></a>
-</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49"></a><span class="sd">        LOGGER = logging.getLogger(LOGGER_NAME)</span>
-</span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50"></a>
-</span><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51"></a><span class="sd">        LOGGER.info('This is a log message.')</span>
-</span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52"></a><span class="sd">    """</span>
-</span><span id="__span-0-53"><a id="__codelineno-0-53" name="__codelineno-0-53"></a>    <span class="n">out_stream_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
-</span><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54"></a>    <span class="n">out_stream_handler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
-</span><span id="__span-0-55"><a id="__codelineno-0-55" name="__codelineno-0-55"></a>    <span class="n">out_stream_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">LOG_INFO_FORMATTER</span><span class="p">)</span>
-</span><span id="__span-0-56"><a id="__codelineno-0-56" name="__codelineno-0-56"></a>
-</span><span id="__span-0-57"><a id="__codelineno-0-57" name="__codelineno-0-57"></a>    <span class="n">err_stream_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
-</span><span id="__span-0-58"><a id="__codelineno-0-58" name="__codelineno-0-58"></a>    <span class="n">err_stream_handler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
-</span><span id="__span-0-59"><a id="__codelineno-0-59" name="__codelineno-0-59"></a>    <span class="n">err_stream_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">LOG_ERROR_FORMATTER</span><span class="p">)</span>
-</span><span id="__span-0-60"><a id="__codelineno-0-60" name="__codelineno-0-60"></a>
-</span><span id="__span-0-61"><a id="__codelineno-0-61" name="__codelineno-0-61"></a>    <span class="n">file_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">Path</span><span class="p">()</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="o">.</span><span class="n">stem</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">"-</span><span class="si">{</span><span class="n">start</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">'%Y-%m-</span><span class="si">%d</span><span class="s1">-%H-%M-%S'</span><span class="p">)</span><span class="si">}</span><span class="s2">.log"</span><span class="p">)</span>
-</span><span id="__span-0-62"><a id="__codelineno-0-62" name="__codelineno-0-62"></a>    <span class="n">file_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">LOG_ERROR_FORMATTER</span><span class="p">)</span>
-</span><span id="__span-0-63"><a id="__codelineno-0-63" name="__codelineno-0-63"></a>
-</span><span id="__span-0-64"><a id="__codelineno-0-64" name="__codelineno-0-64"></a>    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">log_name</span><span class="p">)</span>
-</span><span id="__span-0-65"><a id="__codelineno-0-65" name="__codelineno-0-65"></a>    <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
-</span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66"></a>    <span class="n">logger</span><span class="o">.</span><span class="n">propagate</span> <span class="o">=</span> <span class="kc">True</span>
-</span><span id="__span-0-67"><a id="__codelineno-0-67" name="__codelineno-0-67"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">logger</span><span class="o">.</span><span class="n">handlers</span><span class="p">:</span>
-</span><span id="__span-0-68"><a id="__codelineno-0-68" name="__codelineno-0-68"></a>        <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">out_stream_handler</span><span class="p">)</span>
-</span><span id="__span-0-69"><a id="__codelineno-0-69" name="__codelineno-0-69"></a>        <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">err_stream_handler</span><span class="p">)</span>
-</span><span id="__span-0-70"><a id="__codelineno-0-70" name="__codelineno-0-70"></a>        <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">file_handler</span><span class="p">)</span>
-</span><span id="__span-0-71"><a id="__codelineno-0-71" name="__codelineno-0-71"></a>
-</span><span id="__span-0-72"><a id="__codelineno-0-72" name="__codelineno-0-72"></a>    <span class="k">return</span> <span class="n">logger</span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-22">22</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-23">23</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-24">24</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-25">25</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-26">26</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-27">27</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-28">28</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-29">29</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-30">30</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-31">31</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-32">32</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-33">33</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-34">34</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-35">35</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-36">36</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-37">37</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-38">38</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-39">39</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-40">40</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-41">41</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-42">42</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-43">43</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-44">44</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-45">45</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-46">46</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-47">47</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-48">48</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-49">49</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-50">50</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-51">51</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-52">52</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-53">53</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-54">54</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-55">55</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-56">56</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-57">57</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-58">58</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-59">59</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-60">60</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-61">61</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-62">62</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-63">63</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-64">64</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-65">65</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-66">66</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-67">67</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-68">68</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-69">69</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-70">70</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-71">71</a></span>
+<span class="normal"><a href="#topostats.logs.logs.setup_logger--source--__codelineno-0-72">72</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="topostats.logs.logs.setup_logger--source--__span-0-22"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-22" name="topostats.logs.logs.setup_logger--source--__codelineno-0-22"></a><span class="k">def</span><span class="w"> </span><span class="nf">setup_logger</span><span class="p">(</span><span class="n">log_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">LOGGER_NAME</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">logging</span><span class="o">.</span><span class="n">Logger</span><span class="p">:</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-23"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-23" name="topostats.logs.logs.setup_logger--source--__codelineno-0-23"></a><span class="w">    </span><span class="sd">"""</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-24"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-24" name="topostats.logs.logs.setup_logger--source--__codelineno-0-24"></a><span class="sd">    Logger setup.</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-25"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-25" name="topostats.logs.logs.setup_logger--source--__codelineno-0-25"></a>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-26"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-26" name="topostats.logs.logs.setup_logger--source--__codelineno-0-26"></a><span class="sd">    The logger for the module is initialised when the module is loaded (as this functions is called from</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-27"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-27" name="topostats.logs.logs.setup_logger--source--__codelineno-0-27"></a><span class="sd">    __init__.py). This creates two stream handlers, one for general output and one for errors which are formatted</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-28"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-28" name="topostats.logs.logs.setup_logger--source--__codelineno-0-28"></a><span class="sd">    differently (there is greater information in the error formatter). To use in modules import the 'LOGGER_NAME' and</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-29"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-29" name="topostats.logs.logs.setup_logger--source--__codelineno-0-29"></a><span class="sd">    create a logger as shown in the Examples, it will inherit the formatting and direction of messages to the correct</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-30"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-30" name="topostats.logs.logs.setup_logger--source--__codelineno-0-30"></a><span class="sd">    stream.</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-31"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-31" name="topostats.logs.logs.setup_logger--source--__codelineno-0-31"></a>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-32"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-32" name="topostats.logs.logs.setup_logger--source--__codelineno-0-32"></a><span class="sd">    Parameters</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-33"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-33" name="topostats.logs.logs.setup_logger--source--__codelineno-0-33"></a><span class="sd">    ----------</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-34"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-34" name="topostats.logs.logs.setup_logger--source--__codelineno-0-34"></a><span class="sd">    log_name : str</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-35"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-35" name="topostats.logs.logs.setup_logger--source--__codelineno-0-35"></a><span class="sd">        Name under which logging information occurs.</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-36"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-36" name="topostats.logs.logs.setup_logger--source--__codelineno-0-36"></a>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-37"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-37" name="topostats.logs.logs.setup_logger--source--__codelineno-0-37"></a><span class="sd">    Returns</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-38"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-38" name="topostats.logs.logs.setup_logger--source--__codelineno-0-38"></a><span class="sd">    -------</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-39"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-39" name="topostats.logs.logs.setup_logger--source--__codelineno-0-39"></a><span class="sd">    logging.Logger</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-40"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-40" name="topostats.logs.logs.setup_logger--source--__codelineno-0-40"></a><span class="sd">        Logger object.</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-41"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-41" name="topostats.logs.logs.setup_logger--source--__codelineno-0-41"></a>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-42"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-42" name="topostats.logs.logs.setup_logger--source--__codelineno-0-42"></a><span class="sd">    Examples</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-43"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-43" name="topostats.logs.logs.setup_logger--source--__codelineno-0-43"></a><span class="sd">    --------</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-44"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-44" name="topostats.logs.logs.setup_logger--source--__codelineno-0-44"></a><span class="sd">    To use the logger in (sub-)modules have the following.</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-45"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-45" name="topostats.logs.logs.setup_logger--source--__codelineno-0-45"></a>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-46"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-46" name="topostats.logs.logs.setup_logger--source--__codelineno-0-46"></a><span class="sd">        import logging</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-47"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-47" name="topostats.logs.logs.setup_logger--source--__codelineno-0-47"></a><span class="sd">        from topostats.logs.logs import LOGGER_NAME</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-48"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-48" name="topostats.logs.logs.setup_logger--source--__codelineno-0-48"></a>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-49"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-49" name="topostats.logs.logs.setup_logger--source--__codelineno-0-49"></a><span class="sd">        LOGGER = logging.getLogger(LOGGER_NAME)</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-50"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-50" name="topostats.logs.logs.setup_logger--source--__codelineno-0-50"></a>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-51"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-51" name="topostats.logs.logs.setup_logger--source--__codelineno-0-51"></a><span class="sd">        LOGGER.info('This is a log message.')</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-52"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-52" name="topostats.logs.logs.setup_logger--source--__codelineno-0-52"></a><span class="sd">    """</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-53"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-53" name="topostats.logs.logs.setup_logger--source--__codelineno-0-53"></a>    <span class="n">out_stream_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-54"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-54" name="topostats.logs.logs.setup_logger--source--__codelineno-0-54"></a>    <span class="n">out_stream_handler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-55"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-55" name="topostats.logs.logs.setup_logger--source--__codelineno-0-55"></a>    <span class="n">out_stream_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">LOG_INFO_FORMATTER</span><span class="p">)</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-56"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-56" name="topostats.logs.logs.setup_logger--source--__codelineno-0-56"></a>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-57"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-57" name="topostats.logs.logs.setup_logger--source--__codelineno-0-57"></a>    <span class="n">err_stream_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-58"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-58" name="topostats.logs.logs.setup_logger--source--__codelineno-0-58"></a>    <span class="n">err_stream_handler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-59"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-59" name="topostats.logs.logs.setup_logger--source--__codelineno-0-59"></a>    <span class="n">err_stream_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">LOG_ERROR_FORMATTER</span><span class="p">)</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-60"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-60" name="topostats.logs.logs.setup_logger--source--__codelineno-0-60"></a>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-61"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-61" name="topostats.logs.logs.setup_logger--source--__codelineno-0-61"></a>    <span class="n">file_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">Path</span><span class="p">()</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="o">.</span><span class="n">stem</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">"-</span><span class="si">{</span><span class="n">start</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">'%Y-%m-</span><span class="si">%d</span><span class="s1">-%H-%M-%S'</span><span class="p">)</span><span class="si">}</span><span class="s2">.log"</span><span class="p">)</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-62"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-62" name="topostats.logs.logs.setup_logger--source--__codelineno-0-62"></a>    <span class="n">file_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">LOG_ERROR_FORMATTER</span><span class="p">)</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-63"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-63" name="topostats.logs.logs.setup_logger--source--__codelineno-0-63"></a>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-64"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-64" name="topostats.logs.logs.setup_logger--source--__codelineno-0-64"></a>    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">log_name</span><span class="p">)</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-65"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-65" name="topostats.logs.logs.setup_logger--source--__codelineno-0-65"></a>    <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-66"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-66" name="topostats.logs.logs.setup_logger--source--__codelineno-0-66"></a>    <span class="n">logger</span><span class="o">.</span><span class="n">propagate</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-67"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-67" name="topostats.logs.logs.setup_logger--source--__codelineno-0-67"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">logger</span><span class="o">.</span><span class="n">handlers</span><span class="p">:</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-68"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-68" name="topostats.logs.logs.setup_logger--source--__codelineno-0-68"></a>        <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">out_stream_handler</span><span class="p">)</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-69"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-69" name="topostats.logs.logs.setup_logger--source--__codelineno-0-69"></a>        <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">err_stream_handler</span><span class="p">)</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-70"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-70" name="topostats.logs.logs.setup_logger--source--__codelineno-0-70"></a>        <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">file_handler</span><span class="p">)</span>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-71"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-71" name="topostats.logs.logs.setup_logger--source--__codelineno-0-71"></a>
+</span><span id="topostats.logs.logs.setup_logger--source--__span-0-72"><a id="topostats.logs.logs.setup_logger--source--__codelineno-0-72" name="topostats.logs.logs.setup_logger--source--__codelineno-0-72"></a>    <span class="k">return</span> <span class="n">logger</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
     </div>

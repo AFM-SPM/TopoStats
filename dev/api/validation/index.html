@@ -2505,47 +2505,47 @@
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>topostats/validation.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-17">17</a></span>
-<span class="normal"><a href="#__codelineno-0-18">18</a></span>
-<span class="normal"><a href="#__codelineno-0-19">19</a></span>
-<span class="normal"><a href="#__codelineno-0-20">20</a></span>
-<span class="normal"><a href="#__codelineno-0-21">21</a></span>
-<span class="normal"><a href="#__codelineno-0-22">22</a></span>
-<span class="normal"><a href="#__codelineno-0-23">23</a></span>
-<span class="normal"><a href="#__codelineno-0-24">24</a></span>
-<span class="normal"><a href="#__codelineno-0-25">25</a></span>
-<span class="normal"><a href="#__codelineno-0-26">26</a></span>
-<span class="normal"><a href="#__codelineno-0-27">27</a></span>
-<span class="normal"><a href="#__codelineno-0-28">28</a></span>
-<span class="normal"><a href="#__codelineno-0-29">29</a></span>
-<span class="normal"><a href="#__codelineno-0-30">30</a></span>
-<span class="normal"><a href="#__codelineno-0-31">31</a></span>
-<span class="normal"><a href="#__codelineno-0-32">32</a></span>
-<span class="normal"><a href="#__codelineno-0-33">33</a></span>
-<span class="normal"><a href="#__codelineno-0-34">34</a></span>
-<span class="normal"><a href="#__codelineno-0-35">35</a></span>
-<span class="normal"><a href="#__codelineno-0-36">36</a></span>
-<span class="normal"><a href="#__codelineno-0-37">37</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17"></a><span class="k">def</span><span class="w"> </span><span class="nf">validate_config</span><span class="p">(</span><span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">schema</span><span class="p">:</span> <span class="n">Schema</span><span class="p">,</span> <span class="n">config_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18"></a><span class="w">    </span><span class="sd">"""</span>
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19"></a><span class="sd">    Validate configuration.</span>
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20"></a>
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21"></a><span class="sd">    Parameters</span>
-</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22"></a><span class="sd">    ----------</span>
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23"></a><span class="sd">    config : dict</span>
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24"></a><span class="sd">        Config dictionary imported by read_yaml() and parsed through clean_config().</span>
-</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25"></a><span class="sd">    schema : Schema</span>
-</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26"></a><span class="sd">        A schema against which the configuration is to be compared.</span>
-</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27"></a><span class="sd">    config_type : str</span>
-</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28"></a><span class="sd">        Description of of configuration being validated.</span>
-</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29"></a><span class="sd">    """</span>
-</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30"></a>    <span class="k">try</span><span class="p">:</span>
-</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31"></a>        <span class="n">schema</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
-</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32"></a>        <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The </span><span class="si">{</span><span class="n">config_type</span><span class="si">}</span><span class="s2"> is valid."</span><span class="p">)</span>
-</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33"></a>    <span class="k">except</span> <span class="n">SchemaError</span> <span class="k">as</span> <span class="n">schema_error</span><span class="p">:</span>
-</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34"></a>        <span class="k">raise</span> <span class="n">SchemaError</span><span class="p">(</span>
-</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35"></a>            <span class="sa">f</span><span class="s2">"There is an error in your </span><span class="si">{</span><span class="n">config_type</span><span class="si">}</span><span class="s2"> configuration. "</span>
-</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36"></a>            <span class="s2">"Please refer to the first error message above for details"</span>
-</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37"></a>        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">schema_error</span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#topostats.validation.validate_config--source--__codelineno-0-17">17</a></span>
+<span class="normal"><a href="#topostats.validation.validate_config--source--__codelineno-0-18">18</a></span>
+<span class="normal"><a href="#topostats.validation.validate_config--source--__codelineno-0-19">19</a></span>
+<span class="normal"><a href="#topostats.validation.validate_config--source--__codelineno-0-20">20</a></span>
+<span class="normal"><a href="#topostats.validation.validate_config--source--__codelineno-0-21">21</a></span>
+<span class="normal"><a href="#topostats.validation.validate_config--source--__codelineno-0-22">22</a></span>
+<span class="normal"><a href="#topostats.validation.validate_config--source--__codelineno-0-23">23</a></span>
+<span class="normal"><a href="#topostats.validation.validate_config--source--__codelineno-0-24">24</a></span>
+<span class="normal"><a href="#topostats.validation.validate_config--source--__codelineno-0-25">25</a></span>
+<span class="normal"><a href="#topostats.validation.validate_config--source--__codelineno-0-26">26</a></span>
+<span class="normal"><a href="#topostats.validation.validate_config--source--__codelineno-0-27">27</a></span>
+<span class="normal"><a href="#topostats.validation.validate_config--source--__codelineno-0-28">28</a></span>
+<span class="normal"><a href="#topostats.validation.validate_config--source--__codelineno-0-29">29</a></span>
+<span class="normal"><a href="#topostats.validation.validate_config--source--__codelineno-0-30">30</a></span>
+<span class="normal"><a href="#topostats.validation.validate_config--source--__codelineno-0-31">31</a></span>
+<span class="normal"><a href="#topostats.validation.validate_config--source--__codelineno-0-32">32</a></span>
+<span class="normal"><a href="#topostats.validation.validate_config--source--__codelineno-0-33">33</a></span>
+<span class="normal"><a href="#topostats.validation.validate_config--source--__codelineno-0-34">34</a></span>
+<span class="normal"><a href="#topostats.validation.validate_config--source--__codelineno-0-35">35</a></span>
+<span class="normal"><a href="#topostats.validation.validate_config--source--__codelineno-0-36">36</a></span>
+<span class="normal"><a href="#topostats.validation.validate_config--source--__codelineno-0-37">37</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="topostats.validation.validate_config--source--__span-0-17"><a id="topostats.validation.validate_config--source--__codelineno-0-17" name="topostats.validation.validate_config--source--__codelineno-0-17"></a><span class="k">def</span><span class="w"> </span><span class="nf">validate_config</span><span class="p">(</span><span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">schema</span><span class="p">:</span> <span class="n">Schema</span><span class="p">,</span> <span class="n">config_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="topostats.validation.validate_config--source--__span-0-18"><a id="topostats.validation.validate_config--source--__codelineno-0-18" name="topostats.validation.validate_config--source--__codelineno-0-18"></a><span class="w">    </span><span class="sd">"""</span>
+</span><span id="topostats.validation.validate_config--source--__span-0-19"><a id="topostats.validation.validate_config--source--__codelineno-0-19" name="topostats.validation.validate_config--source--__codelineno-0-19"></a><span class="sd">    Validate configuration.</span>
+</span><span id="topostats.validation.validate_config--source--__span-0-20"><a id="topostats.validation.validate_config--source--__codelineno-0-20" name="topostats.validation.validate_config--source--__codelineno-0-20"></a>
+</span><span id="topostats.validation.validate_config--source--__span-0-21"><a id="topostats.validation.validate_config--source--__codelineno-0-21" name="topostats.validation.validate_config--source--__codelineno-0-21"></a><span class="sd">    Parameters</span>
+</span><span id="topostats.validation.validate_config--source--__span-0-22"><a id="topostats.validation.validate_config--source--__codelineno-0-22" name="topostats.validation.validate_config--source--__codelineno-0-22"></a><span class="sd">    ----------</span>
+</span><span id="topostats.validation.validate_config--source--__span-0-23"><a id="topostats.validation.validate_config--source--__codelineno-0-23" name="topostats.validation.validate_config--source--__codelineno-0-23"></a><span class="sd">    config : dict</span>
+</span><span id="topostats.validation.validate_config--source--__span-0-24"><a id="topostats.validation.validate_config--source--__codelineno-0-24" name="topostats.validation.validate_config--source--__codelineno-0-24"></a><span class="sd">        Config dictionary imported by read_yaml() and parsed through clean_config().</span>
+</span><span id="topostats.validation.validate_config--source--__span-0-25"><a id="topostats.validation.validate_config--source--__codelineno-0-25" name="topostats.validation.validate_config--source--__codelineno-0-25"></a><span class="sd">    schema : Schema</span>
+</span><span id="topostats.validation.validate_config--source--__span-0-26"><a id="topostats.validation.validate_config--source--__codelineno-0-26" name="topostats.validation.validate_config--source--__codelineno-0-26"></a><span class="sd">        A schema against which the configuration is to be compared.</span>
+</span><span id="topostats.validation.validate_config--source--__span-0-27"><a id="topostats.validation.validate_config--source--__codelineno-0-27" name="topostats.validation.validate_config--source--__codelineno-0-27"></a><span class="sd">    config_type : str</span>
+</span><span id="topostats.validation.validate_config--source--__span-0-28"><a id="topostats.validation.validate_config--source--__codelineno-0-28" name="topostats.validation.validate_config--source--__codelineno-0-28"></a><span class="sd">        Description of of configuration being validated.</span>
+</span><span id="topostats.validation.validate_config--source--__span-0-29"><a id="topostats.validation.validate_config--source--__codelineno-0-29" name="topostats.validation.validate_config--source--__codelineno-0-29"></a><span class="sd">    """</span>
+</span><span id="topostats.validation.validate_config--source--__span-0-30"><a id="topostats.validation.validate_config--source--__codelineno-0-30" name="topostats.validation.validate_config--source--__codelineno-0-30"></a>    <span class="k">try</span><span class="p">:</span>
+</span><span id="topostats.validation.validate_config--source--__span-0-31"><a id="topostats.validation.validate_config--source--__codelineno-0-31" name="topostats.validation.validate_config--source--__codelineno-0-31"></a>        <span class="n">schema</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+</span><span id="topostats.validation.validate_config--source--__span-0-32"><a id="topostats.validation.validate_config--source--__codelineno-0-32" name="topostats.validation.validate_config--source--__codelineno-0-32"></a>        <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The </span><span class="si">{</span><span class="n">config_type</span><span class="si">}</span><span class="s2"> is valid."</span><span class="p">)</span>
+</span><span id="topostats.validation.validate_config--source--__span-0-33"><a id="topostats.validation.validate_config--source--__codelineno-0-33" name="topostats.validation.validate_config--source--__codelineno-0-33"></a>    <span class="k">except</span> <span class="n">SchemaError</span> <span class="k">as</span> <span class="n">schema_error</span><span class="p">:</span>
+</span><span id="topostats.validation.validate_config--source--__span-0-34"><a id="topostats.validation.validate_config--source--__codelineno-0-34" name="topostats.validation.validate_config--source--__codelineno-0-34"></a>        <span class="k">raise</span> <span class="n">SchemaError</span><span class="p">(</span>
+</span><span id="topostats.validation.validate_config--source--__span-0-35"><a id="topostats.validation.validate_config--source--__codelineno-0-35" name="topostats.validation.validate_config--source--__codelineno-0-35"></a>            <span class="sa">f</span><span class="s2">"There is an error in your </span><span class="si">{</span><span class="n">config_type</span><span class="si">}</span><span class="s2"> configuration. "</span>
+</span><span id="topostats.validation.validate_config--source--__span-0-36"><a id="topostats.validation.validate_config--source--__codelineno-0-36" name="topostats.validation.validate_config--source--__codelineno-0-36"></a>            <span class="s2">"Please refer to the first error message above for details"</span>
+</span><span id="topostats.validation.validate_config--source--__span-0-37"><a id="topostats.validation.validate_config--source--__codelineno-0-37" name="topostats.validation.validate_config--source--__codelineno-0-37"></a>        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">schema_error</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
     </div>
