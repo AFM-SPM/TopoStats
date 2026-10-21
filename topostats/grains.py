@@ -26,8 +26,8 @@ from topostats.unet_masking import (
     iou_loss,
     make_bounding_box_square,
     mean_iou,
-    predict_unet,
     model_predict,
+    predict_unet,
 )
 from topostats.utils import _get_grain_mask, flatten_multi_class_tensor, get_grain_thresholds, update_background_class
 
