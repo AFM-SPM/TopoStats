@@ -2,26 +2,32 @@
 
 # pylint: disable=no-name-in-module
 
+import importlib.util
 import logging
 import sys
-from typing import Any
+from pathlib import Path
+from typing import Any, Literal
 
 import keras
 import numpy as np
 import numpy.typing as npt
+import torch
+from ruamel.yaml import YAML
 from skimage import morphology
 from skimage.measure import label, regionprops
 from skimage.morphology import dilation
 
+from topostats.array_manipulation import pad_bounding_box_dynamically_at_limits
 from topostats.classes import GrainCrop, TopoStats
 from topostats.logs.logs import LOGGER_NAME
 from topostats.mask_manipulation import multi_class_skeletonise_and_join_close_ends
 from topostats.unet_masking import (
+    get_device,
     iou_loss,
     make_bounding_box_square,
     mean_iou,
-    pad_bounding_box_cutting_off_at_image_bounds,
     predict_unet,
+    model_predict,
 )
 from topostats.utils import _get_grain_mask, flatten_multi_class_tensor, get_grain_thresholds, update_background_class
 
@@ -36,6 +42,64 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-public-methods
 # pylint: disable=bare-except
 # pylint: disable=dangerous-default-value
+
+
+def load_torch_model_bundle(
+    bundle_dir: Path,
+) -> tuple[torch.nn.Module, dict[str, Any], dict[str, Any]]:
+    """
+    Load a PyTorch model bundle from a directory.
+
+    Parameters
+    ----------
+    bundle_dir : Path
+        Path to the directory containing the model bundle.
+    device : torch.device
+        Device to load the model onto.
+
+    Returns
+    -------
+    torch.nn.Module
+        Loaded PyTorch model.
+    dict[str, Any]
+        Model training snapshot metadata.
+    dict[str, Any]
+        Model training configuration.
+    """
+    device = get_device()
+    yaml = YAML(typ="safe")
+    with open(bundle_dir / "training_metadata.yaml") as file:
+        training_metadata = yaml.load(file)
+
+    with open(bundle_dir / "config.yaml") as file:
+        training_config = yaml.load(file)
+
+    # load the model's python file and import it as a module so it can be used to load the model weights
+    module_path = bundle_dir / "model.py"
+    specification = importlib.util.spec_from_file_location("model_plugin", module_path)
+    if specification is None or specification.loader is None:
+        raise ImportError(f"Could not load module from {module_path}")
+    model_module = importlib.util.module_from_spec(specification)
+    # load the module
+    specification.loader.exec_module(model_module)
+
+    combined_training_metadata_and_config = {**training_metadata, **training_config}
+
+    model: torch.nn.Module = model_module.create_model(config=combined_training_metadata_and_config)
+
+    assert isinstance(model, torch.nn.Module), "Loaded model is not a torch.nn.Module"
+    # load the model weights
+    model.load_state_dict(
+        torch.load(
+            bundle_dir / "model_state_dict.pth",
+            map_location=device,
+            weights_only=True,
+        )
+    )
+    model.to(device)
+    model.eval()
+
+    return model, training_metadata, training_config
 
 
 def validate_full_mask_tensor_shape(array: npt.NDArray[np.bool_]) -> npt.NDArray[np.bool_]:
@@ -65,8 +129,12 @@ class Grains:
     ----------
     topostats_object : TopoStats
         TopoStats object with a minimum of ``image``, ``filename`` and ``pixel_to_nm_scaling`` attributes defined.
-    grain_crop_padding : int
-        Padding to add to the bounding box of the grain during cropping.
+    grain_crop_padding_method : Literal["pixels", "percentage"]
+        Method to use for grain crop padding.
+    grain_crop_padding_pixels : int
+        Grain crop padding to use in pixels.
+    grain_crop_padding_percentage : float
+        Grain crop padding to use as a percentage of the size of the crop.
     unet_config : dict[str, str | int | float | tuple[int | None, int, int, int] | None]
         Configuration for the UNet model.
         model_path: str
@@ -133,7 +201,9 @@ class Grains:
     def __init__(
         self,
         topostats_object: TopoStats,
-        grain_crop_padding: int = 1,
+        grain_crop_padding_method: Literal["pixels", "percentage"] = "percentage",
+        grain_crop_padding_pixels: int = 1,
+        grain_crop_padding_percentage: float = 0.2,
         unet_config: dict[str, str | int | float | tuple[int | None, int, int, int] | None] | None = None,
         threshold_method: str | None = None,
         otsu_threshold_multiplier: float | None = None,
@@ -152,8 +222,12 @@ class Grains:
         ----------
         topostats_object : TopoStats
             TopoStats object.
-        grain_crop_padding : int
-            Padding to add to the bounding box of grains during cropping.
+        grain_crop_padding_method : Literal["pixels", "percentage"]
+            Method to use for grain crop padding.
+        grain_crop_padding_pixels : int
+            Grain crop padding to use in pixels.
+        grain_crop_padding_percentage : float
+            Grain crop padding to use as a percentage of the size of the crop.
         unet_config : dict[str, str | int | float | tuple[int | None, int, int, int] | None]
             Configuration for the UNet model which is a dictionary with the following keys and values.
             model_path : str
@@ -231,6 +305,9 @@ class Grains:
         self.topostats_object = topostats_object
         self.image = topostats_object.image
         self.filename = topostats_object.filename
+        self.grain_crop_padding_method: str = grain_crop_padding_method
+        self.grain_crop_padding_pixels = grain_crop_padding_pixels
+        self.grain_crop_padding_percentage = grain_crop_padding_percentage
         self.pixel_to_nm_scaling = topostats_object.pixel_to_nm_scaling
         self.threshold_method = config["threshold_method"] if threshold_method is None else threshold_method
         self.otsu_threshold_multiplier = (
@@ -271,7 +348,6 @@ class Grains:
         self.thresholds: dict[str, list[float]] | None = None
         self.mask_images: dict[str, dict[str, npt.NDArray]] = {}
         self.endpoint_connection_config: dict[str, Any] = endpoint_connection_config
-        self.grain_crop_padding = grain_crop_padding
         self.unet_config = config["unet_config"] if unet_config is None else unet_config
         self.vetting_config = config["vetting"] if vetting is None else vetting
         self.classes_to_merge = config["classes_to_merge"] if classes_to_merge is None else classes_to_merge
@@ -550,7 +626,9 @@ class Grains:
             traditional_graincrops = self.extract_grains_from_full_image_tensor(
                 image=self.image,
                 full_mask_tensor=traditional_full_mask_tensor,
-                padding=self.grain_crop_padding,
+                padding_method=self.grain_crop_padding_method,
+                padding_pixels=self.grain_crop_padding_pixels,
+                padding_percentage=self.grain_crop_padding_percentage,
                 pixel_to_nm_scaling=self.pixel_to_nm_scaling,
                 filename=self.filename,
                 threshold_idx=i,
@@ -595,7 +673,9 @@ class Grains:
                             graincrops = self.extract_grains_from_full_image_tensor(
                                 image=self.image,
                                 full_mask_tensor=unet_full_mask_tensor,
-                                padding=self.grain_crop_padding,
+                                padding_method=self.grain_crop_padding_method,
+                                padding_pixels=self.grain_crop_padding_pixels,
+                                padding_percentage=self.grain_crop_padding_percentage,
                                 pixel_to_nm_scaling=self.pixel_to_nm_scaling,
                                 filename=self.filename,
                                 threshold_idx=i,
@@ -755,37 +835,79 @@ class Grains:
         # https://github.com/keras-team/keras/issues/19441 which also has an experimental fix that we can try but
         # I haven't tested it yet.
 
-        try:
-            unet_model = keras.models.load_model(
-                unet_config["model_path"], custom_objects={"mean_iou": mean_iou, "iou_loss": iou_loss}, compile=False
-            )
-        except Exception as e:
-            LOGGER.debug(f"Python executable: {sys.executable}")
-            LOGGER.debug(f"Keras version: {keras.__version__}")
-            LOGGER.debug(f"Model path: {unet_config['model_path']}")
-            raise e
+        model_type = unet_config["model_type"]
+        confidence = unet_config["confidence"]
+        assert isinstance(confidence, float), f"Confidence must be a float, got {type(confidence)}"
+        upper_norm_bound = unet_config["upper_norm_bound"]
+        assert isinstance(upper_norm_bound, float), f"Upper norm bound must be a float, got {type(upper_norm_bound)}"
+        lower_norm_bound = unet_config["lower_norm_bound"]
+        assert isinstance(lower_norm_bound, float), f"Lower norm bound must be a float, got {type(lower_norm_bound)}"
 
-        # unet_model = keras.models.load_model(unet_config["model_path"], custom_objects={"mean_iou": mean_iou})
-        LOGGER.debug(f"Output shape of UNet model: {unet_model.output_shape}")
+        if model_type == "tensorflow":
+
+            # Load the model
+            try:
+                tensorflow_model = keras.models.load_model(
+                    unet_config["model_path"],
+                    custom_objects={"mean_iou": mean_iou, "iou_loss": iou_loss},
+                    compile=False,
+                )
+            except Exception as e:
+                LOGGER.debug(f"Python executable: {sys.executable}")
+                LOGGER.debug(f"Keras version: {keras.__version__}")
+                LOGGER.debug(f"Model path: {unet_config['model_path']}")
+                raise e
+
+        elif model_type == "pytorch":
+            # load torch model
+            model_path = unet_config["model_path"]
+            assert model_path is not None
+            assert isinstance(model_path, str)
+            model_path = Path(model_path)
+            pytorch_model, snapshot_metadata, model_configuration = load_torch_model_bundle(bundle_dir=model_path)
+            # get the input size since unlike tensorflow, it's not stored in the model itself
+            model_input_size = model_configuration["model_input_size"]
+            assert isinstance(model_input_size, int), f"Model input size must be an int, got {type(model_input_size)}"
+
+        else:
+            raise ValueError(f"Unsupported model type {model_type}")
 
         new_graincrops: dict[int, GrainCrop] = {}
         num_empty_removed_grains = 0
         for grain_number, graincrop in graincrops.items():
             LOGGER.debug(f"Unet predicting mask for grain {grain_number} of {len(graincrops)}")
-            # Run the UNet on the region. This is allowed to be a single class
-            # as we can add a background class afterwards if needed.
-            # Remember that this region is cropped from the original image, so it's not
-            # the same size as the original image.
-            predicted_mask = predict_unet(
-                image=graincrop.image,
-                model=unet_model,
-                confidence=unet_config["confidence"],
-                model_input_shape=unet_model.input_shape,
-                upper_norm_bound=unet_config["upper_norm_bound"],
-                lower_norm_bound=unet_config["lower_norm_bound"],
-            )
+
+            if model_type == "tensorflow":
+                predicted_mask = predict_unet(
+                    image=graincrop.image,
+                    model=tensorflow_model,
+                    confidence=confidence,
+                    model_input_shape=tensorflow_model.input_shape,
+                    upper_norm_bound=upper_norm_bound,
+                    lower_norm_bound=lower_norm_bound,
+                )
+            elif model_type == "pytorch":
+                predicted_mask = model_predict(
+                    image=graincrop.image,
+                    model=pytorch_model,
+                    model_input_size=model_input_size,
+                    confidence=confidence,
+                    upper_norm_bound=upper_norm_bound,
+                    lower_norm_bound=lower_norm_bound,
+                )
+            else:
+                raise ValueError(f"Unknown model type: {model_type}")
+
             assert len(predicted_mask.shape) == 3
-            LOGGER.debug(f"Predicted mask shape: {predicted_mask.shape}")
+            LOGGER.info(f"Predicted mask shape: {predicted_mask.shape}")
+
+            # move the channel dimension to the back
+            predicted_mask = np.moveaxis(predicted_mask, 0, -1)
+
+            LOGGER.info(
+                f"predicted mask shape before disconnected grain removal: {predicted_mask.shape}, dtype: "
+                f"{predicted_mask.dtype}, min: {predicted_mask.min()}, max: {predicted_mask.max()}"
+            )
 
             if unet_config["remove_disconnected_grains"]:
                 # Remove grains that are not connected to the original grain
@@ -795,9 +917,19 @@ class Grains:
                     predicted_grain_tensor=predicted_mask,
                 )
 
+            LOGGER.info("after disconnected grain removal:")
+            for class_index in range(1, predicted_mask.shape[2]):
+                predicted_mask_class = predicted_mask[:, :, class_index]
+                LOGGER.info(
+                    f"predicted mask channel {class_index}, shape{predicted_mask_class.shape}, dtype: "
+                    f"{predicted_mask_class.dtype}, min: {predicted_mask_class.min()}, max: "
+                    f"{predicted_mask_class.max()}"
+                )
+
             # Check if all of the non-background classes are empty
             if np.sum(predicted_mask[:, :, 1:]) == 0:
                 num_empty_removed_grains += 1
+                print(f"[{filename}] : model predicted empty mask for grain {grain_number}, removing grain")
             else:
                 # @ns-rse 2025-10-14 - do we need to instantiate a new instance here? I don't think we do as
                 #                      we have setter methods so could just update the .mask attribute in
@@ -822,6 +954,72 @@ class Grains:
         LOGGER.debug(f"Number of empty removed grains: {num_empty_removed_grains}")
 
         return new_graincrops
+
+        # try:
+        #     unet_model = keras.models.load_model(
+        #         unet_config["model_path"], custom_objects={"mean_iou": mean_iou, "iou_loss": iou_loss}, compile=False
+        #     )
+        # except Exception as e:
+        #     LOGGER.debug(f"Python executable: {sys.executable}")
+        #     LOGGER.debug(f"Keras version: {keras.__version__}")
+        #     LOGGER.debug(f"Model path: {unet_config['model_path']}")
+        #     raise e
+
+        # # unet_model = keras.models.load_model(unet_config["model_path"], custom_objects={"mean_iou": mean_iou})
+        # LOGGER.debug(f"Output shape of UNet model: {unet_model.output_shape}")
+
+        # new_graincrops: dict[int, GrainCrop] = {}
+        # num_empty_removed_grains = 0
+        # for grain_number, graincrop in graincrops.items():
+        #     LOGGER.debug(f"Unet predicting mask for grain {grain_number} of {len(graincrops)}")
+        #     # Run the UNet on the region. This is allowed to be a single class
+        #     # as we can add a background class afterwards if needed.
+        #     # Remember that this region is cropped from the original image, so it's not
+        #     # the same size as the original image.
+        #     predicted_mask = predict_unet(
+        #         image=graincrop.image,
+        #         model=unet_model,
+        #         confidence=unet_config["confidence"],
+        #         model_input_shape=unet_model.input_shape,
+        #         upper_norm_bound=unet_config["upper_norm_bound"],
+        #         lower_norm_bound=unet_config["lower_norm_bound"],
+        #     )
+        #     assert len(predicted_mask.shape) == 3
+        #     LOGGER.debug(f"Predicted mask shape: {predicted_mask.shape}")
+
+        #     if unet_config["remove_disconnected_grains"]:
+        #         # Remove grains that are not connected to the original grain
+        #         original_grain_mask = graincrop.mask
+        #         predicted_mask = Grains.remove_disconnected_grains(
+        #             original_grain_tensor=original_grain_mask,
+        #             predicted_grain_tensor=predicted_mask,
+        #         )
+
+        #     # Check if all of the non-background classes are empty
+        #     if np.sum(predicted_mask[:, :, 1:]) == 0:
+        #         num_empty_removed_grains += 1
+        #     else:
+        #         # @ns-rse 2025-10-14 - do we need to instantiate a new instance here? I don't think we do as
+        #         #                      we have setter methods so could just update the .mask attribute in
+        #         #                      place (could maybe set it above?)
+        #         # graincrop.mask = predicted_mask
+        #         new_graincrops[grain_number] = GrainCrop(
+        #             image=graincrop.image,
+        #             mask=predicted_mask,
+        #             padding=graincrop.padding,
+        #             bbox=graincrop.bbox,
+        #             pixel_to_nm_scaling=graincrop.pixel_to_nm_scaling,
+        #             filename=graincrop.filename,
+        #             stats=graincrop.stats,
+        #             disordered_trace=graincrop.disordered_trace,
+        #             nodes=graincrop.nodes,
+        #             ordered_trace=graincrop.ordered_trace,
+        #             threshold_method=graincrop.threshold_method,
+        #             thresholds=graincrop.thresholds,
+        #             threshold_idx=graincrop.threshold_idx,
+        #         )
+
+        # LOGGER.debug(f"Number of empty removed grains: {num_empty_removed_grains}")
 
     @staticmethod
     def keep_largest_labelled_region(
@@ -892,13 +1090,8 @@ class Grains:
         region_properties = Grains.get_region_properties(labelled_regions)
         bounding_boxes = {index: region.bbox for index, region in enumerate(region_properties)}
         return {
-            index: pad_bounding_box_cutting_off_at_image_bounds(
-                crop_min_row=bbox[0],
-                crop_min_col=bbox[1],
-                crop_max_row=bbox[2],
-                crop_max_col=bbox[3],
-                image_shape=(grain_mask_tensor.shape[0], grain_mask_tensor.shape[1]),
-                padding=1,
+            index: pad_bounding_box_dynamically_at_limits(
+                bbox=bbox, limits=(0, 0, grain_mask_tensor.shape[0], grain_mask_tensor.shape[1]), padding=1
             )
             for index, bbox in bounding_boxes.items()
         }
@@ -992,7 +1185,7 @@ class Grains:
     def get_individual_grain_crops(
         grain_mask_tensor: npt.NDArray,
         padding: int = 1,
-    ) -> tuple[list[npt.NDArray], list[npt.NDArray], int]:
+    ) -> tuple[list[npt.NDArray], list[tuple[int, int, int, int]], int, list[tuple[int, int, int, int]]]:
         """
         Get individual grain crops from an image tensor.
 
@@ -1011,13 +1204,16 @@ class Grains:
         -------
         list[npt.NDArray]
             List of individual grain crops.
-        list[npt.NDArray]
+        list[tuple[int, int, int, int]]
             List of bounding boxes for each grain.
         int
             Padding used for the bounding boxes.
+        tuple[int, int, int, int]
+            Padding used for the bounding boxes in the format (top, bottom, left, right).
         """
         grain_crops = []
         bounding_boxes = []
+        paddings_used: list[tuple[int, int, int, int]] = []
 
         # Label the regions
         flattened_multi_class_mask = Grains.flatten_multi_class_tensor(grain_mask_tensor)
@@ -1044,14 +1240,12 @@ class Grains:
 
             # Get the bounding box
             bounding_box = region.bbox
+            padding_used = 0
 
             # Pad the bounding box
-            bounding_box = pad_bounding_box_cutting_off_at_image_bounds(
-                crop_min_row=bounding_box[0],
-                crop_min_col=bounding_box[1],
-                crop_max_row=bounding_box[2],
-                crop_max_col=bounding_box[3],
-                image_shape=(grain_mask_tensor.shape[0], grain_mask_tensor.shape[1]),
+            bounding_box, padding_used = pad_bounding_box_dynamically_at_limits(
+                bbox=bounding_box,
+                limits=(0, 0, grain_mask_tensor.shape[0], grain_mask_tensor.shape[1]),
                 padding=padding,
             )
 
@@ -1065,8 +1259,9 @@ class Grains:
             # Add the crop to the list
             grain_crops.append(grain_crop.astype(bool))
             bounding_boxes.append(bounding_box)
+            paddings_used.append(padding_used)
 
-        return grain_crops, bounding_boxes, padding
+        return grain_crops, bounding_boxes, padding, paddings_used
 
     @staticmethod
     def vet_numbers_of_regions_single_grain(
@@ -1722,7 +1917,9 @@ class Grains:
         self,
         image: npt.NDArray[np.float32],
         full_mask_tensor: npt.NDArray[np.bool_],
-        padding: int,
+        padding_method: Literal["pixels", "percentage"],
+        padding_pixels: int,
+        padding_percentage: float,
         pixel_to_nm_scaling: float,
         filename: str,
         threshold_idx: int,
@@ -1738,8 +1935,12 @@ class Grains:
             2-D Numpy array of the image.
         full_mask_tensor : npt.NDArray[np.bool_]
             3-D NxNxC boolean numpy array of all the class masks for the image.
-        padding : int
-            Padding added to the bounding box of the grain before cropping.
+        padding_method : Literal["pixels", "percentage"]
+            The method used to determine the padding.
+        padding_pixels : int
+            Padding amount to use in pixels.
+        padding_percentage : float
+            Padding amount to use as a percentage of the bounding box size.
         pixel_to_nm_scaling : float
             Pixel to nanometre scaling factor.
         filename : str
@@ -1774,14 +1975,23 @@ class Grains:
             # Get the bounding box for the region
             flat_bounding_box: tuple[int, int, int, int] = tuple(flat_region.bbox)  # min_row, min_col, max_row, max_col
 
+            # Determine padding
+            if padding_method == "pixels":
+                pass
+            elif padding_method == "percentage":
+                # Percentage of bbox size
+                padding_pixels = int(
+                    max(
+                        (flat_bounding_box[2] - flat_bounding_box[0]) * padding_percentage,
+                        (flat_bounding_box[3] - flat_bounding_box[1]) * padding_percentage,
+                    )
+                )
+
             # Pad the mask
-            padded_flat_bounding_box = pad_bounding_box_cutting_off_at_image_bounds(
-                crop_min_row=flat_bounding_box[0],
-                crop_min_col=flat_bounding_box[1],
-                crop_max_row=flat_bounding_box[2],
-                crop_max_col=flat_bounding_box[3],
-                image_shape=(full_mask_tensor.shape[0], full_mask_tensor.shape[1]),
-                padding=padding,
+            padded_flat_bounding_box, padding_used = pad_bounding_box_dynamically_at_limits(
+                bbox=flat_bounding_box,
+                limits=(0, 0, full_mask_tensor.shape[0], full_mask_tensor.shape[1]),
+                padding=padding_pixels,
             )
 
             # Make the mask square
@@ -1828,7 +2038,7 @@ class Grains:
             graincrops[grain_number] = GrainCrop(
                 image=grain_cropped_image,
                 mask=grain_cropped_tensor,
-                padding=padding,
+                padding=padding_used,
                 bbox=square_flat_bounding_box,
                 pixel_to_nm_scaling=pixel_to_nm_scaling,
                 filename=filename,

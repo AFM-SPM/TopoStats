@@ -6,8 +6,10 @@ import keras
 import numpy as np
 import numpy.typing as npt
 import tensorflow as tf
+import torch
 from PIL import Image
 
+from topostats.array_manipulation import pad_bounding_box_dynamically_at_limits
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -110,6 +112,112 @@ def mean_iou(y_true: npt.NDArray[np.float32], y_pred: npt.NDArray[np.float32]):
     union = tf.reduce_sum(y_true_f) + tf.reduce_sum(y_pred_f) - intersect
     smooth = tf.ones(tf.shape(intersect))  # Smoothing factor to prevent division by zero
     return tf.reduce_mean((intersect + smooth) / (union - intersect + smooth))
+
+
+def get_device() -> torch.device:
+    """
+    Get the device to use for torch.
+
+    Returns
+    -------
+    torch.device
+        The device to use for torch.
+    """
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    if torch.backends.mps.is_available():
+        return torch.device("mps")
+    return torch.device("cpu")
+
+
+def model_predict(
+    image: npt.NDArray[np.float32],
+    model: torch.nn.Module,
+    confidence: float,
+    model_input_size: int,
+    upper_norm_bound: float,
+    lower_norm_bound: float,
+) -> npt.NDArray[np.bool_]:
+    """
+    Segment an image using a given torch model.
+
+    Parameters
+    ----------
+    image : npt.NDArray[np.float32]
+        The image to segment.
+    model : torch.nn.Module
+        The torch model to use for segmentation.
+    confidence : float
+        The confidence threshold for the segmentation.
+    model_input_size : int
+        The size of the model input (assumed to be square).
+    upper_norm_bound : float
+        The upper bound for normalising the image.
+    lower_norm_bound : float
+        The lower bound for normalising the image.
+
+    Returns
+    -------
+    npt.NDArray[np.bool_]
+        The predicted mask.
+    """
+    device = get_device()
+    original_image_shape = image.shape
+    # preprocess the image for the model
+    image_torch = torch.from_numpy(image).float()
+    image_torch = image_torch.unsqueeze(0).unsqueeze(0)  # add batch and channel dimensions
+    image_torch = torch.nn.functional.interpolate(
+        image_torch,
+        size=(model_input_size, model_input_size),
+        mode="bilinear",
+        align_corners=False,
+    )
+    image_torch = torch.clamp(image_torch, min=lower_norm_bound, max=upper_norm_bound)
+    image_torch = (image_torch - lower_norm_bound) / (upper_norm_bound - lower_norm_bound)
+
+    # send the image to the device
+    image_torch = image_torch.to(device)
+
+    # run the model on the image
+    with torch.inference_mode():
+        logits = model(image_torch)
+        probabilities = torch.sigmoid(logits)  # B x C x H x W | C x H x W
+        predicted_mask_torch = probabilities > confidence
+
+        # debug save the predicted mask to a file
+        import matplotlib.pyplot as plt
+
+        plt.imsave("predicted_mask.png", predicted_mask_torch.cpu().numpy().squeeze(0).squeeze(0), cmap="gray")
+
+    # resize back to the original image size
+    predicted_mask_torch = torch.nn.functional.interpolate(
+        predicted_mask_torch.float(),
+        size=original_image_shape,
+        mode="nearest",
+    ).bool()
+
+    # Return the memory to cpu and convert to numpy array
+    predicted_mask_numpy = predicted_mask_torch.cpu().numpy().astype(np.bool_)
+
+    # if there is a batch dimension, remove it
+    if len(predicted_mask_numpy.shape) == 4:
+        predicted_mask_numpy = predicted_mask_numpy.squeeze(0)  # C x H x W
+
+    print(
+        f"predicted mask shape before adding background channel: {predicted_mask_numpy.shape}, dtype: {predicted_mask_numpy.dtype}, min: {predicted_mask_numpy.min()}, max: {predicted_mask_numpy.max()}"
+    )
+
+    # Add a background channel to the mask
+    background_channel = np.logical_not(np.sum(predicted_mask_numpy, axis=0, keepdims=True)).astype(np.bool_)
+    print(
+        f"background channel shape: {background_channel.shape}, dtype: {background_channel.dtype}, min: {background_channel.min()}, max: {background_channel.max()}"
+    )
+    predicted_mask_numpy = np.concatenate((background_channel, predicted_mask_numpy), axis=0)
+    print(
+        f"predicted mask shape after adding background channel: {predicted_mask_numpy.shape}, dtype: {predicted_mask_numpy.dtype}, min: {predicted_mask_numpy.min()}, max: {predicted_mask_numpy.max()}"
+    )
+
+    return predicted_mask_numpy
 
 
 # pylint: disable=too-many-positional-arguments
@@ -321,51 +429,12 @@ def make_bounding_box_square(
     return new_crop_min_row, new_crop_min_col, new_crop_max_row, new_crop_max_col
 
 
-def pad_bounding_box_cutting_off_at_image_bounds(
-    crop_min_row: int,
-    crop_min_col: int,
-    crop_max_row: int,
-    crop_max_col: int,
-    image_shape: tuple[int, int],
-    padding: int,
-) -> tuple[int, int, int, int]:
-    """
-    Pad a bounding box.
-
-    Parameters
-    ----------
-    crop_min_row : int
-        The minimum row index of the crop.
-    crop_min_col : int
-        The minimum column index of the crop.
-    crop_max_row : int
-        The maximum row index of the crop.
-    crop_max_col : int
-        The maximum column index of the crop.
-    image_shape : tuple[int, int]
-        The shape of the image.
-    padding : int
-        The padding to apply to the bounding box.
-
-    Returns
-    -------
-    tuple[int, int, int, int]
-        The new crop indices.
-    """
-    new_crop_min_row: int = max(0, crop_min_row - padding)
-    new_crop_min_col: int = max(0, crop_min_col - padding)
-    new_crop_max_row: int = min(image_shape[0], crop_max_row + padding)
-    new_crop_max_col: int = min(image_shape[1], crop_max_col + padding)
-
-    return new_crop_min_row, new_crop_min_col, new_crop_max_row, new_crop_max_col
-
-
 def pad_crop(
     crop: npt.NDArray,
     bbox: tuple[int, int, int, int],
     image_shape: tuple[int, int],
     padding: int,
-) -> npt.NDArray:
+) -> tuple[npt.NDArray, tuple[int, int, int, int], tuple[int, int, int, int]]:
     """
     Pad a crop.
 
@@ -382,15 +451,12 @@ def pad_crop(
 
     Returns
     -------
-    npt.NDArray
-        The padded crop.
+    tuple[npt.NDArray, tuple[int, int, int, int], tuple[int, int, int, int]]
+        The padded crop, the new bounding box, and the padding amounts actually applied.
     """
-    new_bounding_box = pad_bounding_box_cutting_off_at_image_bounds(
-        crop_min_row=bbox[0],
-        crop_min_col=bbox[1],
-        crop_max_row=bbox[2],
-        crop_max_col=bbox[3],
-        image_shape=image_shape,
+    new_bounding_box, padding_used = pad_bounding_box_dynamically_at_limits(
+        bbox=bbox,
+        limits=(0, 0, image_shape[0], image_shape[1]),
         padding=padding,
     )
 
@@ -401,14 +467,14 @@ def pad_crop(
         bbox[1] - new_bounding_box[1] : bbox[3] - new_bounding_box[1],
     ] = crop
 
-    return padded_crop, new_bounding_box
+    return padded_crop, new_bounding_box, padding_used
 
 
 def make_crop_square(
     crop: npt.NDArray,
     bbox: tuple[int, int, int, int],
     image_shape: tuple[int, int],
-) -> npt.NDArray:
+) -> tuple[npt.NDArray, tuple[int, int, int, int]]:
     """
     Make a crop square.
 
@@ -425,6 +491,8 @@ def make_crop_square(
     -------
     npt.NDArray
         The square crop.
+    tuple[int, int, int, int]
+        The new bounding box of the square crop.
     """
     new_bounding_box = make_bounding_box_square(
         crop_min_row=bbox[0],
