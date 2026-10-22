@@ -210,7 +210,6 @@ def test_connect_extended_nodes_nearest(
         padding=1,
         bbox=(0, 0, 10, 10),
         thresholds=[0.1],
-        threshold_idx=0,
         disordered_trace=DisorderedTrace(
             images={
                 "skeleton": connected_nodes.astype(bool),
@@ -937,7 +936,6 @@ def test_nodestats_image(
             ),
             bbox=value["bbox"],
             thresholds=None,
-            threshold_idx=0,
         )
 
     topostats_object = TopoStats(
