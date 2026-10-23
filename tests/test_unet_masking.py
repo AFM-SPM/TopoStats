@@ -11,7 +11,7 @@ from topostats.unet_masking import (
     iou_loss,
     make_bounding_box_square,
     pad_bounding_box_cutting_off_at_image_bounds,
-    predict_unet,
+    model_predict_tensorflow,
 )
 
 # pylint: disable=too-many-positional-arguments
@@ -117,7 +117,7 @@ def test_predict_unet(mock_model_5_by_5_single_class: MagicMock) -> None:
     upper_norm_bound = 1.0
     lower_norm_bound = 0.0
 
-    predicted_mask = predict_unet(
+    predicted_mask = model_predict_tensorflow(
         image=image,
         model=mock_model_5_by_5_single_class,
         confidence=confidence,
