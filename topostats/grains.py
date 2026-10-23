@@ -26,8 +26,8 @@ from topostats.unet_masking import (
     iou_loss,
     make_bounding_box_square,
     mean_iou,
-    model_predict,
-    predict_unet,
+    model_predict_pytorch,
+    model_predict_tensorflow,
 )
 from topostats.utils import _get_grain_mask, flatten_multi_class_tensor, get_grain_thresholds, update_background_class
 
@@ -689,6 +689,8 @@ class Grains:
                     image_shape=self.image.shape,
                 )
 
+                print(f"full mask tensor shape: {full_mask_tensor.shape}")
+
                 # Set the unet tensor regardless of if the unet model was run, since the plotting expects it
                 # can be changed when we do a plotting overhaul
                 self.mask_images[i]["unet"] = full_mask_tensor.copy()
@@ -878,7 +880,8 @@ class Grains:
             LOGGER.debug(f"Unet predicting mask for grain {grain_number} of {len(graincrops)}")
 
             if model_type == "tensorflow":
-                predicted_mask = predict_unet(
+                print(f"graincrop image shape: {graincrop.image.shape}")
+                predicted_mask = model_predict_tensorflow(
                     image=graincrop.image,
                     model=tensorflow_model,
                     confidence=confidence,
@@ -887,7 +890,7 @@ class Grains:
                     lower_norm_bound=lower_norm_bound,
                 )
             elif model_type == "pytorch":
-                predicted_mask = model_predict(
+                predicted_mask = model_predict_pytorch(
                     image=graincrop.image,
                     model=pytorch_model,
                     model_input_size=model_input_size,
@@ -902,7 +905,7 @@ class Grains:
             LOGGER.info(f"Predicted mask shape: {predicted_mask.shape}")
 
             # move the channel dimension to the back
-            predicted_mask = np.moveaxis(predicted_mask, 0, -1)
+            predicted_mask = np.moveaxis(predicted_mask, 0, -1)  # (H, W, C)
 
             LOGGER.info(
                 f"predicted mask shape before disconnected grain removal: {predicted_mask.shape}, dtype: "
@@ -929,7 +932,7 @@ class Grains:
             # Check if all of the non-background classes are empty
             if np.sum(predicted_mask[:, :, 1:]) == 0:
                 num_empty_removed_grains += 1
-                print(f"[{filename}] : model predicted empty mask for grain {grain_number}, removing grain")
+                LOGGER.info(f"[{filename}] : model predicted empty mask for grain {grain_number}, removing grain")
             else:
                 # @ns-rse 2025-10-14 - do we need to instantiate a new instance here? I don't think we do as
                 #                      we have setter methods so could just update the .mask attribute in

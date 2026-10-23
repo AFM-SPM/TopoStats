@@ -130,7 +130,7 @@ def get_device() -> torch.device:
     return torch.device("cpu")
 
 
-def model_predict(
+def model_predict_pytorch(
     image: npt.NDArray[np.float32],
     model: torch.nn.Module,
     confidence: float,
@@ -203,17 +203,17 @@ def model_predict(
     if len(predicted_mask_numpy.shape) == 4:
         predicted_mask_numpy = predicted_mask_numpy.squeeze(0)  # C x H x W
 
-    print(
+    LOGGER.info(
         f"predicted mask shape before adding background channel: {predicted_mask_numpy.shape}, dtype: {predicted_mask_numpy.dtype}, min: {predicted_mask_numpy.min()}, max: {predicted_mask_numpy.max()}"
     )
 
     # Add a background channel to the mask
     background_channel = np.logical_not(np.sum(predicted_mask_numpy, axis=0, keepdims=True)).astype(np.bool_)
-    print(
+    LOGGER.info(
         f"background channel shape: {background_channel.shape}, dtype: {background_channel.dtype}, min: {background_channel.min()}, max: {background_channel.max()}"
     )
     predicted_mask_numpy = np.concatenate((background_channel, predicted_mask_numpy), axis=0)
-    print(
+    LOGGER.info(
         f"predicted mask shape after adding background channel: {predicted_mask_numpy.shape}, dtype: {predicted_mask_numpy.dtype}, min: {predicted_mask_numpy.min()}, max: {predicted_mask_numpy.max()}"
     )
 
@@ -221,7 +221,7 @@ def model_predict(
 
 
 # pylint: disable=too-many-positional-arguments
-def predict_unet(
+def model_predict_tensorflow(
     image: npt.NDArray[np.float32],
     model: keras.Model,
     confidence: float,
@@ -272,6 +272,10 @@ def predict_unet(
     image_resized = image_resized.resize(image_shape)
     image_resized_np: npt.NDArray[np.float32] = np.array(image_resized)
 
+    LOGGER.info(
+        f"Image shape after resizing: {image_resized_np.shape}, dtype: {image_resized_np.dtype}, min: {image_resized_np.min()}, max: {image_resized_np.max()}"
+    )
+
     # Predict the mask
     LOGGER.info("Running Unet & predicting mask")
     try:
@@ -317,6 +321,14 @@ def predict_unet(
             (original_image.shape[1], original_image.shape[0]), Image.Resampling.NEAREST
         )
         resized_predicted_mask[:, :, channel_index] = np.array(channel_mask_PIL).astype(bool)
+
+    # Move the channel dimension to the front to match (C, H, W) format - just so both functions return the same
+    # format to avoid confusion (hopefully!)
+    resized_predicted_mask = np.moveaxis(resized_predicted_mask, -1, 0)
+    LOGGER.info(
+        f"Resized predicted mask shape: {resized_predicted_mask.shape}, dtype: {resized_predicted_mask.dtype} "
+        f"min: {resized_predicted_mask.min()}, max: {resized_predicted_mask.max()}"
+    )
 
     return resized_predicted_mask
 
