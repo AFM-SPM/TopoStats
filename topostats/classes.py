@@ -180,10 +180,12 @@ class GrainCrop:
         str
             Set of formatted statistics on matched branches.
         """
+        skeleton_shape = None if self.skeleton is None else self.skeleton.shape
+        n_nodes = None if self.nodes is None else len(self.nodes)
         return (
             f"filename : {self.filename}\n"
             f"image shape : {self.image.shape}\n"
-            f"skeleton shape : {self.skeleton.shape}\n"
+            f"skeleton shape : {skeleton_shape}\n"
             f"mask shape : {self.mask.shape}\n"
             f"padding : {self.padding}\n"
             f"thresholds : {self.thresholds}\n"
@@ -191,7 +193,7 @@ class GrainCrop:
             f"threshold index : {self.threshold_idx}\n"
             f"bounding box coords : {self.bbox}\n"
             f"pixel to nm scaling : {self.pixel_to_nm_scaling}\n"
-            f"number of nodes : {len(self.nodes)}"
+            f"number of nodes : {n_nodes}"
         )
 
     @property

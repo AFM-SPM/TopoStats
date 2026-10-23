@@ -129,6 +129,36 @@ def test_grain_crop_str(dummy_graincrop: GrainCrop) -> None:
     assert str(dummy_graincrop) == expected
 
 
+def test_grain_crop_str_without_skeleton_or_nodes() -> None:
+    """Test the GrainCrop.__str__() method when the skeleton and nodes have not been found."""
+    mask = np.zeros((10, 10, 2), dtype=bool)
+    mask[..., 0] = True
+    grain_crop = GrainCrop(
+        image=np.zeros((10, 10), dtype=np.float32),
+        mask=mask,
+        padding=(2, 2, 2, 2),
+        bbox=(1, 1, 11, 11),
+        pixel_to_nm_scaling=1.0,
+        thresholds=(1, 2),
+        filename="dummy",
+        threshold_idx=0,
+    )
+    expected = (
+        "filename : dummy\n"
+        "image shape : (10, 10)\n"
+        "skeleton shape : None\n"
+        "mask shape : (10, 10, 2)\n"
+        "padding : (2, 2, 2, 2)\n"
+        "thresholds : (1, 2)\n"
+        "threshold method : None\n"
+        "threshold index : 0\n"
+        "bounding box coords : (1, 1, 11, 11)\n"
+        "pixel to nm scaling : 1.0\n"
+        "number of nodes : None"
+    )
+    assert str(grain_crop) == expected
+
+
 @pytest.mark.parametrize(
     (
         "topostats_object_fixture",
