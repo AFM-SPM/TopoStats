@@ -618,6 +618,10 @@ def splining_image(
                             f"[{topostats_object.filename}] : Splining Grain {grain_no + 1} Molecule {mol_no + 1}"
                         )
                         # check if want to do nodestats tracing or not
+                        debug_image_before_spline = np.zeros(grain_crop.image.shape, dtype=np.uint8)
+                        assert molecule.ordered_coords is not None, "Molecule has no ordered coordinates"
+                        for coord in molecule.ordered_coords:
+                            debug_image_before_spline[int(coord[0]), int(coord[1])] = True
                         if splining_method == "rolling_window":
                             splined_data, tracing_stats = windowTrace(
                                 topostats_object=topostats_object,
@@ -645,6 +649,11 @@ def splining_image(
                             )
                         # Add statistics to Molecule object
                         molecule.splined_coords = splined_data
+                        grain_crop_size = grain_crop.image.shape
+                        debug_image_spline = np.zeros((grain_crop_size[0], grain_crop_size[1]), dtype=np.uint8)
+                        for coord in splined_data:
+                            debug_image_spline[int(coord[0]), int(coord[1])] = True
+                        print("aaaa")
                         molecule.end_to_end_distance = tracing_stats["end_to_end_distance"]
                         molecule.contour_length = tracing_stats["contour_length"]
                         molecule.bbox = grain_crop.bbox

@@ -1778,6 +1778,7 @@ def nodestats_image(
                         "connected_nodes": nodestats.connected_nodes,
                     }
                     nodestats_branch_images[n_grain] = node_image_dict
+                    nodestats_convolved_skeletons = nodestats_images["convolved_skeletons"]
 
                     # remap the cropped images back onto the original
                     for image_name, full_image in nodestats_full_images.items():
