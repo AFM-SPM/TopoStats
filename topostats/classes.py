@@ -9,7 +9,7 @@ from typing import Any
 
 import numpy as np
 import numpy.typing as npt
-from pydantic import ConfigDict
+from pydantic import ConfigDict, BaseModel
 from pydantic.dataclasses import dataclass
 
 from topostats.logs.logs import LOGGER_NAME
@@ -25,6 +25,67 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-lines
 # F811 - redefined-while-unused : we disable this as we want to have getter/setter methods for each attribute
 # ruff: noqa: F811
+
+
+class BaseDamageAnalysis(BaseModel):
+    """Base class for damage classes."""
+
+    # Allow numpy arrays to be used as fields
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,
+    )
+
+
+class Defect(BaseDamageAnalysis):
+    """
+    A class to represent a defect in a trace.
+
+    Attributes
+    ----------
+    start_index : int
+        The index of the first point of the defect.
+    end_index : int
+        The index of the last point of the defect.
+    length_nm : float
+        The length of the defect in nanometres.
+    position_along_trace_nm : float
+        The position of the defect along the trace in nanometres.
+    total_turn_radians : tuple[float, float]
+        The total turn of the defect in radians, as a tuple of (total_left_turn, total_right_turn).
+    """
+
+    start_index: int
+    end_index: int
+    length_nm: float
+    position_along_trace_nm: float
+    total_turn_radians: tuple[float, float]
+    depth_nm: float
+    volume_nm3: float
+
+
+class Gap(BaseDamageAnalysis):
+    """
+    A class to represent a gap between defects in a trace.
+
+    Attributes
+    ----------
+    start_index : int
+        The index of the first point of the gap.
+    end_index : int
+        The index of the last point of the gap.
+    length_nm : float
+        The length of the gap in nanometres.
+    position_along_trace_nm : float
+        The position of the gap along the trace in nanometres.
+    total_turn_radians : tuple[float, float]
+        The total turn of the gap in radians, as a tuple of (total_left_turn, total_right_turn).
+    """
+
+    start_index: int
+    end_index: int
+    length_nm: float
+    position_along_trace_nm: float
+    total_turn_radians: tuple[float, float]
 
 
 class GrainCrop:
