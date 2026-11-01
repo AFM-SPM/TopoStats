@@ -294,7 +294,6 @@ def get_defects_and_gaps_from_bool_array(
         )
 
     if connect_close_defect_threshold_nm is not None:
-        print(f"connecting close defects")
         defects, gaps = connect_close_defects(
             defects=defects,
             gaps=gaps,
@@ -1109,7 +1108,6 @@ def find_height_defects(  # noqa: C901
             all_grain_heights = np.array(all_grain_heights)
             median_height = np.median(all_grain_heights)
             height_threshold_percentage_of_median_value = median_height * height_threshold_percentage_of_median
-            print(f"height threshold percentage of median: {height_threshold_percentage_of_median_value}")
             for _molecule_id, molecule_data in grain_model.molecule_data_collection.items():
                 heights_nm = molecule_data.smoothed_spline_coords_heights
                 assert heights_nm is not None
