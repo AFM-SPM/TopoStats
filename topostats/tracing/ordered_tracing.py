@@ -1,12 +1,17 @@
 """Order single pixel skeletons with or without NodeStats Statistics."""
 
 import logging
-from itertools import combinations
+from collections.abc import Generator
+from itertools import combinations, product
+from typing import TypeVar
 
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-from skimage.morphology import dilation, label
+from pydantic import BaseModel
+from skimage.graph import route_through_array
+from skimage.measure import label
+from skimage.morphology import dilation
 from topoly import jones, translate_code
 
 from topostats.classes import GrainCrop, Molecule, Node, OrderedTrace, TopoStats
@@ -92,6 +97,7 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
             for node in self.nodestats_dict.values()
         ]
         debug_node_coords_image = np.zeros_like(self.pruned_skeleton)
+        pruned_skeleton = self.pruned_skeleton
         for i, coords in enumerate(node_coords):
             for j, single_cross in enumerate(coords):
                 debug_node_coords_image[single_cross[:, 0], single_cross[:, 1]] = i + 1
@@ -400,6 +406,8 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
                     )  # remove overlaps in trace (may be more efficient to do it on the previous segment)
                     trace_segment, flipped = self.order_from_end(coord_trace[-1, :2], trace_segment)
                     full_trace_segment = full_trace_segment[::-1] if flipped else full_trace_segment
+                trace_segment_image = np.zeros_like(remaining)
+                trace_segment_image[trace_segment[:, 0], trace_segment[:, 1]] = 1
                 # get vector if crossing
                 if self.img_idx_to_node[coord_idx + 1]:
                     segment_vector = full_trace_segment[-1] - full_trace_segment.mean(
@@ -710,6 +718,7 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         tuple[list, dict, dict]
             A list of each molecules ordered trace coordinates, the ordered_tracing stats, and the images.
         """
+        pruned_skeleton = self.pruned_skeleton
         ordered_traces, topology, cross_add, crossing_coords, fwhms = self.compile_trace(
             reverse_min_conf_crossing=False
         )
@@ -871,6 +880,599 @@ class OrderedTraceTopostats:
         return self.images
 
 
+class Endpoint(BaseModel):
+    """Class for endpoint data structures."""
+
+    id: str
+    branch_id: int
+    coords: tuple[int, int]
+    node_index: int
+
+    @classmethod
+    def validate_branch_id(cls, v):
+        """Validate the branch_id."""
+        if not isinstance(v, int) or v < 2:
+            raise ValueError("branch_id must be an integer greater than 1")
+        return v
+
+    # string repr
+    def __str__(self) -> str:
+        """Return a string representation of the endpoint."""
+        return f"Endpoint(id={self.id}, branch_id={self.branch_id}, coords={self.coords}, node_index={self.node_index})"
+
+
+T = TypeVar("T")
+
+
+def get_all_pairing_lists_for_items(items: list[T]) -> Generator[list[tuple[T, T]], None, None]:
+    """
+    Generate all possible pairing lists for a given list of items.
+
+    Parameters
+    ----------
+    items : list[T]
+        A list of items to be paired.
+
+    Yields
+    ------
+    list[tuple[T, T]]
+        A list of tuples, where each tuple contains a pair of items.
+    """
+    # Base case: no items left
+    if not items:
+        yield []
+        return
+
+    # Choose the current item to pair with the rest
+    first = items[0]
+    rest = items[1:]
+
+    # Pair this item with each of the remaining items
+    for i, partner in enumerate(rest):
+        pair = (first, partner)
+        remaining_items = rest[:i] + rest[i + 1 :]
+
+        # Recursively pair the remaining elements that we don't pair with the current item
+        for sub_pairing in get_all_pairing_lists_for_items(remaining_items):
+            yield [pair] + sub_pairing
+
+
+def get_permutations_of_options_with_costs(
+    dict_of_items_with_options_and_costs: dict[int, list[tuple[int, float]]],
+) -> list[tuple[dict[int, tuple[int, float]], float]]:
+    """
+    Get costs of all permutations of options for a dictionary of items with varying options.
+
+    Given a dictionary of items with their representative options and costs, return all permutations of the options
+    with their associated total costs.
+
+    Parameters
+    ----------
+    dict_of_items_with_options_and_costs : dict[int, list[tuple[int, float]]]
+        A dictionary where keys are item identifiers and values are lists of tuples, each containing an option and its
+        cost.
+
+
+    Returns
+    -------
+    list[tuple[dict[int, tuple[int, float]], float]]
+        A list of tuples, where each tuple contains a dictionary mapping item identifiers to their selected option and
+        the total cost of that permutation.
+    """
+    # Unpack the items (ID, options) to compute all combinations
+    keys, option_lists = zip(*dict_of_items_with_options_and_costs.items())
+    all_permutations = []
+    for combination in product(*option_lists):
+        permutation_dict = dict(zip(keys, combination))
+        total_cost = sum(cost for _, cost in combination)
+        all_permutations.append((permutation_dict, total_cost))
+    return all_permutations
+
+
+def create_single_trace(  # noqa: C901
+    vertex_suggestions_with_costs: dict[int, list[tuple[Endpoint, Endpoint, float]]],
+    all_endpoints: list[Endpoint],
+) -> tuple[list[Endpoint], float]:
+    """
+    Create a single Eulerian trace from a 2k-regular graph, using suggestions for which branches to pair.
+
+    Returns
+    -------
+    tuple[list[Endpoint], float]
+        A list of Endpoint to Endpoint connections representing a single Eulerian trace, and the confidence cost
+        associated with the whole trace.
+    """
+    print(f"vertex_suggestions_with_costs: {vertex_suggestions_with_costs}")
+    all_endpoint_ids: set[str] = set()
+    for suggestions in vertex_suggestions_with_costs.values():
+        for in_endpoint, out_endpoint, _confidence in suggestions:
+            all_endpoint_ids.add(in_endpoint.id)
+            all_endpoint_ids.add(out_endpoint.id)
+    print(f"all_endpoint_ids: {all_endpoint_ids}")
+    # For each vertex, get the permutations of the suggestions with associated costs
+    # Dict of vertex_index -> list of pairing options with the total cost of that pairing option
+    vertex_permutations_with_costs: dict[int, list[tuple[list[tuple[str, str]], float]]] = {}
+    # Iterate over the vertexes and their suggestions to create pairing options and calculate costs
+    for vertex_index, suggestions in vertex_suggestions_with_costs.items():
+        all_endpoint_indexes: set[str] = set()
+        for in_endpoint, out_endpoint, _confidence in suggestions:
+            all_endpoint_indexes.add(in_endpoint.id)
+            all_endpoint_indexes.add(out_endpoint.id)
+        # Get all permutations of the possible connections for this vertex
+        all_pairing_options = list(get_all_pairing_lists_for_items(list(all_endpoint_indexes)))
+        print(
+            f"all pairing options for vertex {vertex_index} | all endpoints: {all_endpoint_indexes}: {all_pairing_options}"
+        )
+        # Associate costs with these pairings
+        all_pairing_options_with_costs: list[tuple[list[tuple[str, str]], float]] = (
+            []
+        )  # list of (pairing_option, cost) tuples
+        for pairing_option in all_pairing_options:
+            cost = 0
+            for in_endpoint, out_endpoint, confidence in suggestions:
+                in_endpoint_id = in_endpoint.id
+                out_endpoint_id = out_endpoint.id
+                if (in_endpoint_id, out_endpoint_id) not in pairing_option and (
+                    out_endpoint_id,
+                    in_endpoint_id,
+                ) not in pairing_option:
+                    cost += confidence  # Add the confidence score to the cost if this suggestion is not used
+            all_pairing_options_with_costs.append((pairing_option, cost))
+            print(f"| pairing option: {pairing_option} | cost: {cost}")
+        vertex_permutations_with_costs[vertex_index] = all_pairing_options_with_costs
+
+    for vertex_index, pairing_options_with_costs in vertex_permutations_with_costs.items():
+        print(f"vertex {vertex_index}")
+        for pairing_option, cost in pairing_options_with_costs:
+            print(f"| pairing option: {pairing_option} | cost: {cost}")
+
+    # So here we have a list of possible pairing options for each vertex with their costs.
+
+    # Now want to permute these globally across all vertices
+
+    print("==== global permutations ====")
+
+    # Create a simple mapping between vertex index and the pairing options with costs for that vertex - just
+    # for simplicity with handling the itertools product later on
+    vertex_pairing_options_with_costs: dict[int, list[tuple[int, float]]] = (
+        {}
+    )  # vertex_index -> list of (pairing_option_index, cost) tuples
+    for vertex_index, pairing_options_with_costs in vertex_permutations_with_costs.items():
+        vertex_pairing_options_with_costs[vertex_index] = []
+        # For each pairing option with cost, add that
+        for pairing_option_index, (_pairing_option, cost) in enumerate(pairing_options_with_costs):
+            vertex_pairing_options_with_costs[vertex_index].append((pairing_option_index, cost))
+
+    # print for debugging
+    # for vertex_index, pairing_options_with_costs in vertex_pairing_options_with_costs.items():
+    #     print(f"vertex {vertex_index}")
+    #     for pairing_option_index, cost in pairing_options_with_costs:
+    #         print(f"| pairing option index: {pairing_option_index} | cost: {cost}")
+
+    # Find the combination of pairing options across all vertices and their costs
+    # list of ({vertex_index: (pairing_option_index, cost)}, total_cost) tuples
+    global_all_vertex_pairing_options_with_costs = get_permutations_of_options_with_costs(
+        vertex_pairing_options_with_costs
+    )
+
+    # Sort the global pairing options by their total cost in ascending order
+    global_all_vertex_pairing_options_with_costs.sort(key=lambda x: x[1])
+
+    # print for debugging
+    # for global_pairing_option, total_cost in global_all_vertex_pairing_options_with_costs:
+    #     print(f"global pairing option: {global_pairing_option} | total cost: {total_cost}")
+    #     for vertex_index, (pairing_option_index, cost) in global_pairing_option.items():
+    #         print(f"| vertex {vertex_index} | pairing option index: {pairing_option_index} | cost: {cost}")
+
+    print("=== global pairing options with costs reconstruction ===")
+
+    # Iterate through the sorted global pairing options and find the first one that results in a single Eulerian trace
+
+    found_single_cycle = False
+    for global_pairing_option, total_cost in global_all_vertex_pairing_options_with_costs:
+        print(f"global pairing option: {global_pairing_option} | total cost: {total_cost}")
+        # global pairing option is a dict of vertex_index -> (pairing_option_index, cost)
+        # for vertex_index, (pairing_option_index, cost) in global_pairing_option.items():
+        #     # Get the pairing option for this vertex
+        #     pairing_option = vertex_permutations_with_costs[vertex_index][pairing_option_index]
+        #     print(f"pairing option: {pairing_option} | cost: {cost}")
+        # Create cycles
+        cycles: list[list[str]] = []
+        current_cycle: list[str] = []
+        # Start at an endpoint, any endpoint - grab the first one from the endpoint set
+        first_endpoint_id = next(iter(all_endpoint_ids))
+        # Now follow the first endpoint through the global pairing option to create a cycle
+        visited_endpoint_ids: set[str] = set()
+        current_branch_start_endpoint_id = first_endpoint_id
+        print("finding cycles:")
+
+        while True:
+            # Check if we have already visited this endpoint, if so we have completed a cycle
+
+            if current_branch_start_endpoint_id in visited_endpoint_ids:
+                print(f"  completed a cycle with endpoint {current_branch_start_endpoint_id}")
+                # completed a cycle - don't add the current endpoint to the cycle since it is already in there
+                cycles.append(current_cycle)
+                unvisited_endpoint_ids = all_endpoint_ids - visited_endpoint_ids
+                print(f"  unvisited_endpoint_ids: {unvisited_endpoint_ids}")
+                # if all endpoints have been visited, break
+                if len(unvisited_endpoint_ids) == 0:
+                    print("  all endpoints have been visited, breaking")
+                    break
+                # Start a new cycle with an unvisited endpoint
+                current_branch_start_endpoint_id = unvisited_endpoint_ids.pop()
+                current_cycle = []
+                print(f"  starting new cycle with endpoint {current_branch_start_endpoint_id}")
+
+            print(f"  current branch_start_endpoint_id: {current_branch_start_endpoint_id}")
+            # Add the start endpoint
+            visited_endpoint_ids.add(current_branch_start_endpoint_id)
+            current_cycle.append(current_branch_start_endpoint_id)
+            # Get the corresponding endpoint, ie 5_0 if current is 5_1 or vice versa
+            if current_branch_start_endpoint_id.endswith("_0"):
+                current_branch_end_endpoint_id = current_branch_start_endpoint_id.replace("_0", "_1")
+            elif current_branch_start_endpoint_id.endswith("_1"):
+                current_branch_end_endpoint_id = current_branch_start_endpoint_id.replace("_1", "_0")
+            else:
+                raise ValueError(f"Invalid endpoint id: {current_branch_start_endpoint_id}")
+            print(f"  current branch_end_endpoint_id: {current_branch_end_endpoint_id}")
+
+            # Add the end endpoint
+            visited_endpoint_ids.add(current_branch_end_endpoint_id)
+            current_cycle.append(current_branch_end_endpoint_id)
+
+            print(f"  current cycle: {current_cycle}")
+
+            # Find out the next start endpoint to follow
+            # Get the node index for this endpoint
+            current_endpoint = next(
+                endpoint for endpoint in all_endpoints if endpoint.id == current_branch_end_endpoint_id
+            )
+            current_node_index = current_endpoint.node_index
+            print(f"  current_node_index: {current_node_index}")
+            # Get the pairing option for this node
+            node_pairing_option_index, _cost = global_pairing_option[current_node_index]
+            pairing_option = vertex_permutations_with_costs[current_node_index][node_pairing_option_index][
+                0
+            ]  # [0] to get the pairing option from the (pairing_option, cost) tuple
+            print(f" pairing_option: {pairing_option} | node_pairing_option_index: {node_pairing_option_index}")
+
+            # Get the corresponding endpoint for this endpoint in the pairing option
+            next_branch_start_endpoint_id = None
+            for endpoint_id_0, endpoint_id_1 in pairing_option:
+                print(
+                    f"  checking pair: ({endpoint_id_0}, {endpoint_id_1}) for current_branch_end_endpoint_id: {current_branch_end_endpoint_id}"
+                )
+                if endpoint_id_0 == current_branch_end_endpoint_id:
+                    # Contains, and therefore choose the other
+                    next_branch_start_endpoint_id = endpoint_id_1
+                    break
+                if endpoint_id_1 == current_branch_end_endpoint_id:
+                    # Contains, and therefore choose the other
+                    next_branch_start_endpoint_id = endpoint_id_0
+                    break
+            else:
+                raise ValueError(
+                    f"Pairing option {pairing_option} does not contain endpoint "
+                    f"{current_branch_end_endpoint_id} - this should not happen, as the pairing option should "
+                    "contain all endpoints for this node"
+                )
+            assert (
+                next_branch_start_endpoint_id is not None
+            ), f"Could not find a pair for endpoint {current_branch_end_endpoint_id}"
+            print(f"  next_branch_start_endpoint_id: {next_branch_start_endpoint_id}")
+
+            current_branch_start_endpoint_id = next_branch_start_endpoint_id
+
+        print("----")
+        if len(cycles) == 1:
+            print(
+                f"Found a single cycle with global pairing option: {global_pairing_option} | total cost: {total_cost}"
+            )
+            found_single_cycle = True
+            break
+
+        print(
+            f"Found {len(cycles)} cycles with global pairing option: {global_pairing_option} | total cost: {total_cost}"
+        )
+        # Try the next one
+
+    assert (
+        found_single_cycle
+    ), "Could not find a single cycle with any of the global pairing options - this should never happen"
+    print(f"cycles: {cycles}")
+
+    # Construct a list of Endpoint objects for the trace, rather than just indexes
+    trace: list[Endpoint] = []
+    single_cycle = cycles[0]
+    # Iterate over the cycle and create a list of Endpoint objects for the trace
+    for endpoint_id in single_cycle:
+        endpoint = next(endpoint for endpoint in all_endpoints if endpoint.id == endpoint_id)
+        trace.append(endpoint)
+
+    return trace, total_cost
+
+
+def ordered_tracing_new(grain_crop: GrainCrop) -> None:  # noqa: C901
+    """Run new ordered tracing."""
+    nodes = grain_crop.nodes
+    skeleton = grain_crop.skeleton
+
+    # Construct a branch image with node pixels
+    grain_branches_image_with_nodes = skeleton
+    for node_index, node in nodes.items():
+        node_coords = node.node_coords
+        assert node_coords is not None, f"Node {node_index} does not have node_coords"
+        for node_coord in node_coords:
+            grain_branches_image_with_nodes[node_coord[0], node_coord[1]] = -1  # set node pixels to -1
+    # Construct a labelled branch image where node pixels are -1 and branch pixels are branch labels n: int > 1
+    grain_branches_image_without_nodes = np.where(
+        grain_branches_image_with_nodes == -1, 0, grain_branches_image_with_nodes
+    )
+    labelled_grain_branches_image = label(grain_branches_image_without_nodes.astype(bool))
+    labelled_grain_branches_image_with_nodes = np.where(
+        grain_branches_image_with_nodes == -1, -1, labelled_grain_branches_image
+    )
+
+    # If there is only one branch - just trace it and return
+    if np.max(labelled_grain_branches_image) == 1:
+        print("only one branch, tracing it")
+        # One branch - pick a start point and trace until the end
+        branch_image = np.where(labelled_grain_branches_image_with_nodes == 1, 1, 0)
+        # Get a random coord from the branch image
+        branch_coords = np.argwhere(branch_image == 1)
+        current_coord = branch_coords[0]
+        neighbour_coords = []
+        for dy in [-1, 0, 1]:
+            for dx in [-1, 0, 1]:
+                if dy == 0 and dx == 0:
+                    continue
+                neighbour_coord = (current_coord[0] + dy, current_coord[1] + dx)
+                if (
+                    neighbour_coord[0] < 0
+                    or neighbour_coord[0] >= branch_image.shape[0]
+                    or neighbour_coord[1] < 0
+                    or neighbour_coord[1] >= branch_image.shape[1]
+                ):
+                    continue
+                if branch_image[neighbour_coord[0], neighbour_coord[1]] == 1:
+                    neighbour_coords.append(neighbour_coord)
+        assert (
+            len(neighbour_coords) == 2
+        ), f"Branch 1 does not have exactly 2 neightbours initially, this should not happen: {neighbour_coords}"
+        # Just pick the first one, doesn't matter which.
+        next_coord = neighbour_coords[0]
+        # set the pixel to 0 so we don't revisit it
+        branch_image[next_coord[0], next_coord[1]] = 0
+        trace: list[tuple[int, int]] = [tuple(current_coord), tuple(next_coord)]
+        while True:
+            current_coord = next_coord
+            neighbour_coords = []
+            for dy in [-1, 0, 1]:
+                for dx in [-1, 0, 1]:
+                    if dy == 0 and dx == 0:
+                        continue
+                    neighbour_coord = (current_coord[0] + dy, current_coord[1] + dx)
+                    if (
+                        neighbour_coord[0] < 0
+                        or neighbour_coord[0] >= branch_image.shape[0]
+                        or neighbour_coord[1] < 0
+                        or neighbour_coord[1] >= branch_image.shape[1]
+                    ):
+                        continue
+                    if branch_image[neighbour_coord[0], neighbour_coord[1]] == 1:
+                        neighbour_coords.append(neighbour_coord)
+            # Remove the previous coord from the list of neighbours
+            neighbour_coords = [coord for coord in neighbour_coords if coord != trace[-2]]
+            if len(neighbour_coords) == 0:
+                break
+            assert (
+                len(neighbour_coords) == 1
+            ), f"Branch 1 does not have exactly 1 neighbour, this should not happen: {neighbour_coords}"
+            next_coord = neighbour_coords[0]
+            # set the pixel to 0 so we don't revisit it
+            branch_image[next_coord[0], next_coord[1]] = 0
+            trace.append(tuple(next_coord))
+    else:
+        print("multiple branches")
+        # There are multiple branches
+        # Get the endpoints
+        print("| finding endpoints")
+        endpoints: list[Endpoint] = []
+        for branch_id in np.unique(labelled_grain_branches_image_with_nodes):
+            if branch_id == 0 or branch_id == -1:  # Skip background and node pixels
+                continue
+            # Find the endpoints of the branch by convolving the branch
+            branch_mask = np.where(labelled_grain_branches_image_with_nodes == branch_id, 1, 0)
+            convolved_branch = convolve_skeleton(branch_mask.astype(bool))
+            endpoints_coords = np.argwhere(convolved_branch == 2)
+            assert (
+                len(endpoints_coords) == 2
+            ), f"Branch {branch_id} does not have exactly 2 endpoints, this should not happen: {endpoints_coords}"
+            # Find which node the endpoints are touching
+            for endpoint_index, endpoint_coord in enumerate(endpoints_coords):
+                node_indices: list[int] = []
+                endpoint_id = f"{branch_id}_{endpoint_index}"
+                # Get the nodes connected to this endpoint
+                for node_index, node in nodes.items():
+                    node_confidence = node.confidence
+                    assert node_confidence is not None, f"Node {node_index} does not have a confidence value"
+                    assert node.node_coords is not None, f"Node {node_index} does not have node_coords"
+                    endpoint_neighbour_pixels = [
+                        (endpoint_coord[0] + dy, endpoint_coord[1] + dx) for dy in [-1, 0, 1] for dx in [-1, 0, 1]
+                    ]
+                    if any(
+                        endpoint_neighbour_pixel in node.node_coords
+                        for endpoint_neighbour_pixel in endpoint_neighbour_pixels
+                    ):
+                        node_indices.append(node_index)
+                assert (
+                    len(node_indices) == 1
+                ), f"endpoint {endpoint_id} of branch {branch_id} is not connected to exactly 1 node: {node_indices}"
+                endpoints.append(
+                    Endpoint(
+                        id=endpoint_id,
+                        branch_id=branch_id,
+                        coords=(endpoint_coord[0], endpoint_coord[1]),
+                        node_index=node_indices[0],
+                    )
+                )
+
+        # Create suggestions for each node, dictating which branches to pair together
+        print(f"| creating pairing suggestions")
+        # node_index -> [(endpoint1, endpoint2, confidence), ...]
+        endpoint_connection_suggestions: dict[int, list[tuple[Endpoint, Endpoint, float]]] = {}
+        for node_index, node in nodes.items():
+            node_pairing_suggestions: list[tuple[Endpoint, Endpoint, float]] = []
+            node_confidence = node.confidence
+            assert node_confidence is not None, f"Node {node_index} does not have a confidence value"
+            node_branch_stats = node.branch_stats
+            assert node_branch_stats is not None, f"Node {node_index} does not have branch_stats"
+            for node_branch_pair_data in node_branch_stats.values():
+                branch_pair_coords = node_branch_pair_data.ordered_coords
+                node_coords = node.node_coords
+                node_image = np.zeros_like(labelled_grain_branches_image_with_nodes)
+                for node_coord in node_coords:
+                    node_image[node_coord[0], node_coord[1]] = 1
+                assert branch_pair_coords is not None, f"Node {node_index} branch pair does not have ordered_coords"
+                # Get the indexes of the branches in the pair
+                endpoint_pair: list[Endpoint] = []
+                for branch_pair_coord in branch_pair_coords:
+                    # Skip if the coord corresponds to a node pixel
+                    if labelled_grain_branches_image_with_nodes[branch_pair_coord[0], branch_pair_coord[1]] == -1:
+                        continue
+                    # Check if an endpoint
+                    for endpoint in endpoints:
+                        if endpoint.coords == (branch_pair_coord[0], branch_pair_coord[1]):
+                            endpoint_pair.append(endpoint)
+                            break
+                assert len(endpoint_pair) == 2, (
+                    f"Branch pair coordinates {branch_pair_coords} do not"
+                    f"correspond to exactly 2 endpoints: {endpoint_pair}"
+                )
+                node_pairing_suggestions.append(
+                    (endpoint_pair[0], endpoint_pair[1], float(np.round(node_confidence, 3)))
+                )
+            endpoint_connection_suggestions[node_index] = node_pairing_suggestions
+
+        # Now create a single trace from the endpoints and the suggestions
+        print("| creating a single cycle from the endpoints and suggestions")
+        endpoint_connections, total_cost = create_single_trace(
+            vertex_suggestions_with_costs=endpoint_connection_suggestions,
+            all_endpoints=endpoints,
+        )
+
+        trace: list[tuple[int, int]] = []
+        initial_endpoint = endpoint_connections[0]
+        branch_start_endpoint = endpoint_connections.pop(0)
+        final_endpoint = False
+        print("| tracing through the endpoints and nodes to make a full trace")
+        while True:
+            # Add the current endpoint to the trace
+            trace.append((branch_start_endpoint.coords[0], branch_start_endpoint.coords[1]))
+            branch_end_endpoint = endpoint_connections.pop(0)
+            # Check that the two endpoints are of the same branch
+            assert (
+                branch_start_endpoint.branch_id == branch_end_endpoint.branch_id
+            ), f"Endpoints {branch_start_endpoint} and {branch_end_endpoint} are not of the same branch"
+
+            current_branch_id = branch_start_endpoint.branch_id
+
+            # Trace the branch from current endpoint to next endpoint
+            branch_mask = np.where(labelled_grain_branches_image_with_nodes == current_branch_id, 1, 0)
+            branch_start_endpoint_coords = branch_start_endpoint.coords
+            branch_end_endpoint_coords = branch_end_endpoint.coords
+            # Get the coordinates of the branch pixels
+            # Order the branch coords by pathfinding from start to end endpoint
+            branch_pathfinding_weights = np.invert(
+                branch_mask.astype(bool)
+            )  # Invert the branch mask to create weights for pathfinding
+            branch_pathfinding_weights = np.where(
+                branch_pathfinding_weights == 0, 1, 1000000
+            )  # Set weights: 1 for branch pixels, high for others
+            branch_route, _cost = route_through_array(
+                branch_pathfinding_weights, branch_start_endpoint_coords, branch_end_endpoint_coords
+            )
+            # Check if the branch starts or ends with the current endpoint, if it ends with it, flip it
+            branch_coords = np.array(branch_route)
+            branch_end_coords = branch_coords[-1]
+            if (
+                branch_end_coords[0] == branch_start_endpoint_coords[0]
+                and branch_end_coords[1] == branch_start_endpoint_coords[1]
+            ):
+                branch_coords = np.flip(branch_coords, axis=0)
+
+            # Add the branch coordinates to the trace
+            for branch_coord in branch_coords:
+                trace.append((branch_coord[0], branch_coord[1]))
+
+            # Add the branch end endpoint to the trace
+            trace.append((branch_end_endpoint_coords[0], branch_end_endpoint_coords[1]))
+
+            # Get the node index for the next endpoint
+            connected_node_index = branch_end_endpoint.node_index
+
+            # Get the next endpoint to connect to
+            if len(endpoint_connections) == 0:
+                # This is the final endpoint to traverse, so we get the initial endpoint instead
+                next_branch_start_endpoint = initial_endpoint
+                final_endpoint = True
+            else:
+                # This is not the final endpoint to traverse, so get the next endpoint to connect to from the
+                # list of endpoint connections
+                next_branch_start_endpoint = endpoint_connections.pop(0)
+
+            # Trace through the node to the next endpoint
+            node_mask = np.zeros_like(labelled_grain_branches_image_with_nodes)
+            node = nodes[connected_node_index]
+            assert node.node_coords is not None, "Node coordinates are None"
+            for node_coord in node.node_coords:
+                node_mask[node_coord[0], node_coord[1]] = 1
+
+            # Trace the node from the current endpoint to the next endpoint
+            pathfinding_weights = np.invert(
+                node_mask.astype(bool)
+            )  # Invert the node mask to create weights for pathfinding
+            pathfinding_weights = np.where(
+                pathfinding_weights == 0, 1, 1000000
+            )  # Set weights: 1 for node pixels, high for others
+            route, _cost = route_through_array(
+                pathfinding_weights, branch_end_endpoint_coords, next_branch_start_endpoint.coords
+            )
+
+            # Add the route coordinates to the trace
+            for route_coord in route:
+                trace.append((route_coord[0], route_coord[1]))
+
+            if final_endpoint:
+                # We are done, having traversed through a node to reach the initial endpoint again
+                break
+
+            # Set the next branch start endpoint as the current branch start endpoint for the next iteration
+            branch_start_endpoint = next_branch_start_endpoint
+
+    # Convert the trace to a numpy array
+    trace_array = np.array(trace)
+    trace_heights = grain_crop.image[trace_array[:, 0], trace_array[:, 1]]
+
+    # Construct the definitionally single molecule for this grain
+    molecule = Molecule(
+        circular=True,
+        topology_flip="to be implemented",
+        topology="to be implemented",
+        ordered_coords=trace_array,
+        heights=trace_heights,
+        distances=coord_dist(trace_array),
+    )
+
+    # Add to grain crop molecule data
+    grain_crop.ordered_trace.molecule_data = {0: molecule}
+    for class_number, stats in grain_crop.stats.items():
+        for subgrain_index, _ in stats.items():
+            grain_crop.stats[class_number][subgrain_index]["num_mols"] = 1
+            grain_crop.stats[class_number][subgrain_index]["writhe_string"] = "not calculated"
+
+
 def linear_or_circular(traces) -> bool:
     """
     Determine whether the molecule is circular or linear via >1 points in the local start area.
@@ -967,41 +1569,67 @@ def ordered_tracing_image(
                 images=None,
                 error=None,
             )
+            debug_skeleton = grain_crop.skeleton
+            debug_image = grain_crop.image
             # check if want to perform tracing based on node statistics
-            if (
-                grain_crop.nodes is not None
-                and len(grain_crop.nodes) > 0
-                and topostats_object.config["ordered_tracing"]["ordering_method"] == "nodestats"
-            ):
-                LOGGER.info(
-                    f"[{topostats_object.filename}] : Grain {grain_no + 1} present in NodeStats. Tracing via Nodestats."
-                )
-                nodestats_tracing = OrderedTraceNodestats(grain_crop=grain_crop)
+            assert topostats_object.config is not None
+            if topostats_object.config["ordered_tracing"]["ordering_method"] == "nodestats":
+                if grain_crop.nodes is not None and len(grain_crop.nodes) > 0:
+                    LOGGER.info(
+                        f"[{topostats_object.filename}] : Grain {grain_no + 1} present in NodeStats. Tracing via Nodestats."
+                    )
+                    nodestats_tracing = OrderedTraceNodestats(grain_crop=grain_crop)
 
-                if nodestats_tracing.check_node_errorless():
-                    grain_crop.ordered_trace.images = nodestats_tracing.run_nodestats_tracing()
-                    LOGGER.info(f"[{topostats_object.filename}] : Grain {grain_no + 1} ordered via NodeStats.")
+                    if nodestats_tracing.check_node_errorless():
+                        grain_crop.ordered_trace.images = nodestats_tracing.run_nodestats_tracing()
+                        LOGGER.info(f"[{topostats_object.filename}] : Grain {grain_no + 1} ordered via NodeStats.")
+                    else:
+                        LOGGER.info(f"Nodestats dict has an error for grain : ({grain_no + 1}")
+                # if not doing nodestats ordering, do original TS ordering
+                elif grain_crop.disordered_trace is not None:
+                    LOGGER.info(
+                        f"[{topostats_object.filename}] : Grain {grain_no + 1} not in NodeStats. "
+                        "Attempting to trace normally."
+                    )
+                    topostats_tracing = OrderedTraceTopostats(grain_crop=grain_crop)
+                    grain_crop.ordered_trace.images = topostats_tracing.run_topostats_tracing()
+                    LOGGER.info(f"[{topostats_object.filename}] : Grain {grain_no + 1} ordered via TopoStats.")
                 else:
-                    LOGGER.info(f"Nodestats dict has an error for grain : ({grain_no + 1}")
-            # if not doing nodestats ordering, do original TS ordering
-            elif grain_crop.disordered_trace is not None:
-                LOGGER.info(
-                    f"[{topostats_object.filename}] : Grain {grain_no + 1} not in NodeStats. "
-                    "Attempting to trace normally."
-                )
-                topostats_tracing = OrderedTraceTopostats(grain_crop=grain_crop)
-                grain_crop.ordered_trace.images = topostats_tracing.run_topostats_tracing()
-                LOGGER.info(f"[{topostats_object.filename}] : Grain {grain_no + 1} ordered via TopoStats.")
-            else:
-                LOGGER.info(
-                    f"[{topostats_object.filename}] : Grain {grain_no + 1} does not have a disordered trace "
-                    "skipping orderering."
-                )
-            # remap the cropped images back onto the original
-            for image_name, full_image in ordered_trace_full_images.items():
-                if grain_crop.ordered_trace.images is not None:
-                    crop = grain_crop.ordered_trace.images[image_name]
-                    full_image[grain_crop.bbox[0] : grain_crop.bbox[2], grain_crop.bbox[1] : grain_crop.bbox[3]] += crop
+                    LOGGER.info(
+                        f"[{topostats_object.filename}] : Grain {grain_no + 1} does not have a disordered trace "
+                        "skipping orderering."
+                    )
+                # remap the cropped images back onto the original
+                for image_name, full_image in ordered_trace_full_images.items():
+                    if grain_crop.ordered_trace.images is not None:
+                        crop = grain_crop.ordered_trace.images[image_name]
+                        full_image[
+                            grain_crop.bbox[0] : grain_crop.bbox[2], grain_crop.bbox[1] : grain_crop.bbox[3]
+                        ] += crop
+                    # Add the ordered_trace_full_image to topostats_object.full_image_plots
+                    if topostats_object.full_image_plots is None:
+                        topostats_object.full_image_plots = ordered_trace_full_images
+                    elif isinstance(topostats_object.full_image_plots, dict):
+                        topostats_object.full_image_plots = {
+                            **topostats_object.full_image_plots,
+                            **ordered_trace_full_images,
+                        }
+            elif topostats_object.config["ordered_tracing"]["ordering_method"] == "new":
+                print(f"grain {grain_no + 1} ordered tracing new : before")
+                ordered_tracing_new(grain_crop=grain_crop)
+                print(f"grain {grain_no + 1} ordered tracing new : done")
+
+                assert grain_crop.ordered_trace is not None
+                assert grain_crop.ordered_trace.molecule_data is not None
+                ordered_trace_coords = grain_crop.ordered_trace.molecule_data[0].ordered_coords
+                assert ordered_trace_coords is not None, "Ordered trace coordinates are None"
+
+                ordered_trace_full_images["ordered_traces"][
+                    grain_crop.bbox[0] : grain_crop.bbox[2], grain_crop.bbox[1] : grain_crop.bbox[3]
+                ][ordered_trace_coords[:, 0], ordered_trace_coords[:, 1]] = (np.arange(len(ordered_trace_coords)) + 1)
+                ordered_trace_full_images["all_molecules"] = ordered_trace_full_images["ordered_traces"]
+                ordered_trace_full_images["over_under"] = np.zeros_like(topostats_object.image)
+                ordered_trace_full_images["trace_segments"] = np.zeros_like(topostats_object.image)
                 # Add the ordered_trace_full_image to topostats_object.full_image_plots
                 if topostats_object.full_image_plots is None:
                     topostats_object.full_image_plots = ordered_trace_full_images
@@ -1010,9 +1638,22 @@ def ordered_tracing_image(
                         **topostats_object.full_image_plots,
                         **ordered_trace_full_images,
                     }
+                LOGGER.info(f"[{topostats_object.filename}] : Grain {grain_no + 1} ordered via new ordered tracing.")
+            else:
+                raise ValueError(f"Invalid ordering method: {ordering_method}.")
+                if grain_crop.disordered_trace is not None:
+                    LOGGER.info(f"[{topostats_object.filename}] : Grain {grain_no + 1} ordered via TopoStats.")
+                    topostats_tracing = OrderedTraceTopostats(grain_crop=grain_crop)
+                    grain_crop.ordered_trace.images = topostats_tracing.run_topostats_tracing()
+                else:
+                    LOGGER.info(
+                        f"[{topostats_object.filename}] : Grain {grain_no + 1} does not have a disordered trace "
+                        "skipping orderering."
+                    )
         except Exception as e:  # pylint: disable=broad-exception-caught
             LOGGER.error(
                 f"[{topostats_object.filename}] : Ordered tracing for grain {grain_no + 1} failed. "
                 "Consider raising an issue on GitHub. Error: ",
                 exc_info=e,
             )
+            raise e

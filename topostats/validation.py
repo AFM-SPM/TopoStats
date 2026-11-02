@@ -425,6 +425,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "ordering_method": Or(
                 "nodestats",
                 "original",
+                "new",
                 error="Invalid value in config for 'ordered_tracing.ordering_method', valid values are 'nodestats' or 'original'",
             ),
         },

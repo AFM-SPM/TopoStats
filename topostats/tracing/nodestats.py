@@ -144,6 +144,7 @@ class nodeStats:
         """
         LOGGER.debug(f"Node Stats - Processing Grain: {self.n_grain}")
         self.grain_crop.convolved_skeleton = convolve_skeleton(self.skeleton)
+        self.grain_crop.skeleton = self.skeleton
         if self.grain_crop.convolved_skeleton.max() == 3:  # check for crossings, designated by a 3 in the conv skelly
             LOGGER.debug(f"[{self.filename}] : Nodestats - {self.n_grain} contains crossings.")
             # Set the skeleton to be the binary convolved skeleton
@@ -475,6 +476,7 @@ class nodeStats:
         # Check whether average trace resides inside the grain mask
         # Checks if we dilate the skeleton once or twice, then all the pixels should fit in the grain mask
         dilate = binary_dilation(self.skeleton, iterations=2)
+        debug_skeleton = self.skeleton
         # This flag determines whether to use average of 3 traces in calculation of FWHM
         average_trace_advised = dilate[self.smoothed_mask == 1].sum() == dilate.sum()
         LOGGER.debug(f"[{self.filename}] : Branch height traces will be averaged: {average_trace_advised}")

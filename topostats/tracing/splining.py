@@ -617,6 +617,7 @@ def splining_image(
                         LOGGER.info(
                             f"[{topostats_object.filename}] : Splining Grain {grain_no + 1} Molecule {mol_no + 1}"
                         )
+
                         # check if want to do nodestats tracing or not
                         debug_image_before_spline = np.zeros(grain_crop.image.shape, dtype=np.uint8)
                         assert molecule.ordered_coords is not None, "Molecule has no ordered coordinates"
