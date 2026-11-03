@@ -7,7 +7,7 @@ import numpy as np
 import numpy.typing as npt
 from skimage.graph import route_through_array
 from skimage.measure import label
-from skimage.morphology import binary_dilation
+from skimage.morphology import binary_dilation, skeletonize
 
 from topostats.classes import TopoStats
 from topostats.logs.logs import LOGGER_NAME
@@ -472,6 +472,9 @@ def correct_close_strands_image(  # noqa: C901
                     continue
 
                 result_corrected_skeleton = proposed_result_corrected_skeleton
+
+        # re-skeletonize the result to ensure no over-connectivity of pixels has occurred due to the tracing
+        result_corrected_skeleton = skeletonize(result_corrected_skeleton)
 
         graincrop.skeleton_override = result_corrected_skeleton
         graincrop.overridden_skeleton = original_pruned_skeleton
