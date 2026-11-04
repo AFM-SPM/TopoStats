@@ -1333,6 +1333,7 @@ def ordered_tracing_new(grain_crop: GrainCrop) -> None:  # noqa: C901
             for node_branch_pair_data in node_branch_stats.values():
                 branch_pair_coords = node_branch_pair_data.ordered_coords
                 node_coords = node.node_coords
+                assert node_coords is not None
                 node_image = np.zeros_like(labelled_grain_branches_image_with_nodes)
                 for node_coord in node_coords:
                     node_image[node_coord[0], node_coord[1]] = 1
@@ -1346,6 +1347,15 @@ def ordered_tracing_new(grain_crop: GrainCrop) -> None:  # noqa: C901
                     # Check if an endpoint
                     for endpoint in endpoints:
                         if endpoint.coords == (branch_pair_coord[0], branch_pair_coord[1]):
+                            # check if it's at either end of the branch pair
+                            branch_pair_start = branch_pair_coords[0]
+                            branch_pair_end = branch_pair_coords[-1]
+                            if endpoint.coords == (branch_pair_start[0], branch_pair_start[1]) or endpoint.coords == (
+                                branch_pair_end[0],
+                                branch_pair_end[1],
+                            ):
+                                # this endpoint is at the extreme ends of the branch pair coords, and so is not part of the crossing in question.
+                                break
                             endpoint_pair.append(endpoint)
                             break
                 assert len(endpoint_pair) == 2, (
