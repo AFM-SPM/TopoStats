@@ -1301,9 +1301,11 @@ def ordered_tracing_new(grain_crop: GrainCrop) -> None:  # noqa: C901
                     endpoint_neighbour_pixels = [
                         (endpoint_coord[0] + dy, endpoint_coord[1] + dx) for dy in [-1, 0, 1] for dx in [-1, 0, 1]
                     ]
+                    # Check if any of the endpoint neighbour pixels are in the node coords
                     if any(
-                        endpoint_neighbour_pixel in node.node_coords
-                        for endpoint_neighbour_pixel in endpoint_neighbour_pixels
+                        np.all(np.array_equal(np.array(node_coord), np.array(neighbour_pixel)))
+                        for node_coord in node.node_coords
+                        for neighbour_pixel in endpoint_neighbour_pixels
                     ):
                         node_indices.append(node_index)
                 assert (
