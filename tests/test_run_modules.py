@@ -6,7 +6,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 from AFMReader import topostats
-from AFMReader.data_classes import AFMLoad
+from AFMReader.data_classes import AFMScan
 from syrupy.matchers import path_type
 
 from topostats.classes import GrainCrop, TopoStats
@@ -127,13 +127,13 @@ def test_filters(attributes: dict, caplog) -> None:
     )
     assert "Looking for images with extension   : .topostats" in caplog.text
     assert "[minicircle_small] Filtering completed." in caplog.text
-    # Load the output file with AFMReader and check it's an AFMLoad object
-    afm_load = topostats.load_topostats("output/processed/minicircle_small.topostats", channel="image_original")
-    assert isinstance(afm_load, AFMLoad)
-    # Then convert the AFMLoad object to a dictionary
-    data = afm_load.metadata
-    data["image_original"] = afm_load.image
-    data["pixel_to_nm_scaling"] = afm_load.pixel_to_nanometre_scaling
+    # Load the output file with AFMReader and check it's an AFMScan object
+    afm_scan = topostats.load_topostats("output/processed/minicircle_small.topostats", channel="image_original")
+    assert isinstance(afm_scan, AFMScan)
+    # Then convert the AFMScan object to a dictionary
+    data = afm_scan.metadata
+    data["image_original"] = afm_scan.image
+    data["pixel_to_nm_scaling"] = afm_scan.pixel_to_nanometre_scaling
     assert isinstance(data, dict)
     # Then convert the dictionary to a TopoStats object
     topostats_object = dict_to_topostats(dictionary=data)
@@ -182,15 +182,15 @@ def test_grains(attributes: dict, caplog, tmp_path: Path) -> None:
     )
     assert "Looking for images with extension   : .topostats" in caplog.text
     assert "[minicircle_small] Grain detection completed (NB - Filtering was *not* re-run)." in caplog.text
-    # Load the output file with AFMReader and check it's an AFMLoad object
-    afm_load = topostats.load_topostats(
+    # Load the output file with AFMReader and check it's an AFMScan object
+    afm_scan = topostats.load_topostats(
         tmp_path / "output/processed/minicircle_small.topostats", channel="image_original"
     )
-    assert isinstance(afm_load, AFMLoad)
-    # Then convert the AFMLoad object to a dictionary
-    data = afm_load.metadata
-    data["image_original"] = afm_load.image
-    data["pixel_to_nm_scaling"] = afm_load.pixel_to_nanometre_scaling
+    assert isinstance(afm_scan, AFMScan)
+    # Then convert the AFMScan object to a dictionary
+    data = afm_scan.metadata
+    data["image_original"] = afm_scan.image
+    data["pixel_to_nm_scaling"] = afm_scan.pixel_to_nanometre_scaling
     assert isinstance(data, dict)
     # Then convert the dictionary to a TopoStats object
     topostats_object = dict_to_topostats(dictionary=data)

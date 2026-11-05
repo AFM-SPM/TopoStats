@@ -17,7 +17,7 @@ import numpy as np
 import numpy.typing as npt
 import pandas as pd
 from AFMReader import asd, gwy, ibw, jpk, spm, stp, top, topostats  # pylint: disable=no-name-in-module
-from AFMReader.data_classes import AFMLoad
+from AFMReader.data_classes import AFMScan
 from numpyencoder import NumpyEncoder
 from packaging.version import parse as parse_version
 from ruamel.yaml import YAML, YAMLError
@@ -619,9 +619,9 @@ class LoadScans:
             A tuple containing the image and its pixel to nanometre scaling value.
         """
         try:
-            afm_load: AFMLoad = spm.load_spm(file_path=self.img_path, channel=self.channel)
-            image: np.ndarray = afm_load.image
-            pixel_to_nm_scaling: float = afm_load.pixel_to_nanometre_scaling
+            afm_scan: AFMScan = spm.load_spm(file_path=self.img_path, channel=self.channel)
+            image: np.ndarray = afm_scan.image
+            pixel_to_nm_scaling: float = afm_scan.pixel_to_nanometre_scaling
             LOGGER.debug(f"[{self.filename}] : Loaded image from : {self.img_path}")
             return (image, pixel_to_nm_scaling)
         except FileNotFoundError:
@@ -632,7 +632,7 @@ class LoadScans:
         """
         Load a ``.topostats`` file (hdf5 format) using AFMReader.
 
-        AFMReader is general and returns the data as an AFMLoad object, with most of the data stored in the
+        AFMReader is general and returns the data as an AFMScan object, with most of the data stored in the
         ``.metadata`` attribute. This is converted into a dictionary, then later converted to ``TopoStats``
         class when building dictionaries of images.
 
@@ -644,10 +644,10 @@ class LoadScans:
         try:
             LOGGER.debug(f"Loading image from : {self.img_path}")
             channel = "image_original"
-            afm_load = topostats.load_topostats(self.img_path, channel)
-            raw_data = afm_load.metadata
-            raw_data["image_original"] = afm_load.image
-            raw_data["pixel_to_nm_scaling"] = afm_load.pixel_to_nanometre_scaling
+            afm_scan = topostats.load_topostats(self.img_path, channel)
+            raw_data = afm_scan.metadata
+            raw_data["image_original"] = afm_scan.image
+            raw_data["pixel_to_nm_scaling"] = afm_scan.pixel_to_nanometre_scaling
 
             if "topostats_file_version" in raw_data.keys():  # pylint: disable=consider-iterating-dictionary
                 LOGGER.warning(
@@ -688,7 +688,7 @@ class LoadScans:
             A tuple containing the image and its pixel to nanometre scaling value.
         """
         try:
-            asd_load: AFMLoad = asd.load_asd(file_path=self.img_path, channel=self.channel)
+            asd_load: AFMScan = asd.load_asd(file_path=self.img_path, channel=self.channel)
             frames: np.ndarray = asd_load.image
             pixel_to_nm_scaling: float = asd_load.pixel_to_nanometre_scaling
 
@@ -709,9 +709,9 @@ class LoadScans:
             A tuple containing the image and its pixel to nanometre scaling value.
         """
         try:
-            afm_load: AFMLoad = ibw.load_ibw(file_path=self.img_path, channel=self.channel)
-            image: np.ndarray = afm_load.image
-            pixel_to_nm_scaling: float = afm_load.pixel_to_nanometre_scaling
+            afm_scan: AFMScan = ibw.load_ibw(file_path=self.img_path, channel=self.channel)
+            image: np.ndarray = afm_scan.image
+            pixel_to_nm_scaling: float = afm_scan.pixel_to_nanometre_scaling
             LOGGER.debug(f"[{self.filename}] : Loaded image from : {self.img_path}")
         except FileNotFoundError:
             LOGGER.error(f"File not found : {self.img_path}")
@@ -728,9 +728,9 @@ class LoadScans:
             A tuple containing the image and its pixel to nanometre scaling value.
         """
         try:
-            afm_load: AFMLoad = jpk.load_jpk(file_path=self.img_path, channel=self.channel)
-            image: np.ndarray = afm_load.image
-            pixel_to_nm_scaling: float = afm_load.pixel_to_nanometre_scaling
+            afm_scan: AFMScan = jpk.load_jpk(file_path=self.img_path, channel=self.channel)
+            image: np.ndarray = afm_scan.image
+            pixel_to_nm_scaling: float = afm_scan.pixel_to_nanometre_scaling
             LOGGER.debug(f"[{self.filename}] : Loaded image from : {self.img_path}")
         except FileNotFoundError:
             LOGGER.error(f"[{self.filename}] File not found : {self.img_path}")
@@ -748,9 +748,9 @@ class LoadScans:
         """
         LOGGER.debug(f"Loading image from : {self.img_path}")
         try:
-            afm_load: AFMLoad = gwy.load_gwy(file_path=self.img_path, channel=self.channel)
-            image: np.ndarray = afm_load.image
-            pixel_to_nm_scaling: float = afm_load.pixel_to_nanometre_scaling
+            afm_scan: AFMScan = gwy.load_gwy(file_path=self.img_path, channel=self.channel)
+            image: np.ndarray = afm_scan.image
+            pixel_to_nm_scaling: float = afm_scan.pixel_to_nanometre_scaling
             LOGGER.debug(f"[{self.filename}] : Loaded image from : {self.img_path}")
         except FileNotFoundError:
             LOGGER.error(f"File not found : {self.img_path}")
@@ -768,9 +768,9 @@ class LoadScans:
         """
         LOGGER.debug(f"Loading image from : {self.img_path}")
         try:
-            afm_load: AFMLoad = top.load_top(file_path=self.img_path)
-            image: np.ndarray = afm_load.image
-            pixel_to_nm_scaling: float = afm_load.pixel_to_nanometre_scaling
+            afm_scan: AFMScan = top.load_top(file_path=self.img_path)
+            image: np.ndarray = afm_scan.image
+            pixel_to_nm_scaling: float = afm_scan.pixel_to_nanometre_scaling
             LOGGER.debug(f"[{self.filename}] : Loaded image from : {self.img_path}")
         except FileNotFoundError:
             LOGGER.error(f"File not found : {self.img_path}")
@@ -788,9 +788,9 @@ class LoadScans:
         """
         LOGGER.debug(f"Loading image from : {self.img_path}")
         try:
-            afm_load: AFMLoad = stp.load_stp(file_path=self.img_path)
-            image: np.ndarray = afm_load.image
-            pixel_to_nm_scaling: float = afm_load.pixel_to_nanometre_scaling
+            afm_scan: AFMScan = stp.load_stp(file_path=self.img_path)
+            image: np.ndarray = afm_scan.image
+            pixel_to_nm_scaling: float = afm_scan.pixel_to_nanometre_scaling
             LOGGER.debug(f"[{self.filename}] : Loaded image from : {self.img_path}")
         except FileNotFoundError:
             LOGGER.error(f"File not found : {self.img_path}")
