@@ -214,7 +214,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
         ) as pbar:
             for (
                 filename,
-                grain_stats_df,
+                grain_stats_all,
                 topostats_object,
                 image_stats_df,
                 disordered_tracing_df,
@@ -225,8 +225,8 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                 scan_data_dict.values(),
             ):
                 # Append each images returned dataframes to the dictionaries
-                if grain_stats_df is not None:
-                    grain_stats_all[str(filename)] = grain_stats_df.dropna(axis=1, how="all")
+                if grain_stats_all is not None:
+                    grain_stats_all[str(filename)] = grain_stats_all.dropna(axis=1, how="all")
                 topostats_object_all[str(filename)] = topostats_object
                 if image_stats_df is not None:
                     image_stats_all[str(filename)] = image_stats_df.dropna(axis=1, how="all")
@@ -291,6 +291,32 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
             LOGGER.warning("No molecule statistics to merge with grain statistics.")
         # Write statistics to CSV if there is data.
         if isinstance(grain_stats_all, pd.DataFrame) and not grain_stats_all.isna().values.all():
+
+            # debugging: save stats of success to csv
+            # count the number of rows with non NaN "total_contour_length" in the grain_stats_df
+            if grain_stats_all is not None:
+                from topostats import TOPOSTATS_COMMIT
+                # get the current git commit
+                total_contour_length_minimum_threshold = 400e-9
+                total_contour_length_maximum_threshold = 460e-9
+                num_within_total_contour_length_threshold = grain_stats_all[
+                    "total_contour_length"].between(
+                    total_contour_length_minimum_threshold, total_contour_length_maximum_threshold
+                ).sum()
+
+                num_successfully_processed = grain_stats_all["total_contour_length"].notnull().sum()
+                num_grains_total = len(grain_stats_all)
+                num_within_total_contour_length_threshold = grain_stats_all["total_contour_length"].between(
+                    total_contour_length_minimum_threshold, total_contour_length_maximum_threshold
+                ).sum()
+                text = ""
+                text += f"TopoStats commit: {TOPOSTATS_COMMIT}\n"
+                text += f"Number of grains successfully processed: {num_successfully_processed} / {num_grains_total} ({num_successfully_processed / num_grains_total * 100:.2f}%)\n"
+                text += f"Number of successful grains with total_contour_length between {total_contour_length_minimum_threshold} and {total_contour_length_maximum_threshold}: {num_within_total_contour_length_threshold} / {num_successfully_processed} ({num_within_total_contour_length_threshold / num_successfully_processed * 100:.2f}%)\n"
+                LOGGER.info(text)
+                # save to file too
+                with open(config["output_dir"] / "grain_stats_qa.txt", "w") as f:
+                    f.write(text)
             grain_stats_all = write_csv(
                 df=grain_stats_all,
                 dataset="grain_stats",
