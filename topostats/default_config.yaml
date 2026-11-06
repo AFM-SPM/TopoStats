@@ -119,7 +119,8 @@ nodestats:
   pair_odd_branches: false # Whether to try and pair odd-branched nodes. Options: true and false.
 ordered_tracing:
   run: true
-  ordering_method: nodestats # The method of ordering the disordered traces. Options : nodestats | original
+  ordering_method: nodestats # The method of ordering the disordered traces. Options : nodestats | original | new
+  allow_odd_nodes: false # Whether to allow nodes with odd numbers of branches in the molecule.
 splining:
   run: true # Options : true, false
   method: "rolling_window" # Options : "spline", "rolling_window"

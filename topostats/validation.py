@@ -428,6 +428,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "new",
                 error="Invalid value in config for 'ordered_tracing.ordering_method', valid values are 'nodestats' or 'original'",
             ),
+            "allow_odd_nodes": bool,
         },
         "splining": {
             "run": Or(
