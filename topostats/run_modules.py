@@ -250,6 +250,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     if config["splining"]["run"]:
         try:
             molecule_stats_all = pd.concat(molecule_stats_all.values())
+            print(f"molecule_stats_all columns: {molecule_stats_all.columns}")
             grain_stats_additions = pd.concat(
                 [
                     # Sum the contour length of molecules within each grain
@@ -280,8 +281,8 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     if len(grain_stats_all) > 0:
         try:
             grain_stats_all = pd.concat(grain_stats_all.values())
-            grain_stats_all.reset_index(inplace=True)
-            grain_stats_all.set_index(["image", "grain_number"], inplace=True)
+            grain_stats_all = grain_stats_all.reset_index()
+            grain_stats_all = grain_stats_all.set_index(["image", "grain_number"])
         except ValueError as error:
             LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
             LOGGER.error(error)
@@ -296,19 +297,23 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
             # count the number of rows with non NaN "total_contour_length" in the grain_stats_df
             if grain_stats_all is not None:
                 from topostats import TOPOSTATS_COMMIT
+
                 # get the current git commit
                 total_contour_length_minimum_threshold = 400e-9
                 total_contour_length_maximum_threshold = 460e-9
-                num_within_total_contour_length_threshold = grain_stats_all[
-                    "total_contour_length"].between(
-                    total_contour_length_minimum_threshold, total_contour_length_maximum_threshold
-                ).sum()
+                num_within_total_contour_length_threshold = (
+                    grain_stats_all["total_contour_length"]
+                    .between(total_contour_length_minimum_threshold, total_contour_length_maximum_threshold)
+                    .sum()
+                )
 
                 num_successfully_processed = grain_stats_all["total_contour_length"].notnull().sum()
                 num_grains_total = len(grain_stats_all)
-                num_within_total_contour_length_threshold = grain_stats_all["total_contour_length"].between(
-                    total_contour_length_minimum_threshold, total_contour_length_maximum_threshold
-                ).sum()
+                num_within_total_contour_length_threshold = (
+                    grain_stats_all["total_contour_length"]
+                    .between(total_contour_length_minimum_threshold, total_contour_length_maximum_threshold)
+                    .sum()
+                )
                 text = ""
                 text += f"TopoStats commit: {TOPOSTATS_COMMIT}\n"
                 text += f"Number of grains successfully processed: {num_successfully_processed} / {num_grains_total} ({num_successfully_processed / num_grains_total * 100:.2f}%)\n"

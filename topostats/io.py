@@ -1257,15 +1257,15 @@ def write_csv(
     df.index.set_names(names, inplace=True)
     # Reset index
     if dataset == "mol_stats":
-        df.reset_index(drop=True, inplace=True)
+        df = df.reset_index(drop=True)
     else:
-        df.reset_index(inplace=True)
+        df = df.reset_index()
     # Set index to required columns
-    df.set_index(index, inplace=True)
+    df = df.set_index(index)
     # Write to CSV
-    df.to_csv(Path(output_dir) / dataset_to_csv[dataset], index=True)
+    df.to_csv(Path(output_dir) / dataset_to_csv[dataset])
     # Return dataframe with index reset
-    df.reset_index(inplace=True)
+    df = df.reset_index()
     return df
 
 

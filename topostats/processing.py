@@ -1314,18 +1314,21 @@ def process_scan(  # noqa: C901
                 molecule_stats[grain_number] = grain_crop.ordered_trace.collate_molecule_statistics()
         # Molecule Statistics - convert nested dictionary to DataFrame
         if len(molecule_stats) > 0:
+            molecule_stats_dict = {
+                (grain_number, molecule_number): molecule_stats[grain_number][molecule_number]
+                for grain_number, _ in molecule_stats.items()
+                for molecule_number, _ in molecule_stats[grain_number].items()
+            }
+            print(f"molecule stats dict: {molecule_stats_dict}")
             molecule_stats_df = pd.DataFrame.from_dict(
-                {
-                    (grain_number, molecule_number): molecule_stats[grain_number][molecule_number]
-                    for grain_number, _ in molecule_stats.items()
-                    for molecule_number, _ in molecule_stats[grain_number].items()
-                },
+                molecule_stats_dict,
                 orient="index",
             )
             molecule_stats_df.index.set_names(["grain_number", "molecule_number"], inplace=True)
-            molecule_stats_df.reset_index(inplace=True)
+            molecule_stats_df = molecule_stats_df.reset_index()
             molecule_stats_df["image"] = topostats_object.filename
             molecule_stats_df["basename"] = str(Path(topostats_object.img_path).parent)
+            print(f"molecule stats df columns: {molecule_stats_df.columns}")
         else:
             molecule_stats_df = None
         # Disordered Tracing Statistics - convert nested dictionary to dataframe
@@ -1390,6 +1393,7 @@ def process_scan(  # noqa: C901
         output_dir=core_out_path,
         topostats_object=topostats_object,
     )
+
     # Return filename and dataframes
     return (
         topostats_object.filename,
