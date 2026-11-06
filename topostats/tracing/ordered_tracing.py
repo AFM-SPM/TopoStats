@@ -1193,33 +1193,47 @@ def create_single_trace(  # noqa: C901
     return trace, total_cost
 
 
-def ordered_tracing_new(grain_crop: GrainCrop) -> None:  # noqa: C901
+def ordered_tracing_new(
+    grain_crop: GrainCrop,
+    allow_odd_nodes: bool,
+) -> None:  # noqa: C901
     """Run new ordered tracing."""
     nodes = grain_crop.nodes
     skeleton = grain_crop.skeleton
 
     # Check what kind of grain we have
     convolved_skeleton = convolve_skeleton(skeleton.astype(bool))
-    num_endpoints = np.sum(convolved_skeleton == 1)
-    grain_type: Literal["fully_connected_even", "fully_connected_odd", "not_fully_connected", "open_loop"]
+    num_endpoints = np.sum(convolved_skeleton == 2)
+    grain_type: Literal["fully_connected_even", "fully_connected_odd", "not_fully_connected", "open_loop", "linear"]
     if len(nodes) == 0:
-        print("Grain skeleton has no nodes, so it is an open loop.")
-        grain_type = "open_loop"
-    elif num_endpoints == 0:
+        # No nodes, either open loop or linear
+        # check if there are loose ends
+        if num_endpoints == 2:
+            print("Grain skeleton has 2 endpoints and no nodes, so it is linear.")
+            grain_type = "linear"
+        elif num_endpoints == 0:
+            print("Grain skeleton has 0 endpoints and no nodes, so it is an open loop.")
+            grain_type = "open_loop"
+        else:
+            raise ValueError(
+                f"Grain skeleton has > 2 endpoints ({num_endpoints}) and no nodes, this should not be able to happen."
+            )
+
+    elif num_endpoints > 0:
         print(f"Grain skeleton has {num_endpoints} endpoints, so it is not a fully connected graph.")
         grain_type = "not_fully_connected"
     else:
         all_nodes_even_branches = True
         for node_index, node in nodes.items():
-            assert node.branch_stats is not None, f"Node {node_index} does not have branch_stats"
-            if len(node.branch_stats) % 2 != 0:
+            assert node.unmatched_branch_stats is not None, f"Node {node_index} does not have branch_stats"
+            if len(node.unmatched_branch_stats) % 2 != 0:
                 all_nodes_even_branches = False
                 break
         if all_nodes_even_branches:
             print("Grain skeleton has all nodes with even branches, so it is a fully connected graph.")
             grain_type = "fully_connected_even"
         else:
-            print("Grain skeleton has at least one node with odd branches, so it is a fully connected graph.")
+            print("Grain skeleton has at least one node with odd branches, so it is a fully connected odd graph.")
             grain_type = "fully_connected_odd"
 
     print(f"Grain type: {grain_type}")
@@ -1292,6 +1306,49 @@ def ordered_tracing_new(grain_crop: GrainCrop) -> None:  # noqa: C901
             # Remove the previous coord from the list of neighbours
             neighbour_coords = [coord for coord in neighbour_coords if coord != trace[-2]]
             if len(neighbour_coords) == 0:
+                break
+            assert (
+                len(neighbour_coords) == 1
+            ), f"Branch 1 does not have exactly 1 neighbour, this should not happen: {neighbour_coords}"
+            next_coord = neighbour_coords[0]
+            # set the pixel to 0 so we don't revisit it
+            branch_image[next_coord[0], next_coord[1]] = 0
+            trace.append(tuple(next_coord))
+    elif grain_type == "linear":
+        branch_image = np.where(labelled_grain_branches_image_with_nodes == 1, 1, 0)
+        # Get the endpoints of the branch by convolving the branch
+        convolved_branch = convolve_skeleton(branch_image.astype(bool))
+        endpoints_coords = np.argwhere(convolved_branch == 1)
+        assert (
+            len(endpoints_coords) == 2
+        ), f"Branch 1 does not have exactly 2 endpoints, this should not happen: {endpoints_coords}"
+        trace: list[tuple[int, int]] = [tuple(endpoints_coords[0]), tuple(endpoints_coords[1])]
+        # Now trace from one endpoint to the other
+        current_coord = endpoints_coords[0]
+        next_coord = endpoints_coords[1]
+        # set the pixel to 0 so we don't revisit it
+        branch_image[next_coord[0], next_coord[1]] = 0
+        while True:
+            current_coord = next_coord
+            neighbour_coords = []
+            for dy in [-1, 0, 1]:
+                for dx in [-1, 0, 1]:
+                    if dy == 0 and dx == 0:
+                        continue
+                    neighbour_coord = (current_coord[0] + dy, current_coord[1] + dx)
+                    if (
+                        neighbour_coord[0] < 0
+                        or neighbour_coord[0] >= branch_image.shape[0]
+                        or neighbour_coord[1] < 0
+                        or neighbour_coord[1] >= branch_image.shape[1]
+                    ):
+                        continue
+                    if branch_image[neighbour_coord[0], neighbour_coord[1]] == 1:
+                        neighbour_coords.append(neighbour_coord)
+            # Remove the previous coord from the list of neighbours
+            neighbour_coords = [coord for coord in neighbour_coords if coord != trace[-2]]
+            if len(neighbour_coords) == 0:
+                # End of the trace
                 break
             assert (
                 len(neighbour_coords) == 1
@@ -1492,11 +1549,19 @@ def ordered_tracing_new(grain_crop: GrainCrop) -> None:  # noqa: C901
             # Set the next branch start endpoint as the current branch start endpoint for the next iteration
             branch_start_endpoint = next_branch_start_endpoint
     elif grain_type == "fully_connected_odd":
-        print("Tracing method: Fully connected odd")
-        raise NotImplementedError("Tracing for fully connected odd graphs is not implemented yet.")
+        if allow_odd_nodes:
+            # This is a particular type of molecule - talk to the group about how we want to handle this.
+            # Able to discern the types of branches by two of them being the same length and the other being different.
+            raise NotImplementedError("Tracing for fully connected graphs with odd nodes is not implemented yet.")
+
+        # Try to turn the trace into one with even nodes.
+        # There will be an even number of nodes with odd branches.
+        # If there are two nodes with 3 branches, and they are connected by a single branch, then we should
+        # check that branch for being too thick, and if it is, split that branch into two branches.
+
+        raise NotImplementedError("Attempted fix for fully connected graphs with odd nodes is not implemented yet.")
     elif grain_type == "not_fully_connected":
         print("Tracing method: Not fully connected")
-        raise NotImplementedError("Tracing for not fully connected graphs is not implemented yet.")
     else:
         raise ValueError(f"Unknown grain type: {grain_type}")
 
@@ -1582,6 +1647,7 @@ def ordered_trace_mask(ordered_coordinates: npt.NDArray, shape: tuple) -> npt.ND
 def ordered_tracing_image(
     topostats_object: TopoStats,
     ordering_method: str,
+    allow_odd_nodes: bool,
 ) -> None:
     # pylint: disable=too-many-locals
     """
@@ -1665,7 +1731,7 @@ def ordered_tracing_image(
                         }
             elif topostats_object.config["ordered_tracing"]["ordering_method"] == "new":
                 print(f"grain {grain_no} ordered tracing new : before")
-                ordered_tracing_new(grain_crop=grain_crop)
+                ordered_tracing_new(grain_crop=grain_crop, allow_odd_nodes=allow_odd_nodes)
                 print(f"grain {grain_no} ordered tracing new : done")
 
                 assert grain_crop.ordered_trace is not None
