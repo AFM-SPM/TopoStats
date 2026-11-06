@@ -118,14 +118,23 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
 
     def trace_dna(self):
         """Perform the DNA skeletonisation and cleaning pipeline."""
-        self.smoothed_mask = self.smooth_mask(self.mask, **self.mask_smoothing_params)
+        self.smoothed_mask = self.smooth_mask(grain=self.mask, **self.mask_smoothing_params)
         if check_pixel_touching_edge(self.smoothed_mask):
             LOGGER.warning(
-                f"[{self.filename}] : Grain {self.n_grain} skipped as padding is too small. Please consider "
-                "increasing the value of grains.grain_crop_padding in your config file and try again."
+                f"[{self.filename}] : Grain {self.n_grain} smoothed mask touches edge, setting borders to 0s."
             )
-            self.disordered_trace = None
-            return
+            # set the edge of the mask to 0s to try to avoid issues
+            self.smoothed_mask[0, :] = 0
+            self.smoothed_mask[-1, :] = 0
+            self.smoothed_mask[:, 0] = 0
+            self.smoothed_mask[:, -1] = 0
+            if check_pixel_touching_edge(self.smoothed_mask):
+                LOGGER.warning(
+                    f"[{self.filename}] : Grain {self.n_grain} skipped as padding is too small. Please consider "
+                    "increasing the value of grains.grain_crop_padding in your config file and try again."
+                )
+                self.disordered_trace = None
+                return
         self.skeleton = getSkeleton(
             self.image,
             self.smoothed_mask,
