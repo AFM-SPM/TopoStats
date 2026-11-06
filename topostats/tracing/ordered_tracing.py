@@ -3,7 +3,7 @@
 import logging
 from collections.abc import Generator
 from itertools import combinations, product
-from typing import TypeVar
+from typing import TypeVar, Literal
 
 import numpy as np
 import numpy.typing as npt
@@ -1198,6 +1198,32 @@ def ordered_tracing_new(grain_crop: GrainCrop) -> None:  # noqa: C901
     nodes = grain_crop.nodes
     skeleton = grain_crop.skeleton
 
+    # Check what kind of grain we have
+    convolved_skeleton = convolve_skeleton(skeleton.astype(bool))
+    num_endpoints = np.sum(convolved_skeleton == 1)
+    grain_type: Literal["fully_connected_even", "fully_connected_odd", "not_fully_connected", "open_loop"]
+    if len(nodes) == 0:
+        print("Grain skeleton has no nodes, so it is an open loop.")
+        grain_type = "open_loop"
+    elif num_endpoints == 0:
+        print(f"Grain skeleton has {num_endpoints} endpoints, so it is not a fully connected graph.")
+        grain_type = "not_fully_connected"
+    else:
+        all_nodes_even_branches = True
+        for node_index, node in nodes.items():
+            assert node.branch_stats is not None, f"Node {node_index} does not have branch_stats"
+            if len(node.branch_stats) % 2 != 0:
+                all_nodes_even_branches = False
+                break
+        if all_nodes_even_branches:
+            print("Grain skeleton has all nodes with even branches, so it is a fully connected graph.")
+            grain_type = "fully_connected_even"
+        else:
+            print("Grain skeleton has at least one node with odd branches, so it is a fully connected graph.")
+            grain_type = "fully_connected_odd"
+
+    print(f"Grain type: {grain_type}")
+
     # Construct a branch image with node pixels
     grain_branches_image_with_nodes = skeleton
     for node_index, node in nodes.items():
@@ -1214,9 +1240,10 @@ def ordered_tracing_new(grain_crop: GrainCrop) -> None:  # noqa: C901
         grain_branches_image_with_nodes == -1, -1, labelled_grain_branches_image
     )
 
-    # If there is only one branch - just trace it and return
-    if np.max(labelled_grain_branches_image) == 1:
-        print("only one branch, tracing it")
+    if grain_type == "open_loop":
+        print("Tracing method: Loop")
+        # If there is only one branch - just trace it and return
+        assert np.max(labelled_grain_branches_image_with_nodes) == 1, "Open loop should only have one branch"
         # One branch - pick a start point and trace until the end
         branch_image = np.where(labelled_grain_branches_image_with_nodes == 1, 1, 0)
         # Get a random coord from the branch image
@@ -1273,8 +1300,8 @@ def ordered_tracing_new(grain_crop: GrainCrop) -> None:  # noqa: C901
             # set the pixel to 0 so we don't revisit it
             branch_image[next_coord[0], next_coord[1]] = 0
             trace.append(tuple(next_coord))
-    else:
-        print("multiple branches")
+    elif grain_type == "fully_connected_even":
+        print("Tracing method: Fully connected even")
         # There are multiple branches
         # Get the endpoints
         print("| finding endpoints")
@@ -1296,7 +1323,8 @@ def ordered_tracing_new(grain_crop: GrainCrop) -> None:  # noqa: C901
                 # Get the nodes connected to this endpoint
                 for node_index, node in nodes.items():
                     node_confidence = node.confidence
-                    assert node_confidence is not None, f"Node {node_index} does not have a confidence value"
+                    if node_confidence is None:
+                        node_confidence = 0
                     assert node.node_coords is not None, f"Node {node_index} does not have node_coords"
                     endpoint_neighbour_pixels = [
                         (endpoint_coord[0] + dy, endpoint_coord[1] + dx) for dy in [-1, 0, 1] for dx in [-1, 0, 1]
@@ -1327,7 +1355,8 @@ def ordered_tracing_new(grain_crop: GrainCrop) -> None:  # noqa: C901
         for node_index, node in nodes.items():
             node_pairing_suggestions: list[tuple[Endpoint, Endpoint, float]] = []
             node_confidence = node.confidence
-            assert node_confidence is not None, f"Node {node_index} does not have a confidence value"
+            if node_confidence is None:
+                node_confidence = 0
             node_branch_stats = node.branch_stats
             assert node_branch_stats is not None, f"Node {node_index} does not have branch_stats"
             for node_branch_pair_data in node_branch_stats.values():
@@ -1462,6 +1491,14 @@ def ordered_tracing_new(grain_crop: GrainCrop) -> None:  # noqa: C901
 
             # Set the next branch start endpoint as the current branch start endpoint for the next iteration
             branch_start_endpoint = next_branch_start_endpoint
+    elif grain_type == "fully_connected_odd":
+        print("Tracing method: Fully connected odd")
+        raise NotImplementedError("Tracing for fully connected odd graphs is not implemented yet.")
+    elif grain_type == "not_fully_connected":
+        print("Tracing method: Not fully connected")
+        raise NotImplementedError("Tracing for not fully connected graphs is not implemented yet.")
+    else:
+        raise ValueError(f"Unknown grain type: {grain_type}")
 
     # Convert the trace to a numpy array
     trace_array = np.array(trace)
@@ -1627,9 +1664,9 @@ def ordered_tracing_image(
                             **ordered_trace_full_images,
                         }
             elif topostats_object.config["ordered_tracing"]["ordering_method"] == "new":
-                print(f"grain {grain_no + 1} ordered tracing new : before")
+                print(f"grain {grain_no} ordered tracing new : before")
                 ordered_tracing_new(grain_crop=grain_crop)
-                print(f"grain {grain_no + 1} ordered tracing new : done")
+                print(f"grain {grain_no} ordered tracing new : done")
 
                 assert grain_crop.ordered_trace is not None
                 assert grain_crop.ordered_trace.molecule_data is not None
@@ -1668,4 +1705,3 @@ def ordered_tracing_image(
                 "Consider raising an issue on GitHub. Error: ",
                 exc_info=e,
             )
-            raise e
