@@ -214,7 +214,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
         ) as pbar:
             for (
                 filename,
-                grain_stats_all,
+                grain_stats_df,
                 topostats_object,
                 image_stats_df,
                 disordered_tracing_df,
@@ -225,8 +225,8 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                 scan_data_dict.values(),
             ):
                 # Append each images returned dataframes to the dictionaries
-                if grain_stats_all is not None:
-                    grain_stats_all[str(filename)] = grain_stats_all.dropna(axis=1, how="all")
+                if grain_stats_df is not None:
+                    grain_stats_all[str(filename)] = grain_stats_df.dropna(axis=1, how="all")
                 topostats_object_all[str(filename)] = topostats_object
                 if image_stats_df is not None:
                     image_stats_all[str(filename)] = image_stats_df.dropna(axis=1, how="all")
