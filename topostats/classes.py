@@ -5,10 +5,12 @@ from __future__ import annotations
 import logging
 import re
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
+import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
+from matplotlib.ticker import FuncFormatter
 from pydantic import ConfigDict
 from pydantic.dataclasses import dataclass
 
@@ -661,7 +663,84 @@ class GrainCrop:
             )
         LOGGER.info("Cannot find difference between graincrops")
 
+    def plot( # noqa: C901
+        self,
+        mask_alpha: float = 0.3,
+        linemode: Literal["smoothed_trace", "curvature", "none"] = "none",
+        linewidth: float = 1.0,
+        save_path: Path | None = None,
+        figsize: tuple[float, float] = (5, 5),
+        show: bool = False,
+        cmap: plt.Colormap | None = None,
+        vmin: float | None = None,
+        vmax: float | None = None,
+        curvature_norm_bounds: tuple[float, float] = (0.0, 0.1)
+    ) -> None:
+        """
+        Plot the grain crop with optional overlays.
 
+        Parameters
+        ----------
+        mask_alpha : float, optional
+            Alpha value for the mask overlay.
+        linemode : str, optional
+            Mode for line plotting.
+        linewidth : float, optional
+            Width of the lines in the plot.
+        save_path : Path, optional
+            Path to save the plot.
+        show : bool, optional
+            Whether to show the plot.
+        """
+        def tick_px_to_nm_formatter(pixels: float) -> str:
+            """Format tick labels from pixels to nanometres."""
+            return f"{pixels * self.pixel_to_nm_scaling:.0f}"
+
+        _fig, ax = plt.subplots(figsize=figsize)
+        ax.imshow(self.image, cmap=cmap, vmin=vmin, vmax=vmax)
+        ax.imshow(self.mask[:, :, 1], alpha=mask_alpha)
+        if linemode == "smoothed_trace":
+            if self.ordered_trace is not None:
+                if self.ordered_trace.molecule_data is not None:
+                    for _molecule_number, molecule in self.ordered_trace.molecule_data.items():
+                        smoothed_coords = molecule.splined_coords
+                        if smoothed_coords is not None:
+                            ax.plot(smoothed_coords[:, 0], smoothed_coords[:, 1], linewidth=linewidth)
+        elif linemode == "curvature":
+            if self.ordered_trace is not None:
+                if self.ordered_trace.molecule_data is not None:
+                    for _molecule_number, molecule in self.ordered_trace.molecule_data.items():
+                        if molecule.curvature_stats is not None:
+                            curvatures = molecule.curvature_stats.curvatures
+                            smoothed_coords = molecule.splined_coords
+                            if smoothed_coords is not None:
+                                curvature_absolute = np.abs(curvatures)
+                                curvature_values_clipped = np.clip(
+                                    curvature_absolute, curvature_norm_bounds[0], curvature_norm_bounds[1]
+                                )
+                                curvature_values_normalised = (
+                                    curvature_values_clipped - curvature_norm_bounds[0]
+                                ) / (curvature_norm_bounds[1] - curvature_norm_bounds[0])
+                                for index, point in enumerate(smoothed_coords):
+                                    colour = plt.cm.Blues(curvature_values_normalised[index])
+                                    if index > 0:
+                                        previous_point = smoothed_coords[index - 1]
+                                        ax.plot(
+                                            [previous_point[1], point[1]],
+                                            [previous_point[0], point[0]],
+                                            color=colour,
+                                            linewidth=linewidth,
+                                        )
+        ax.xaxis.set_major_formatter(FuncFormatter(tick_px_to_nm_formatter))
+        ax.set_xlabel("nm")
+        ax.yaxis.set_major_formatter(FuncFormatter(tick_px_to_nm_formatter))
+        ax.set_ylabel("nm")
+        if save_path is not None:
+            plt.savefig(save_path)
+        if show:
+            plt.show()
+        else:
+            plt.close()
 def validate_full_mask_tensor_shape(array: npt.NDArray[np.bool_]) -> npt.NDArray[np.bool_]:
     """
     Validate the shape of the full mask tensor.
