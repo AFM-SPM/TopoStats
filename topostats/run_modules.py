@@ -186,6 +186,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
         splining_config=config["splining"],
         curvature_config=config["curvature"],
         plotting_config=config["plotting"],
+        grain_qa_config=config["grain_qa"],
         output_dir=config["output_dir"],
     )
     # Ensure we load the original images as we are running the whole pipeline
@@ -245,38 +246,6 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     image_stats_all_df = pd.concat(image_stats_all.values())
     image_stats_all_df.to_csv(config["output_dir"] / "image_statistics.csv")
 
-    # Molecule statistics - required as we need to average end-to-end and contour length across grains, even if not
-    # being explicitly written to CSV themselves
-    if config["splining"]["run"]:
-        try:
-            molecule_stats_all = pd.concat(molecule_stats_all.values())
-            print(f"molecule_stats_all columns: {molecule_stats_all.columns}")
-            grain_stats_additions = pd.concat(
-                [
-                    # Sum the contour length of molecules within each grain
-                    molecule_stats_all[["image", "grain_number", "contour_length"]]
-                    .groupby(["image", "grain_number"])
-                    .sum(),
-                    # Mean end to end distance across molecules within each grain
-                    molecule_stats_all[["image", "grain_number", "end_to_end_distance"]]
-                    .groupby(["image", "grain_number"])
-                    .mean(),
-                ],
-                axis=1,
-            )
-            grain_stats_additions.columns = ["total_contour_length", "mean_end_to_end_distance"]
-        except ValueError as error:
-            LOGGER.error(
-                "No molecules found in any images."
-                "Either enable tracing or consider adjusting ordered tracing / splining parameters."
-            )
-            LOGGER.error(error)
-            grain_stats_additions = None
-    else:
-        # Skip additional stats merger if splining was not run
-        LOGGER.warning("Splining has been disabled, skipping grain stats additions.")
-        grain_stats_additions = None
-
     # ns-rse 2025-12-23 - there is a common pattern here, could we abstract this to a factory method?
     if len(grain_stats_all) > 0:
         try:
@@ -286,13 +255,8 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
         except ValueError as error:
             LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
             LOGGER.error(error)
-        if grain_stats_additions is not None:
-            grain_stats_all = grain_stats_all.merge(grain_stats_additions, on=["image", "grain_number"], how="left")
-        else:
-            LOGGER.warning("No molecule statistics to merge with grain statistics.")
         # Write statistics to CSV if there is data.
         if isinstance(grain_stats_all, pd.DataFrame) and not grain_stats_all.isna().values.all():
-
             # debugging: save stats of success to csv
             # count the number of rows with non NaN "total_contour_length" in the grain_stats_df
             if grain_stats_all is not None:
@@ -406,62 +370,8 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     images_processed = len(grain_stats_all["image"].unique())
     LOGGER.debug(f"Images processed : {images_processed}")
 
-    # Summary Statistics and Plots
-    if config["summary_stats"]["run"]:
-        # Load summary plots/statistics configuration and validate, location depends on command line args or value in
-        # any config file given, if neither are provided the default topostats/summary_config.yaml is loaded
-        if args.summary_config is not None:
-            summary_config = read_yaml(args.summary_config)
-        elif config["summary_stats"]["config"] is not None:
-            summary_config = read_yaml(config["summary_stats"]["config"])
-        else:
-            summary_yaml = (resources.files(__package__) / "summary_config.yaml").read_text()
-            summary_config = yaml.safe_load(summary_yaml)
-
-        # Do not pass command line arguments to toposum as they clash with process command line arguments
-        summary_config = update_config(summary_config, config["plotting"])
-
-        validate_config(summary_config, SUMMARY_SCHEMA, config_type="YAML summarisation config")
-        # We never want to load data from CSV as we are using the data that has just been processed.
-        summary_config.pop("csv_file")
-
-        # Load variable to label mapping
-        plotting_yaml = (resources.files(__package__) / "var_to_label.yaml").read_text()
-        summary_config["var_to_label"] = yaml.safe_load(plotting_yaml)
-        LOGGER.info("[plotting] Default variable to labels mapping loaded.")
-
-        # If we don't have a dataframe or we do and it is all NaN there is nothing to plot
-        if isinstance(grain_stats_all, pd.DataFrame) and not grain_stats_all.isna().values.all():
-            if grain_stats_all.shape[0] > 1:
-                # If summary_config["output_dir"] does not match or is not a sub-dir of config["output_dir"] it
-                # needs creating
-                summary_config["output_dir"] = Path(config["output_dir"]) / "summary_distributions"
-                summary_config["output_dir"].mkdir(parents=True, exist_ok=True)
-                LOGGER.info(f"Summary plots and statistics will be saved to : {summary_config['output_dir']}")
-
-                # Plot summaries
-                summary_config["df"] = grain_stats_all.reset_index()
-                toposum(summary_config)
-            else:
-                LOGGER.warning(
-                    "There are fewer than two grains that have been detected, so"
-                    " summary plots cannot be made for this image."
-                )
-        else:
-            LOGGER.warning(
-                "There are no results to plot, either...\n\n"
-                "* you have disabled grains/grainstats etc.\n"
-                "* no grains have been detected across all scans.\n"
-                "* there have been errors.\n\n"
-                "If you are not expecting to detect grains please consider disabling"
-                " grains/grainstats etc/plotting/summary_stats. If you are expecting to detect grains"
-                " please check log-files for further information."
-            )
-    else:
-        summary_config = None
-
     # Update config with plotting defaults for printing
-    completion_message(config, img_files, summary_config, images_processed)
+    completion_message(config, img_files, images_processed)
 
 
 # WIP these will be added from args once the dictionary keys have been wrangled
@@ -514,7 +424,7 @@ def filters(args: argparse.Namespace | None = None) -> None:
     write_yaml(config, output_dir=config["output_dir"])
     LOGGER.debug(f"Images processed : {len(results)}")
     # Update config with plotting defaults for printing
-    completion_message(config, img_files, summary_config=None, images_processed=sum(results.values()))
+    completion_message(config, img_files, images_processed=sum(results.values()))
 
 
 def grains(args: argparse.Namespace | None = None) -> None:
@@ -561,7 +471,7 @@ def grains(args: argparse.Namespace | None = None) -> None:
     write_yaml(config, output_dir=config["output_dir"])
     LOGGER.debug(f"Images processed : {len(results)}")
     # Update config with plotting defaults for printing
-    completion_message(config, img_files, summary_config=None, images_processed=sum(results.values()))
+    completion_message(config, img_files, images_processed=sum(results.values()))
 
 
 def grainstats(args: argparse.Namespace | None = None) -> None:
@@ -629,7 +539,7 @@ def grainstats(args: argparse.Namespace | None = None) -> None:
     write_yaml(config, output_dir=config["output_dir"])
     LOGGER.debug(f"Images processed : {len(grain_stats_all)}")
     # Update config with plotting defaults for printing
-    completion_message(config, img_files, summary_config=None, images_processed=grain_stats_all_df.shape[0])
+    completion_message(config, img_files, images_processed=grain_stats_all_df.shape[0])
 
 
 def disordered_tracing(args: argparse.Namespace | None = None) -> None:
@@ -704,9 +614,9 @@ def bruker_rename(args: argparse.Namespace | None = None) -> None:
     # Set logging level
     _set_logging(config["log_level"])
 
-    assert (
-        config["file_ext"] == ".spm"
-    ), "Can only rename old .spm files, change your file-ext in config or command line"
+    assert config["file_ext"] == ".spm", (
+        "Can only rename old .spm files, change your file-ext in config or command line"
+    )
     all_spm_files = find_files(config["base_dir"], file_ext=config["file_ext"])
     LOGGER.info(f"Total Bruker files found : {len(all_spm_files)}")
     OLD_BRUKER_RE = re.compile(r"\.\d+$")
