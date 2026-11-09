@@ -1080,6 +1080,8 @@ def dict_to_topostats(  # noqa: C901 # pylint: disable=too-many-locals,too-many-
                         )
 
             bbox = crop["bbox"] if "bbox" in crop.keys() else None
+            grain_position_x_nm = crop["grain_position_x_nm"] if "grain_position_x_nm" in crop.keys() else 0.0
+            grain_position_y_nm = crop["grain_position_y_nm"] if "grain_position_y_nm" in crop.keys() else 0.0
             pixel_to_nm_scaling = crop["pixel_to_nm_scaling"] if "pixel_to_nm_scaling" in crop.keys() else None
             filename = crop["filename"] if "filename" in crop.keys() else None
             skeleton = crop["skeleton"] if "skeleton" in crop.keys() else None
@@ -1103,6 +1105,8 @@ def dict_to_topostats(  # noqa: C901 # pylint: disable=too-many-locals,too-many-
                 padding=padding,
                 bbox=bbox,
                 pixel_to_nm_scaling=pixel_to_nm_scaling,
+                grain_position_x_nm=grain_position_x_nm,
+                grain_position_y_nm=grain_position_y_nm,
                 filename=filename,
                 skeleton=skeleton,
                 height_profiles=height_profiles,

@@ -83,6 +83,8 @@ class GrainCrop:
         padding: tuple[int, int, int, int],
         bbox: tuple[int, int, int, int],
         pixel_to_nm_scaling: float,
+        grain_position_x_nm: float,
+        grain_position_y_nm: float,
         thresholds: list[float],
         filename: str,
         threshold: str | None = None,
@@ -132,12 +134,14 @@ class GrainCrop:
             An ordered trace for the grain.
         threshold_method : str
             Threshold method used to find grains.
+        grain_position_x_nm: float,
+            The x-coordinate of the grain's position in nanometres.
+        grain_position_y_nm: float,
+            The y-coordinate of the grain's position in nanometres.
         """
-        # Calculate the centroid of the grain crop from the true pixels in the mask
-        print(f"@@@@@@@@@@@ mask shape: {mask.shape}")
-        mask_channel_sum_without_background = np.sum(mask[:, :, 1:], axis=2)
-        centroid = np.array(np.where(mask_channel_sum_without_background)).mean(axis=1)
-        centroid_rounded_to_nearest_5_nm = np.round(centroid * pixel_to_nm_scaling / 5) * 5
+        self.grain_position_x_nm = grain_position_x_nm
+        self.grain_position_y_nm = grain_position_y_nm
+        centroid_rounded_to_nearest_5_nm = (round(grain_position_x_nm / 5) * 5, round(grain_position_y_nm / 5) * 5)
         self.unique_grain_id = (
             f"{filename}_{int(centroid_rounded_to_nearest_5_nm[0])}_x_{int(centroid_rounded_to_nearest_5_nm[1])}_y"
         )
