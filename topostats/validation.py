@@ -467,6 +467,29 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "curvature_turn_minimum_delay_nm": lambda n: n > 0.0,
             "curvature_turn_threshold_iqr_multiplier": lambda n: n > 0.0,
         },
+        "grain_qa": {
+            "run": Or(
+                True,
+                False,
+                error="Invalid value in config for 'grain_qa.run', valid values are 'True' or 'False'",
+            ),
+            "qa_method": Or(
+                "total_contour_length",
+                error="Invalid value in config for 'grain_qa.qa_method', valid values are 'total_contour_length'",
+            ),
+            "min": Or(
+                None,
+                int,
+                float,
+                error="Invalid value in config for 'grain_qa.min', valid values are 'None', int or float",
+            ),
+            "max": Or(
+                None,
+                int,
+                float,
+                error="Invalid value in config for 'grain_qa.max', valid values are 'None', int or float",
+            ),
+        },
         "plotting": {
             "run": Or(
                 True,

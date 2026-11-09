@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import re
+from enum import StrEnum
 from pathlib import Path
 from typing import Any, Literal
 
@@ -27,6 +28,12 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-lines
 # F811 - redefined-while-unused : we disable this as we want to have getter/setter methods for each attribute
 # ruff: noqa: F811
+
+
+@dataclass
+class GrainQAResult:
+    status: Literal["pass", "fail", "not_run"] = "not_run"
+    reason: str = ""
 
 
 class GrainCrop:
@@ -126,6 +133,14 @@ class GrainCrop:
         threshold_method : str
             Threshold method used to find grains.
         """
+        # Calculate the centroid of the grain crop from the true pixels in the mask
+        print(f"@@@@@@@@@@@ mask shape: {mask.shape}")
+        mask_channel_sum_without_background = np.sum(mask[:, :, 1:], axis=2)
+        centroid = np.array(np.where(mask_channel_sum_without_background)).mean(axis=1)
+        centroid_rounded_to_nearest_5_nm = np.round(centroid * pixel_to_nm_scaling / 5) * 5
+        self.unique_grain_id = (
+            f"{filename}_{int(centroid_rounded_to_nearest_5_nm[0])}_x_{int(centroid_rounded_to_nearest_5_nm[1])}_y"
+        )
         self.padding = padding
         self.image = image
         # This part of the constructor must go after padding since the setter
@@ -146,6 +161,7 @@ class GrainCrop:
         self.nodes: dict[int, Node] | None = nodes
         self.ordered_trace: OrderedTrace | None = ordered_trace
         self.threshold_method: str | None = threshold_method
+        self.grain_qa_result: GrainQAResult = GrainQAResult()
 
     def __eq__(self, other: object) -> bool:
         """
@@ -663,7 +679,7 @@ class GrainCrop:
             )
         LOGGER.info("Cannot find difference between graincrops")
 
-    def plot( # noqa: C901
+    def plot(  # noqa: C901
         self,
         mask_alpha: float = 0.3,
         linemode: Literal["smoothed_trace", "curvature", "none"] = "none",
@@ -674,7 +690,7 @@ class GrainCrop:
         cmap: plt.Colormap | None = None,
         vmin: float | None = None,
         vmax: float | None = None,
-        curvature_norm_bounds: tuple[float, float] = (0.0, 0.1)
+        curvature_norm_bounds: tuple[float, float] = (0.0, 0.1),
     ) -> None:
         """
         Plot the grain crop with optional overlays.
@@ -692,7 +708,8 @@ class GrainCrop:
         show : bool, optional
             Whether to show the plot.
         """
-        def tick_px_to_nm_formatter(pixels: float) -> str:
+
+        def tick_px_to_nm_formatter(pixels: float, pos) -> str:
             """Format tick labels from pixels to nanometres."""
             return f"{pixels * self.pixel_to_nm_scaling:.0f}"
 
@@ -705,7 +722,14 @@ class GrainCrop:
                     for _molecule_number, molecule in self.ordered_trace.molecule_data.items():
                         smoothed_coords = molecule.splined_coords
                         if smoothed_coords is not None:
-                            ax.plot(smoothed_coords[:, 0], smoothed_coords[:, 1], linewidth=linewidth)
+                            ax.plot(smoothed_coords[:, 1], smoothed_coords[:, 0], linewidth=linewidth)
+                            if molecule.circular:
+                                # plot the first point again to close the loop
+                                ax.plot(
+                                    [smoothed_coords[-1, 1], smoothed_coords[0, 1]],
+                                    [smoothed_coords[-1, 0], smoothed_coords[0, 0]],
+                                    linewidth=linewidth,
+                                )
         elif linemode == "curvature":
             if self.ordered_trace is not None:
                 if self.ordered_trace.molecule_data is not None:
@@ -718,9 +742,9 @@ class GrainCrop:
                                 curvature_values_clipped = np.clip(
                                     curvature_absolute, curvature_norm_bounds[0], curvature_norm_bounds[1]
                                 )
-                                curvature_values_normalised = (
-                                    curvature_values_clipped - curvature_norm_bounds[0]
-                                ) / (curvature_norm_bounds[1] - curvature_norm_bounds[0])
+                                curvature_values_normalised = (curvature_values_clipped - curvature_norm_bounds[0]) / (
+                                    curvature_norm_bounds[1] - curvature_norm_bounds[0]
+                                )
                                 for index, point in enumerate(smoothed_coords):
                                     colour = plt.cm.Blues(curvature_values_normalised[index])
                                     if index > 0:
@@ -741,6 +765,8 @@ class GrainCrop:
             plt.show()
         else:
             plt.close()
+
+
 def validate_full_mask_tensor_shape(array: npt.NDArray[np.bool_]) -> npt.NDArray[np.bool_]:
     """
     Validate the shape of the full mask tensor.

@@ -139,6 +139,11 @@ curvature:
   smoothing_savgol_polyorder: 2 # The polynomial order of the Savitzky-Golay smoothing kernel.
   curvature_turn_minimum_delay_nm: 20.0 # The minimum distance in nm before re-assessing if in a turn or not.
   curvature_turn_threshold_iqr_multiplier: 1.5 # The multiplier for the IQR for determining if in a turn or not.
+grain_qa:
+  run: false
+  qa_method: "total_contour_length"
+  min: null
+  max: null
 plotting:
   run: true # Options : true, false
   style: topostats.mplstyle # Options : topostats.mplstyle or path to a matplotlibrc params file

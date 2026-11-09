@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from art import tprint
+from fontTools.misc.symfont import c
 
 from topostats import TOPOSTATS_BASE_VERSION, TOPOSTATS_COMMIT
 from topostats.array_manipulation import re_crop_grain_image_and_mask_to_set_size_nm
@@ -22,9 +23,9 @@ from topostats.plottingfuncs import (
     Images,
     add_pixel_to_nm_to_plotting_config,
 )
+from topostats.tracing.close_strand_correction import correct_close_strands_image
 from topostats.tracing.disordered_tracing import trace_image_disordered
 from topostats.tracing.nodestats import nodestats_image
-from topostats.tracing.close_strand_correction import correct_close_strands_image
 from topostats.tracing.ordered_tracing import ordered_tracing_image
 from topostats.tracing.splining import splining_image
 
@@ -258,9 +259,9 @@ def run_grains(  # noqa: C901
                                             continue
 
                                 # Plot the grain crop without mask
-                                plotting_config["plot_dict"]["grain_image"][
-                                    "filename"
-                                ] = f"{topostats_object.filename}_grain_{grain_number}"
+                                plotting_config["plot_dict"]["grain_image"]["filename"] = (
+                                    f"{topostats_object.filename}_grain_{grain_number}"
+                                )
                                 plotting_config["plot_dict"]["grain_image"]["output_dir"] = grain_out_path
                                 Images(
                                     data=crop_image,
@@ -270,9 +271,9 @@ def run_grains(  # noqa: C901
                                 plotting_config["plot_dict"]["grain_mask"]["output_dir"] = grain_out_path
                                 # Tensor, iterate over channels
                                 for tensor_class in range(1, crop_mask.shape[2]):
-                                    plotting_config["plot_dict"]["grain_mask"][
-                                        "filename"
-                                    ] = f"{topostats_object.filename}_grain_mask_{grain_number}_class_{tensor_class}"
+                                    plotting_config["plot_dict"]["grain_mask"]["filename"] = (
+                                        f"{topostats_object.filename}_grain_mask_{grain_number}_class_{tensor_class}"
+                                    )
                                     Images(
                                         data=crop_image,
                                         masked_array=crop_mask[:, :, tensor_class],
@@ -286,9 +287,9 @@ def run_grains(  # noqa: C901
                             # Iterate over each tensor class/channel
                             for tensor_class in range(1, topostats_object.full_mask_tensor.shape[2]):
                                 # Set filename for this class
-                                plotting_config["plot_dict"][plot_name][
-                                    "filename"
-                                ] = f"{topostats_object.filename}_masked_overlay_class_{tensor_class}"
+                                plotting_config["plot_dict"][plot_name]["filename"] = (
+                                    f"{topostats_object.filename}_masked_overlay_class_{tensor_class}"
+                                )
                                 full_mask_tensor_class = topostats_object.full_mask_tensor[:, :, tensor_class]
                                 full_mask_tensor_class_regionprops = Grains.get_region_properties(
                                     Grains.label_regions(full_mask_tensor_class)
@@ -691,9 +692,9 @@ def run_close_strand_correction(
                 for grain_number, grain_crop in topostats_object.grain_crops.items():
                     if grain_crop.skeleton_override is not None:
                         config_filename = plotting_config["plot_dict"]["close_strand_correction"].pop("filename")
-                        plotting_config["plot_dict"]["close_strand_correction"][
-                            "filename"
-                        ] = f"{topostats_object.filename}_grain_{grain_number}_close_strand_corrected_skeleton.png"
+                        plotting_config["plot_dict"]["close_strand_correction"]["filename"] = (
+                            f"{topostats_object.filename}_grain_{grain_number}_close_strand_corrected_skeleton.png"
+                        )
                         Images(
                             data=grain_crop.image,
                             masked_array=grain_crop.skeleton_override,
@@ -701,9 +702,9 @@ def run_close_strand_correction(
                             **plotting_config["plot_dict"]["close_strand_correction"],
                         ).plot_and_save()
                         config_filename = plotting_config["plot_dict"]["close_strand_correction_before"].pop("filename")
-                        plotting_config["plot_dict"]["close_strand_correction_before"][
-                            "filename"
-                        ] = f"{topostats_object.filename}_grain_{grain_number}_close_strand_correction_before.png"
+                        plotting_config["plot_dict"]["close_strand_correction_before"]["filename"] = (
+                            f"{topostats_object.filename}_grain_{grain_number}_close_strand_correction_before.png"
+                        )
                         Images(
                             data=grain_crop.image,
                             masked_array=grain_crop.overridden_skeleton,
@@ -777,9 +778,9 @@ def run_ordered_tracing(  # noqa: C901
         else:
             if plotting_config["run"]:
                 try:
-                    plotting_config["plot_dict"]["ordered_traces"][
-                        "core_set"
-                    ] = True  # fudge around core having own cmap
+                    plotting_config["plot_dict"]["ordered_traces"]["core_set"] = (
+                        True  # fudge around core having own cmap
+                    )
                     # ns-rse 2025-11-27 : What is being plotted here?
                     # ns-rse 2026-01-05 : fudge to get round filenames
                     _filename = plotting_config["plot_dict"]["ordered_traces"].pop("filename")
@@ -1060,6 +1061,95 @@ def run_curvature_stats(
     return
 
 
+def run_grain_qa(
+    topostats_object: TopoStats,
+    grain_qa_config: dict,
+) -> None:
+    """
+    Run QA checks on grains and flag good or bad.
+
+    Parameters
+    ----------
+    topostats_object : TopoStats
+        TopoStats object for processing, should have had grain detection performed first.
+    grain_qa_config : dict
+        Dictionary configuration for running the QA stage.
+    """
+    qa_method: str = grain_qa_config["qa_method"]
+    minimum = grain_qa_config["min"]
+    maximum = grain_qa_config["max"]
+    assert isinstance(qa_method, str)
+    if grain_qa_config["run"]:
+        LOGGER.info(f"[{topostats_object.filename}] : *** Grain QA ***")
+        for _grain_number, grain_crop in topostats_object.require_grain_crops().items():
+            failed = False
+            if qa_method == "total_contour_length":
+                print(grain_crop.stats)
+                if grain_crop.stats.get("total_contour_length") is not None:
+                    total_contour_length = grain_crop.stats["total_contour_length"]
+                    if minimum is not None:
+                        if total_contour_length < minimum:
+                            grain_crop.grain_qa_result.status = "fail"
+                            grain_crop.grain_qa_result.reason = grain_crop.grain_qa_result.reason + (
+                                f"| total contour length {total_contour_length} < minimum {minimum}"
+                                f"total contour length {total_contour_length} > maximum {maximum}"
+                            )
+                            failed = True
+                            print(f"debug: grain failed")
+                    if maximum is not None:
+                        if total_contour_length > maximum:
+                            grain_crop.grain_qa_result.status = "fail"
+                            grain_crop.grain_qa_result.reason = grain_crop.grain_qa_result.reason + (
+                                f"| total contour length {total_contour_length} > maximum {maximum}"
+                            )
+                            failed = True
+                            print(f"debug: grain failed")
+                    if not failed:
+                        print(f"debug: grain passed")
+                        grain_crop.grain_qa_result.status = "pass"
+                        grain_crop.grain_qa_result.reason = "total contour length within bounds"
+            else:
+                raise ValueError(f"Unknown QA method: {qa_method}")
+
+
+def plot_grains(
+    topostats_object: TopoStats,
+    core_out_path: Path,
+    plotting_config: dict,
+) -> None:
+    """
+    Plot grain crop images with optional overlays.
+
+    Parameters
+    ----------
+    topostats_object : TopoStats
+        TopoStats object for processing, should have had grain detection performed first.
+    core_out_path : Path
+        Path to save the core grain images to.
+    plotting_config : dict
+        Dictionary configuration for plotting images.
+    """
+    LOGGER.info(f"[{topostats_object.filename}] : *** Plotting Grains ***")
+    for _grain_number, grain_crop in topostats_object.require_grain_crops().items():
+        if grain_crop.grain_qa_result.status == "not_run":
+            save_dir = core_out_path / "QA" / "not_run"
+        elif grain_crop.grain_qa_result.status == "pass":
+            save_dir = core_out_path / "QA" / "pass"
+        elif grain_crop.grain_qa_result.status == "fail":
+            save_dir = core_out_path / "QA" / "fail"
+        else:
+            raise ValueError(f"Unknown grain QA result: {grain_crop.grain_qa_result.status}")
+        save_dir.mkdir(exist_ok=True, parents=True)
+        save_path = save_dir / f"{grain_crop.unique_grain_id}.png"
+        grain_crop.plot(
+            linemode="smoothed_trace",
+            vmin=plotting_config["zrange"][0],
+            vmax=plotting_config["zrange"][1],
+            save_path=save_path,
+            show=False,
+        )
+
+
 def get_out_paths(
     image_path: Path, base_dir: Path, output_dir: Path, filename: str, plotting_config: dict, grain_dirs: bool = True
 ):
@@ -1116,6 +1206,7 @@ def process_scan(  # noqa: C901
     ordered_tracing_config: dict,
     splining_config: dict,
     curvature_config: dict,
+    grain_qa_config: dict,
     plotting_config: dict,
     output_dir: str | Path = "output",
 ) -> tuple[str, pd.DataFrame, TopoStats, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -1147,6 +1238,8 @@ def process_scan(  # noqa: C901
         Dictionary of configuration options for running the splining stage.
     curvature_config : dict
         Dictionary of configuration options for running the curvature stats stage.
+    grain_qa_config : dict
+        Dictionary of configuration options for running the QA stage.
     plotting_config : dict
         Dictionary of configuration options for plotting figures.
     output_dir : str | Path
@@ -1287,6 +1380,17 @@ def process_scan(  # noqa: C901
             core_out_path=core_out_path,
             tracing_out_path=tracing_out_path,
             curvature_config=curvature_config,
+            plotting_config=plotting_config,
+        )
+
+        run_grain_qa(
+            topostats_object=topostats_object,
+            grain_qa_config=grain_qa_config,
+        )
+
+        plot_grains(
+            topostats_object=topostats_object,
+            core_out_path=core_out_path,
             plotting_config=plotting_config,
         )
 
@@ -1752,7 +1856,7 @@ def check_run_steps(  # noqa: C901
         LOGGER.info("Configuration run options are consistent, processing can proceed.")
 
 
-def completion_message(config: dict, img_files: list, summary_config: dict, images_processed: int) -> None:
+def completion_message(config: dict, img_files: list, images_processed: int) -> None:
     """
     Print a completion message summarising images processed.
 
@@ -1762,15 +1866,9 @@ def completion_message(config: dict, img_files: list, summary_config: dict, imag
         Configuration dictionary.
     img_files : list
         List of found image paths.
-    summary_config : dict
-        Configuration for plotting summary statistics.
     images_processed : int
         Pandas DataFrame of results.
     """
-    if summary_config is not None:
-        distribution_plots_message = str(summary_config["output_dir"])
-    else:
-        distribution_plots_message = "Disabled. Enable in config 'summary_stats/run' if needed."
     print(
         "\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
     )
@@ -1784,7 +1882,6 @@ def completion_message(config: dict, img_files: list, summary_config: dict, imag
         f"  Files Found                 : {len(img_files)}\n"
         f"  Successfully Processed^1    : {images_processed} ({(images_processed * 100) / len(img_files)}%)\n"
         f"  All statistics              : {str(config['output_dir'])}/grain_statistics.csv\n"
-        f"  Distribution Plots          : {distribution_plots_message}\n\n"
         f"  Configuration               : {config['output_dir']}/config.yaml\n\n"
         f"  Email                       : topostats@sheffield.ac.uk\n"
         f"  Documentation               : https://afm-spm.github.io/topostats/\n"
