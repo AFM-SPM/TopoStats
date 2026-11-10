@@ -674,10 +674,14 @@ def splining_image(
             mean_end_to_end_distance = np.mean(end_to_end_distances) if end_to_end_distances else 0.0
             for class_number, class_stats in grain_crop.stats.items():
                 for subgrain_number, _ in class_stats.items():
-                    grain_crop.stats[class_number][subgrain_number]["mean_end_to_end_distance"] = (
-                        mean_end_to_end_distance
-                    )
-                    grain_crop.stats[class_number][subgrain_number]["total_contour_length"] = total_contour_length
+                    grain_crop.stats[class_number][subgrain_number][
+                        "mean_end_to_end_distance"
+                    ] = mean_end_to_end_distance
+                    if total_contour_length == 0.0:
+                        # Flag as an error so it doesn't affect the stats
+                        grain_crop.stats[class_number][subgrain_number]["total_contour_length"] = np.nan
+                    else:
+                        grain_crop.stats[class_number][subgrain_number]["total_contour_length"] = total_contour_length
     else:
         LOGGER.warning("f[{topostats_objec.filename}] : No grains to spline.")
 
@@ -703,9 +707,9 @@ def interpolate_between_two_points_distance(
         The new point at the specified distance between the two points.
     """
     distance_between_points = np.linalg.norm(point2 - point1)
-    assert distance_between_points > distance, (
-        f"distance between points is less than the desired interval: {distance_between_points} < {distance}"
-    )
+    assert (
+        distance_between_points > distance
+    ), f"distance between points is less than the desired interval: {distance_between_points} < {distance}"
     proportion = distance / distance_between_points
     return point1 + proportion * (point2 - point1)
 
