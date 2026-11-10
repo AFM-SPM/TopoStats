@@ -259,9 +259,9 @@ def run_grains(  # noqa: C901
                                             continue
 
                                 # Plot the grain crop without mask
-                                plotting_config["plot_dict"]["grain_image"]["filename"] = (
-                                    f"{topostats_object.filename}_grain_{grain_number}"
-                                )
+                                plotting_config["plot_dict"]["grain_image"][
+                                    "filename"
+                                ] = f"{topostats_object.filename}_grain_{grain_number}"
                                 plotting_config["plot_dict"]["grain_image"]["output_dir"] = grain_out_path
                                 Images(
                                     data=crop_image,
@@ -271,9 +271,9 @@ def run_grains(  # noqa: C901
                                 plotting_config["plot_dict"]["grain_mask"]["output_dir"] = grain_out_path
                                 # Tensor, iterate over channels
                                 for tensor_class in range(1, crop_mask.shape[2]):
-                                    plotting_config["plot_dict"]["grain_mask"]["filename"] = (
-                                        f"{topostats_object.filename}_grain_mask_{grain_number}_class_{tensor_class}"
-                                    )
+                                    plotting_config["plot_dict"]["grain_mask"][
+                                        "filename"
+                                    ] = f"{topostats_object.filename}_grain_mask_{grain_number}_class_{tensor_class}"
                                     Images(
                                         data=crop_image,
                                         masked_array=crop_mask[:, :, tensor_class],
@@ -287,9 +287,9 @@ def run_grains(  # noqa: C901
                             # Iterate over each tensor class/channel
                             for tensor_class in range(1, topostats_object.full_mask_tensor.shape[2]):
                                 # Set filename for this class
-                                plotting_config["plot_dict"][plot_name]["filename"] = (
-                                    f"{topostats_object.filename}_masked_overlay_class_{tensor_class}"
-                                )
+                                plotting_config["plot_dict"][plot_name][
+                                    "filename"
+                                ] = f"{topostats_object.filename}_masked_overlay_class_{tensor_class}"
                                 full_mask_tensor_class = topostats_object.full_mask_tensor[:, :, tensor_class]
                                 full_mask_tensor_class_regionprops = Grains.get_region_properties(
                                     Grains.label_regions(full_mask_tensor_class)
@@ -692,9 +692,9 @@ def run_close_strand_correction(
                 for grain_number, grain_crop in topostats_object.grain_crops.items():
                     if grain_crop.skeleton_override is not None:
                         config_filename = plotting_config["plot_dict"]["close_strand_correction"].pop("filename")
-                        plotting_config["plot_dict"]["close_strand_correction"]["filename"] = (
-                            f"{topostats_object.filename}_grain_{grain_number}_close_strand_corrected_skeleton.png"
-                        )
+                        plotting_config["plot_dict"]["close_strand_correction"][
+                            "filename"
+                        ] = f"{topostats_object.filename}_grain_{grain_number}_close_strand_corrected_skeleton.png"
                         Images(
                             data=grain_crop.image,
                             masked_array=grain_crop.skeleton_override,
@@ -702,9 +702,9 @@ def run_close_strand_correction(
                             **plotting_config["plot_dict"]["close_strand_correction"],
                         ).plot_and_save()
                         config_filename = plotting_config["plot_dict"]["close_strand_correction_before"].pop("filename")
-                        plotting_config["plot_dict"]["close_strand_correction_before"]["filename"] = (
-                            f"{topostats_object.filename}_grain_{grain_number}_close_strand_correction_before.png"
-                        )
+                        plotting_config["plot_dict"]["close_strand_correction_before"][
+                            "filename"
+                        ] = f"{topostats_object.filename}_grain_{grain_number}_close_strand_correction_before.png"
                         Images(
                             data=grain_crop.image,
                             masked_array=grain_crop.overridden_skeleton,
@@ -778,9 +778,9 @@ def run_ordered_tracing(  # noqa: C901
         else:
             if plotting_config["run"]:
                 try:
-                    plotting_config["plot_dict"]["ordered_traces"]["core_set"] = (
-                        True  # fudge around core having own cmap
-                    )
+                    plotting_config["plot_dict"]["ordered_traces"][
+                        "core_set"
+                    ] = True  # fudge around core having own cmap
                     # ns-rse 2025-11-27 : What is being plotted here?
                     # ns-rse 2026-01-05 : fudge to get round filenames
                     _filename = plotting_config["plot_dict"]["ordered_traces"].pop("filename")
@@ -1082,11 +1082,15 @@ def run_grain_qa(
     if grain_qa_config["run"]:
         LOGGER.info(f"[{topostats_object.filename}] : *** Grain QA ***")
         for _grain_number, grain_crop in topostats_object.require_grain_crops().items():
-            failed = False
             if qa_method == "total_contour_length":
-                print(grain_crop.stats)
-                if grain_crop.stats.get("total_contour_length") is not None:
-                    total_contour_length = grain_crop.stats["total_contour_length"]
+                total_contour_length = None
+                for class_index, class_stats in grain_crop.stats.items():
+                    for molecule_index, _ in class_stats.items():
+                        if grain_crop.stats[class_index][molecule_index].get("total_contour_length") is not None:
+                            total_contour_length = grain_crop.stats[class_index][molecule_index]["total_contour_length"]
+                            break
+                if total_contour_length is not None:
+                    failed = False
                     if minimum is not None:
                         if total_contour_length < minimum:
                             grain_crop.grain_qa_result.status = "fail"
@@ -1095,7 +1099,6 @@ def run_grain_qa(
                                 f"total contour length {total_contour_length} > maximum {maximum}"
                             )
                             failed = True
-                            print(f"debug: grain failed")
                     if maximum is not None:
                         if total_contour_length > maximum:
                             grain_crop.grain_qa_result.status = "fail"
@@ -1103,11 +1106,12 @@ def run_grain_qa(
                                 f"| total contour length {total_contour_length} > maximum {maximum}"
                             )
                             failed = True
-                            print(f"debug: grain failed")
                     if not failed:
-                        print(f"debug: grain passed")
                         grain_crop.grain_qa_result.status = "pass"
                         grain_crop.grain_qa_result.reason = "total contour length within bounds"
+                else:
+                    grain_crop.grain_qa_result.status = "fail"
+                    grain_crop.grain_qa_result.reason = "total contour length not found"
             else:
                 raise ValueError(f"Unknown QA method: {qa_method}")
 
