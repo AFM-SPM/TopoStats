@@ -1355,6 +1355,10 @@ class MoleculeCurvatureStats:
 
     curvatures : npt.NDArray[np.float64]
         The curvatures for each point along the trace. (1/nm).
+    turn_in_distances_deg : npt.NDArray[np.float64]
+        Alternative measure of curvature defined by the angle subtended in a certain length of trace.
+    turn_in_distances_window_length_nm : float
+        The window length in nanometres for turn-in-distance measurements.
     is_circular : bool
         Whether the molecule is circular or not.
     num_turns : int
@@ -1380,6 +1384,8 @@ class MoleculeCurvatureStats:
     """
 
     curvatures: npt.NDArray[np.float64]
+    turn_in_distances_deg: npt.NDArray[np.float64]
+    turn_in_distance_window_length_nm: float
     is_circular: bool
     num_turns: int
     curvature_mean: float

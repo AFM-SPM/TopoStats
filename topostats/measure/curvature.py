@@ -287,6 +287,138 @@ def calculate_curvature_metrics(curvatures: npt.NDArray[np.float64], decimals: i
     }
 
 
+def construct_symmetric_window_of_length(
+    distances_to_previous_points: npt.NDArray[np.float64],
+    midpoint_index: int,
+    window_length: float,
+    circular: bool,
+) -> tuple[int, int]:
+    """Construct a symmetric window around a midpoint index where the len of the window is defined by a given length."""
+    left_index = 0
+    right_index = 0
+    cumulative_distance_left = 0.0
+    cumulative_distance_right = 0.0
+    half_window_length = window_length / 2
+    # can get the reversed direction distances to previous points by just rolling the array by 1 in the negative
+    # direction
+    reversed_distances_to_previous_points = np.roll(distances_to_previous_points, -1)
+
+    # guard for the length of the window being longer than the total length of the trace
+    if window_length >= np.sum(distances_to_previous_points):
+        raise ValueError("window length exceeds total length of the trace, cannot construct window")
+
+    # Find the right index by moving forwards until the cumulative distance exceeds the window length, wrapping around
+    # if necessary and circular
+    for index in range(1, len(distances_to_previous_points) + 1):
+        prospective_right_index = midpoint_index + index
+        if prospective_right_index >= len(distances_to_previous_points):
+            if circular:
+                prospective_right_index = prospective_right_index % len(distances_to_previous_points)
+            else:
+                raise ValueError("required right window bound exceeds the end of the linear trace")
+        cumulative_distance_right += distances_to_previous_points[prospective_right_index]
+        if cumulative_distance_right > half_window_length:
+            right_index = prospective_right_index
+            break
+    # Find the left index by moving backwards until the cumulative distance exceeds the window length, wrapping around
+    # if necessary and circular
+    for index in range(1, len(distances_to_previous_points) + 1):
+        prospective_left_index = midpoint_index - index
+        if prospective_left_index < 0:
+            if circular:
+                prospective_left_index = prospective_left_index % len(distances_to_previous_points)
+            else:
+                raise ValueError("required left window bound exceeds the start of the linear trace")
+        cumulative_distance_left += reversed_distances_to_previous_points[prospective_left_index]
+        if cumulative_distance_left > half_window_length:
+            left_index = prospective_left_index
+            break
+    return left_index, right_index
+
+
+def calculate_turn_in_distance_for_trace_deg(
+    trace_coords_nm: npt.NDArray[np.float64],
+    turn_in_distance_window_length_nm: float,
+    circular: bool,
+    turn_in_distance_window_end_sampling_points: int,
+) -> npt.NDArray[np.float64]:
+    """Calculate the degrees turned over a given window length for each point in a trace."""
+    assert turn_in_distance_window_end_sampling_points >= 2, "need at least 2 points to calculate a vector"
+    turn_in_distances_deg = np.zeros(len(trace_coords_nm))
+    distances_to_previous_points_nm = distances_nm(trace_coords_nm, circular)
+
+    # for each point, construct a symmetric window around it with the given window length
+    for index in range(len(trace_coords_nm)):
+        try:
+            left_index, right_index = construct_symmetric_window_of_length(
+                distances_to_previous_points=distances_to_previous_points_nm,
+                midpoint_index=index,
+                window_length=turn_in_distance_window_length_nm,
+                circular=circular,
+            )
+        # check for the error where the edge of the window meets the end of the trace in linear traces
+        # if this happens, set the value to nan and continue
+        except ValueError as e:
+            if "required right window bound exceeds the end of the linear trace" in str(
+                e
+            ) or "required left window bound exceeds the start of the linear trace" in str(e):
+                turn_in_distances_deg[index] = np.nan
+                continue
+            raise e
+
+        # To calculate vectors, we will need to grab another point on either side. Grab the inner points
+        # so, for the left, get the next point, and for the right, get the previous point.
+        # will need to check for windows with points that have too few points to calculate the vectors
+        window_num_points = (
+            right_index - left_index + 1
+            if right_index >= left_index
+            else left_index + (len(trace_coords_nm) - right_index) + 1
+        )
+        if window_num_points < turn_in_distance_window_end_sampling_points * 2:
+            raise ValueError(
+                f"window of {window_num_points} points contains too few points to sample the required number of points"
+                f" {turn_in_distance_window_end_sampling_points} from each side to calculate the turn in distance"
+            )
+
+        # get the indices of the points to sample, wrapping where needed
+        window_left_points_indices = []
+        window_right_points_indices = []
+        for sample_index in range(turn_in_distance_window_end_sampling_points):
+            left_sample_index = left_index + sample_index
+            if left_sample_index >= len(trace_coords_nm):
+                if circular:
+                    left_sample_index = left_sample_index % len(trace_coords_nm)
+                else:
+                    raise ValueError(
+                        "required left sample point index exceeds the end of the linear trace, cannot calculate turn in distance"
+                    )
+            window_left_points_indices.append(left_sample_index)
+            right_sample_index = right_index - sample_index
+            if right_sample_index < 0:
+                if circular:
+                    right_sample_index = right_sample_index % len(trace_coords_nm)
+                else:
+                    raise ValueError(
+                        "required right sample point index exceeds the start of the linear trace, cannot calculate turn in distance"
+                    )
+            window_right_points_indices.append(right_sample_index)
+
+        # calculate the vectors by taking the differences between each sequential point pair and then averaging them
+        left_vectors = np.diff(trace_coords_nm[window_left_points_indices], axis=0)
+        # flip the right vectors since we are going in the opposite direction and we want the vectors to point
+        # in the same direction for angle calculation
+        window_right_points_indices_flipped = list(reversed(window_right_points_indices))
+        right_vectors = np.diff(trace_coords_nm[window_right_points_indices_flipped], axis=0)
+        left_vector = np.mean(left_vectors, axis=0)
+        right_vector = np.mean(right_vectors, axis=0)
+        # calculate angle difference between the two vectors
+        turn_rad = angle_diff_signed(v1=left_vector, v2=right_vector)
+        turn_deg = np.degrees(turn_rad)
+        turn_in_distances_deg[index] = turn_deg
+
+    return turn_in_distances_deg
+
+
 # pylint: disable=too-many-locals
 def calculate_curvature_stats_image(
     topostats_object: TopoStats,
@@ -296,6 +428,8 @@ def calculate_curvature_stats_image(
     smoothing_savgol_polyorder: int,
     curvature_turn_minimum_delay_nm: float,
     curvature_turn_threshold_iqr_multiplier: float,
+    turn_in_distance_window_length_nm: float,
+    turn_in_distance_end_sampling_points: int,
 ) -> None:
     """
     Perform curvature analysis for a whole image of grains.
@@ -356,8 +490,17 @@ def calculate_curvature_stats_image(
                     curvature_turn_threshold_iqr_multiplier=curvature_turn_threshold_iqr_multiplier,
                 )
 
+                turn_in_distances_deg = calculate_turn_in_distance_for_trace_deg(
+                    trace_coords_nm=trace_nm,
+                    turn_in_distance_window_length_nm=turn_in_distance_window_length_nm,
+                    turn_in_distance_window_end_sampling_points=turn_in_distance_end_sampling_points,
+                    circular=is_circular,
+                )
+
                 molecule_data.curvature_stats = MoleculeCurvatureStats(
                     curvatures=curvatures_smoothed,
+                    turn_in_distances_deg=turn_in_distances_deg,
+                    turn_in_distance_window_length_nm=turn_in_distance_window_length_nm,
                     is_circular=is_circular,
                     num_turns=num_turns,
                     **curvature_metrics,
