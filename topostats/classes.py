@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import logging
 import re
+from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 import numpy.typing as npt
-from pydantic import ConfigDict, BaseModel
+from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 from pydantic.dataclasses import dataclass
 
 from topostats.logs.logs import LOGGER_NAME
@@ -27,8 +28,8 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # ruff: noqa: F811
 
 
-class BaseDamageAnalysis(BaseModel):
-    """Base class for damage classes."""
+class TopoStatsBaseModel(BaseModel):
+    """Base class for TopoStats classes."""
 
     # Allow numpy arrays to be used as fields
     model_config = ConfigDict(
@@ -36,7 +37,7 @@ class BaseDamageAnalysis(BaseModel):
     )
 
 
-class Defect(BaseDamageAnalysis):
+class Defect(TopoStatsBaseModel):
     """
     A class to represent a defect in a trace.
 
@@ -63,7 +64,7 @@ class Defect(BaseDamageAnalysis):
     volume_nm3: float
 
 
-class Gap(BaseDamageAnalysis):
+class Gap(TopoStatsBaseModel):
     """
     A class to represent a gap between defects in a trace.
 
@@ -86,6 +87,137 @@ class Gap(BaseDamageAnalysis):
     length_nm: float
     position_along_trace_nm: float
     total_turn_radians: tuple[float, float]
+
+
+class OrderedDefectGapList(TopoStatsBaseModel):
+    """A class to represent an ordered list of defects and gaps in a trace."""
+
+    defect_gap_list: list[Defect | Gap] = Field(default_factory=list)
+
+    def sort_defect_gap_list(self) -> None:
+        """Sort the defect_gap_list by start_index."""
+        self.defect_gap_list.sort(key=lambda x: x.start_index)
+
+    def model_post_init(self, __context: Any) -> None:
+        """Ensure that the defect_gap_list is ordered by start_index."""
+        self.sort_defect_gap_list()
+
+    @field_validator("defect_gap_list", mode="before")
+    def _copy_defect_gap_list(cls, v: list[Defect | Gap]) -> list[Defect | Gap]:
+        """Make a deep copy of the defect_gap_list to ensure the original isn't edited."""
+        return deepcopy(v)
+
+    def add_item(self, item: Defect | Gap) -> None:
+        """Add a defect or gap to the defect_gap_list and sort it."""
+        self.defect_gap_list.append(item)
+        self.sort_defect_gap_list()
+
+    def __eq__(self, other: object) -> bool:
+        """Check if two OrderedDefectGapList instances are equal, with floating point tolerance."""
+        if not isinstance(other, OrderedDefectGapList):
+            return False
+
+        if len(self.defect_gap_list) != len(other.defect_gap_list):
+            return False
+
+        # compare each item with floating point tolerance
+        for self_item, other_item in zip(self.defect_gap_list, other.defect_gap_list):
+            if not isinstance(self_item, type(other_item)):
+                return False
+
+            # Check if start and end indices are equal
+            if self_item.start_index != other_item.start_index or self_item.end_index != other_item.end_index:
+                return False
+
+            # Lengths approximately equal
+            if not np.isclose(self_item.length_nm, other_item.length_nm, atol=1e-6):
+                return False
+
+            # position along trace
+            if not np.isclose(self_item.position_along_trace_nm, other_item.position_along_trace_nm, atol=1e-6):
+                return False
+
+            # total turn radians
+            if not (
+                np.isclose(self_item.total_turn_radians[0], other_item.total_turn_radians[0], atol=1e-6)
+                and np.isclose(self_item.total_turn_radians[1], other_item.total_turn_radians[1], atol=1e-6)
+            ):
+                return False
+
+        return True
+
+
+class MoleculeDefectData(TopoStatsBaseModel):
+    """Data object to hold defect and gap data for a molecule."""
+
+    ordered_defects_and_gaps: OrderedDefectGapList
+
+    @computed_field
+    @property
+    def num_defects(self) -> int:
+        """Calculate the number of defects."""
+        return sum(isinstance(item, Defect) for item in self.ordered_defects_and_gaps.defect_gap_list)
+
+    @computed_field
+    @property
+    def num_gaps(self) -> int:
+        """Calculate the number of gaps."""
+        return sum(isinstance(item, Gap) for item in self.ordered_defects_and_gaps.defect_gap_list)
+
+    @computed_field
+    @property
+    def defect_lengths_nm(self) -> list[float]:
+        """Get a list of the lengths of the defects in nanometres."""
+        return [
+            defect_or_gap.length_nm
+            for defect_or_gap in self.ordered_defects_and_gaps.defect_gap_list
+            if isinstance(defect_or_gap, Defect)
+        ]
+
+
+class MoleculeData(TopoStatsBaseModel):
+    """Data obbject to hold data and statistics pertaining to molecules."""
+
+    molecule_number: int
+    ordered_coords_heights: npt.NDArray[np.float64]
+    spline_coords_heights: npt.NDArray[np.float64]
+    spline_coords_px: npt.NDArray[np.float64]
+    ordered_coords: npt.NDArray[np.float64]
+    curvature_data: MoleculeCurvatureStats | None = None
+    pixel_to_nm_scaling: float
+    unique_grain_id: str
+    curvature_defect_data: MoleculeDefectData | None = None
+    height_defect_data: MoleculeDefectData | None = None
+    smoothed_spline_coords_heights: npt.NDArray[np.float64] | None = None
+    circular: bool
+
+    @computed_field
+    @property
+    def spline_coords_nm(self) -> npt.NDArray[np.float64]:
+        """Get the spline coordinates in nanometres."""
+        return self.spline_coords_px * self.pixel_to_nm_scaling
+
+    @computed_field
+    @property
+    def distances_between_points_nm(self) -> npt.NDArray[np.float64]:
+        """Get the distances between points in nanometres."""
+        distances_nm: list[float] = []
+        for index in range(len(self.spline_coords_nm)):
+            if index == 0:
+                if not self.circular:
+                    distances_nm.append(0.0)
+                    continue
+            point = self.spline_coords_nm[index]
+            previous_point = self.spline_coords_nm[index - 1]
+            distance_nm = float(np.linalg.norm(point - previous_point))
+            distances_nm.append(distance_nm)
+        return np.array(distances_nm)
+
+    @computed_field
+    @property
+    def cumulative_distances_between_points_nm(self) -> npt.NDArray[np.float64]:
+        """Get the cumulative distances between points in nanometres."""
+        return np.cumsum(self.distances_between_points_nm)
 
 
 class GrainCrop:
@@ -133,6 +265,8 @@ class GrainCrop:
         padding: tuple[int, int, int, int],
         bbox: tuple[int, int, int, int],
         pixel_to_nm_scaling: float,
+        grain_position_x_nm: float,
+        grain_position_y_nm: float,
         thresholds: list[float],
         filename: str,
         threshold_idx: int,
@@ -143,6 +277,7 @@ class GrainCrop:
         nodes: dict[str, Node] | None = None,
         ordered_trace: OrderedTrace | None = None,
         threshold_method: str | None = None,
+        molecules: dict[int, MoleculeData] | None = None,
     ):
         """
         Initialise the class.
@@ -159,6 +294,10 @@ class GrainCrop:
             Bounding box of the crop including padding.
         pixel_to_nm_scaling : float
             Pixel to nanometre scaling factor for the crop.
+        grain_position_x_nm : float
+            The x-coordinate of the grain's position in nanometres.
+        grain_position_y_nm : float
+            The y-coordinate of the grian's position in nanometres.
         thresholds : list[float]
             A list of thresholds used to identify the grain.
         filename : str
@@ -179,7 +318,15 @@ class GrainCrop:
             An ordered trace for the grain.
         threshold_method : str
             Threshold method used to find grains.
+        molecules : dict[int, Molecule] | None
+            A collection of Molecule objects for this grain.
         """
+        self.grain_position_x_nm = grain_position_x_nm
+        self.grain_posiion_y_nm = grain_position_y_nm
+        centroid_rounded_to_nearest_5nm = (round(grain_position_x_nm / 5) * 5, round(grain_position_y_nm / 5) * 5)
+        self.unique_grain_id = (
+            f"{filename}_{int(centroid_rounded_to_nearest_5nm[0])}_x_{int(centroid_rounded_to_nearest_5nm[1])}_y"
+        )
         self.padding = padding
         self.image = image
         # This part of the constructor must go after padding since the setter
@@ -194,9 +341,11 @@ class GrainCrop:
         self.skeleton: npt.NDArray[np.bool_] | None = skeleton
         self.convolved_skeleton: npt.NDArray[np.int32] | None = convolved_skeleton
         self.disordered_trace: DisorderedTrace | None = disordered_trace
-        self.nodes: dict[int, Node] | None = nodes
+        if nodes is not None:
+            self.nodes: dict[int, Node] | None = nodes
         self.ordered_trace: OrderedTrace | None = ordered_trace
         self.threshold_method: str | None = threshold_method
+        self.molecules = molecules
 
     def __eq__(self, other: object) -> bool:
         """
@@ -651,6 +800,24 @@ class GrainCrop:
             Value to set for ``threshold_idx``.
         """
         self._threshold_idx = value
+
+    @property
+    def molecules(self) -> dict[int, MoleculeData]:
+        """
+        Getter for the ``molecules`` attribute.
+
+        Returns
+        -------
+        dict[int, Molecule]
+            Dictionary of molecules for this grain.
+        """
+        if self._molecules is None:
+            raise ValueError(f"Grain {self.unique_grain_id} : molecules is None.")
+        return self._molecules
+
+    @molecules.setter
+    def molecules(self, value: dict[int, MoleculeData] | None) -> None:
+        self._molecules = value
 
     def debug_locate_difference(self, other: object) -> None:  # noqa: C901 # pylint: disable=too-many-branches
         """
@@ -1397,6 +1564,9 @@ class MoleculeCurvatureStats:
     curvature_median: float
     curvature_iqr: float
     curvature_90th: float
+    turn_in_distances_deg: npt.NDArray[np.float64]
+    turn_in_distance_window_length_nm: float
+    turn_in_distance_end_sampling_points: int
 
     def __eq__(self, other: object) -> bool:
         """

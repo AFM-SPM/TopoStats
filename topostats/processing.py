@@ -967,6 +967,15 @@ def run_curvature_stats(
     LOGGER.info(f"[{topostats_object.filename}] : Calculation of curvature statistics disabled.")
     return
 
+def run_defect_stats(
+    topostats_object: TopoStats,
+) -> None:
+    """Run defect stats."""
+    
+
+
+
+
 
 def get_out_paths(
     image_path: Path, base_dir: Path, output_dir: Path, filename: str, plotting_config: dict, grain_dirs: bool = True
@@ -1159,6 +1168,10 @@ def process_scan(  # noqa: C901
             tracing_out_path=tracing_out_path,
             curvature_config=curvature_config,
             plotting_config=plotting_config,
+        )
+
+        run_defect_stats(
+            topostats_object=topostats_object,
         )
 
     else:
