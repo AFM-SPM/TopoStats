@@ -1,7 +1,5 @@
 """Order single pixel skeletons with or without NodeStats Statistics."""
 
-from topostats.array_manipulation import distances_nm
-
 import logging
 import math
 
@@ -9,7 +7,7 @@ import numpy as np
 import numpy.typing as npt
 from scipy import interpolate as interp
 
-from topostats.array_manipulation import rolling_average
+from topostats.array_manipulation import distances_nm, rolling_average
 from topostats.classes import Molecule, TopoStats
 from topostats.logs.logs import LOGGER_NAME
 
@@ -616,6 +614,8 @@ def splining_image(
     # iterate through ordered_trace.molecule_data adding statistics as attributes to the Molecule objects
     if topostats_object.grain_crops is not None:  # pylint: disable=too-many-nested-blocks
         for grain_no, grain_crop in topostats_object.grain_crops.items():
+            total_contour_length: float = 0.0
+            end_to_end_distances: list[float] = []
             mol_no = None
             if grain_crop.ordered_trace is not None and grain_crop.ordered_trace.molecule_data is not None:
                 for mol_no, molecule in grain_crop.ordered_trace.molecule_data.items():
@@ -649,6 +649,7 @@ def splining_image(
                                 f"Invalid parameter for splining.method : {splining_method}\n"
                                 "Please change your configuration, valid values are 'rolling_window' or 'splining'."
                             )
+                        # Get spline height data
                         spline_heights = np.zeros(splined_data.shape[0], dtype=np.float64)
                         for point_index in range(splined_data.shape[0]):
                             coord_int = tuple(splined_data[point_index].astype(int))
@@ -668,6 +669,8 @@ def splining_image(
                         molecule.splined_coords_smoothed_heights = smoothed_spline_heights
                         molecule.end_to_end_distance = tracing_stats["end_to_end_distance"]
                         molecule.contour_length = tracing_stats["contour_length"]
+                        total_contour_length += molecule.contour_length
+                        end_to_end_distances.append(molecule.end_to_end_distance)
                         molecule.bbox = grain_crop.bbox
                         LOGGER.debug(f"[{topostats_object.filename}] : Finished splining {grain_no} - {mol_no}")
 
@@ -679,6 +682,17 @@ def splining_image(
                         )
             if mol_no is None:
                 LOGGER.warning(f"[{topostats_object.filename}] : No molecules found for grain {grain_no}")
+            mean_end_to_end_distance = np.mean(end_to_end_distances) if end_to_end_distances else 0.0
+            for class_number, class_stats in grain_crop.stats.items():
+                for subgrain_number, _ in class_stats.items():
+                    grain_crop.stats[class_number][subgrain_number][
+                        "mean_end_to_end_distance"
+                    ] = mean_end_to_end_distance
+                    if total_contour_length == 0.0:
+                        # Flag as an error so it doesn't affect the stats
+                        grain_crop.stats[class_number][subgrain_number]["total_contour_length"] = np.nan
+                    else:
+                        grain_crop.stats[class_number][subgrain_number]["total_contour_length"] = total_contour_length
     else:
         LOGGER.warning("f[{topostats_objec.filename}] : No grains to spline.")
 

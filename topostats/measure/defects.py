@@ -1045,4 +1045,18 @@ def find_height_defects(  # noqa: C901
     else:
         raise ValueError(f"Invalid height defect method: {height_defect_method}")
 
+    # Collate grain level stats for defects
+    for _grain_id, grain in topostats_object.require_grain_crops().items():
+        num_height_defects = 0
+        num_curvature_defects = 0
+        for _molecule_id, molecule in grain.molecules.items():
+            if molecule.height_defect_data is not None:
+                num_height_defects += molecule.height_defect_data.num_defects
+            if molecule.curvature_defect_data is not None:
+                num_curvature_defects += molecule.curvature_defect_data.num_defects
+        for class_number, class_stats in grain.stats.items():
+            for subgrain_number, _ in class_stats.items():
+                grain.stats[class_number][subgrain_number]["num_height_defects"] = num_height_defects
+                grain.stats[class_number][subgrain_number]["num_curvature_defects"] = num_curvature_defects
+
     return bad_grains

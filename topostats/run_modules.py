@@ -247,37 +247,6 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     image_stats_all_df = pd.concat(image_stats_all.values())
     image_stats_all_df.to_csv(config["output_dir"] / "image_statistics.csv")
 
-    # Molecule statistics - required as we need to average end-to-end and contour length across grains, even if not
-    # being explicitly written to CSV themselves
-    if config["splining"]["run"]:
-        try:
-            molecule_stats_all = pd.concat(molecule_stats_all.values())
-            grain_stats_additions = pd.concat(
-                [
-                    # Sum the contour length of molecules within each grain
-                    molecule_stats_all[["image", "grain_number", "contour_length"]]
-                    .groupby(["image", "grain_number"])
-                    .sum(),
-                    # Mean end to end distance across molecules within each grain
-                    molecule_stats_all[["image", "grain_number", "end_to_end_distance"]]
-                    .groupby(["image", "grain_number"])
-                    .mean(),
-                ],
-                axis=1,
-            )
-            grain_stats_additions.columns = ["total_contour_length", "mean_end_to_end_distance"]
-        except ValueError as error:
-            LOGGER.error(
-                "No molecules found in any images."
-                "Either enable tracing or consider adjusting ordered tracing / splining parameters."
-            )
-            LOGGER.error(error)
-            grain_stats_additions = None
-    else:
-        # Skip additional stats merger if splining was not run
-        LOGGER.warning("Splining has been disabled, skipping grain stats additions.")
-        grain_stats_additions = None
-
     # ns-rse 2025-12-23 - there is a common pattern here, could we abstract this to a factory method?
     if len(grain_stats_all) > 0:
         try:
@@ -287,10 +256,6 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
         except ValueError as error:
             LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
             LOGGER.error(error)
-        if grain_stats_additions is not None:
-            grain_stats_all = grain_stats_all.merge(grain_stats_additions, on=["image", "grain_number"], how="left")
-        else:
-            LOGGER.warning("No molecule statistics to merge with grain statistics.")
         # Write statistics to CSV if there is data.
         if isinstance(grain_stats_all, pd.DataFrame) and not grain_stats_all.isna().values.all():
             grain_stats_all = write_csv(
