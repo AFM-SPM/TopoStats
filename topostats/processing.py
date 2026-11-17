@@ -12,7 +12,7 @@ from art import tprint
 
 from topostats import TOPOSTATS_BASE_VERSION, TOPOSTATS_COMMIT
 from topostats.array_manipulation import re_crop_grain_image_and_mask_to_set_size_nm
-from topostats.classes import MoleculeData, TopoStats
+from topostats.classes import MoleculeData, TopoStats, Defect
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
@@ -1102,7 +1102,7 @@ def process_scan(  # noqa: C901
     defects_config: dict,
     plotting_config: dict,
     output_dir: str | Path = "output",
-) -> tuple[str, pd.DataFrame, TopoStats, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+) -> tuple[str, pd.DataFrame, TopoStats, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Process a single image, filtering, finding grains and calculating their statistics.
 
@@ -1139,9 +1139,9 @@ def process_scan(  # noqa: C901
 
     Returns
     -------
-    tuple[str, pd.DataFrame, TopoStats, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]
+    tuple[str, pd.DataFrame, TopoStats, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]
         Tuple of ``filename``, grain statistics dataframe, ``TopoStats``, image statistics dataframe, disordered tracing
-        dataframe, matched branch statistics dataframe and molecule statistics dataframe.
+        dataframe, matched branch statistics dataframe, molecule statistics dataframe, and defect statistics dataframe.
     """
     # Setup configuration, we use that from the topostats_object.config if not explicitly given an option
     assert topostats_object.config is not None
@@ -1327,6 +1327,52 @@ def process_scan(  # noqa: C901
         # ...but if everything has failed though we have an empty dataframe, instead return None
         if matched_branch_df.shape == (0, 0):
             matched_branch_df = None
+
+        # Defect statistics
+        defect_stats = []
+        for grain_number, grain_crop in topostats_object.require_grain_crops().items():
+            for molecule_number, molecule in grain_crop.molecules.items():
+                if molecule.height_defect_data is not None:
+                    for defect_or_gap in molecule.height_defect_data.ordered_defects_and_gaps.defect_gap_list:
+                        if isinstance(defect_or_gap, Defect):
+                            defect = defect_or_gap
+                            defect_stats.append(
+                                {
+                                    "image": topostats_object.filename,
+                                    "grain_number": grain_number,
+                                    "unique_grain_id": grain_crop.unique_grain_id,
+                                    "molecule_number": molecule_number,
+                                    "defect_type": "height",
+                                    "defect_length_nm": defect.length_nm,
+                                    "defect_depth_nm": defect.depth_nm,
+                                    "defect_volume_nm3": defect.volume_nm3,
+                                    "defect_start_position_along_trace_nm": defect.position_along_trace_nm,
+                                    "defect_total_turn_radians": defect.total_turn_radians,
+                                }
+                            )
+                if molecule.curvature_defect_data is not None:
+                    for defect_or_gap in molecule.curvature_defect_data.ordered_defects_and_gaps.defect_gap_list:
+                        if isinstance(defect_or_gap, Defect):
+                            defect = defect_or_gap
+                            defect_stats.append(
+                                {
+                                    "image": topostats_object.filename,
+                                    "grain_number": grain_number,
+                                    "unique_grain_id": grain_crop.unique_grain_id,
+                                    "molecule_number": molecule_number,
+                                    "defect_type": "curvature",
+                                    "defect_length_nm": defect.length_nm,
+                                    "defect_depth_nm": defect.depth_nm,
+                                    "defect_volume_nm3": defect.volume_nm3,
+                                    "defect_start_position_along_trace_nm": defect.position_along_trace_nm,
+                                    "defect_total_turn_radians": defect.total_turn_radians,
+                                }
+                            )
+        if len(defect_stats) > 0:
+            defect_stats_df = pd.DataFrame(defect_stats)
+        else:
+            defect_stats_df = None
+
         # Grain Statistics
         grain_stats = {
             grain_number: grain_crop.stats for grain_number, grain_crop in topostats_object.grain_crops.items()
@@ -1371,6 +1417,7 @@ def process_scan(  # noqa: C901
         disordered_tracing_df = None
         matched_branch_df = None
         molecule_stats_df = None
+        defect_stats_df = None
 
     # Save the topostats object to .topostats file.
     save_topostats_file(
@@ -1386,6 +1433,7 @@ def process_scan(  # noqa: C901
         disordered_tracing_df,
         matched_branch_df,
         molecule_stats_df,
+        defect_stats_df,
     )
 
 

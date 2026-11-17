@@ -1291,16 +1291,17 @@ def write_csv(
     pd.DataFrame
         Pandas dataframe with index renamed and reset.
     """
-    if dataset not in {"grain_stats", "matched_branch_stats", "branch_statistics", "mol_stats"}:
+    if dataset not in {"grain_stats", "matched_branch_stats", "branch_statistics", "mol_stats", "defect_stats"}:
         raise ValueError(
             f"Invalid dataset {dataset}, valid datasets for writing to CSV are "
-            "'grain_stats', 'matched_branch_stats', 'branch_statistics', 'mol_stats'."
+            "'grain_stats', 'matched_branch_stats', 'branch_statistics', 'mol_stats', 'defect_stats'."
         )
     dataset_to_csv = {
         "grain_stats": "grain_statistics.csv",
         "matched_branch_stats": "matched_branch_statistics.csv",
         "branch_statistics": "branch_statistics.csv",
         "mol_stats": "molecule_statistics.csv",
+        "defect_stats": "defect_statistics.csv",
     }
     # Set index names
     df.index.set_names(names, inplace=True)

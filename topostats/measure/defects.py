@@ -310,11 +310,9 @@ def remove_too_short_defects(  # noqa: C901
                     circular=circular,
                 )
                 if length_nm >= defect_minimum_length_nm:
-                    # print(f"keeping defect {first_defect} with length {length_nm:.2f} nm")
                     # Keep the defect
                     filtered_defects.append(first_defect)
                 else:
-                    # print(f"removing defect {first_defect} with length {length_nm:.2f} nm")
                     # Don't add the defect
                     # Remove the defect and merge the gap with the previous gap
                     # There is guaranteed to be a previous gap but check anyway
@@ -343,11 +341,9 @@ def remove_too_short_defects(  # noqa: C901
                 circular=circular,
             )
             if length_nm >= defect_minimum_length_nm:
-                # print(f"keeping defect {defect} with length {length_nm:.2f} nm")
                 # Keep the defect
                 filtered_defects.append(defect)
             else:
-                # print(f"removing defect {defect} with length {length_nm:.2f} nm")
                 # Don't add the defect
                 # Remove the defect and merge the gap with the previous gap
                 if len(filtered_gaps) > 0:
@@ -365,13 +361,11 @@ def remove_too_short_defects(  # noqa: C901
             circular=circular,
         )
         if length_nm >= defect_minimum_length_nm:
-            # print(f"keeping defect {defect} with length {length_nm:.2f} nm")
             # Keep the defect
             filtered_defects.append(defect)
             # Keep the gap that follows the defect
             filtered_gaps.append(gap)
         else:
-            # print(f"removing defect {defect} with length {length_nm:.2f} nm")
             # Don't add the defect
             # Remove the defect and merge the gap with the previous gap
             if len(filtered_gaps) > 0:
@@ -835,7 +829,7 @@ def find_curvature_defects(  # noqa: C901
                 trace_heights_nm = molecule.smoothed_spline_coords_heights
                 assert trace_heights_nm is not None
                 if molecule_data_curvature_data is None:
-                    print(
+                    LOGGER.warning(
                         f"no curvature data for grain {unique_grain_id} molecule {molecule_id}, skipping curvature defect detection for this molecule"
                     )
                     bad_grains.add(unique_grain_id)
@@ -869,7 +863,7 @@ def find_curvature_defects(  # noqa: C901
                 heights_nm = molecule.smoothed_spline_coords_heights
                 assert heights_nm is not None
                 if molecule_data_curvature_data is None:
-                    print(
+                    LOGGER.warning(
                         f"no curvature data for grain {unique_grain_id} molecule {molecule_id}, skipping curvature defect detection for this molecule"
                     )
                     bad_grains.add(unique_grain_id)
@@ -901,14 +895,14 @@ def find_curvature_defects(  # noqa: C901
                 heights_nm = molecule.smoothed_spline_coords_heights
                 assert heights_nm is not None
                 if molecule_data_curvature_data is None:
-                    print(
+                    LOGGER.warning(
                         f"no curvature data for grain {unique_grain_id} molecule {molecule_id}, skipping curvature defect detection for this molecule"
                     )
                     bad_grains.add(unique_grain_id)
                     continue
                 turn_in_distances = molecule_data_curvature_data.turn_in_distances_deg
                 if turn_in_distances is None:
-                    print(
+                    LOGGER.warning(
                         f"no turn in distance data for grain {unique_grain_id} molecule {molecule_id}, skipping curvature defect detection for this molecule"
                     )
                     bad_grains.add(unique_grain_id)
@@ -982,7 +976,6 @@ def find_height_defects(  # noqa: C901
                 )
                 iqr = np.percentile(heights_nm, 75) - np.percentile(heights_nm, 25)
                 height_threshold_iqr = np.percentile(heights_nm, 50) - height_threshold_iqr_multiplier * iqr
-                print(f"height threshold iqr: {height_threshold_iqr}")
                 height_defects_bool = heights_nm < height_threshold_iqr
 
                 ordered_defect_gap_list = get_defects_and_gaps_from_bool_array(

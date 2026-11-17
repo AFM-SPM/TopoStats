@@ -689,8 +689,6 @@ class Grains:
                     image_shape=self.image.shape,
                 )
 
-                print(f"full mask tensor shape: {full_mask_tensor.shape}")
-
                 # Set the unet tensor regardless of if the unet model was run, since the plotting expects it
                 # can be changed when we do a plotting overhaul
                 self.mask_images[i]["unet"] = full_mask_tensor.copy()
@@ -880,7 +878,6 @@ class Grains:
             LOGGER.debug(f"Unet predicting mask for grain {grain_number} of {len(graincrops)}")
 
             if model_type == "tensorflow":
-                print(f"graincrop image shape: {graincrop.image.shape}")
                 predicted_mask = model_predict_tensorflow(
                     image=graincrop.image,
                     model=tensorflow_model,

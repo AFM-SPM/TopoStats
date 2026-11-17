@@ -591,6 +591,7 @@ def splining_image(
     rolling_window_resample_regular_spatial_interval : float, optional
         The regular spatial interval (nm) to resample the rolling window, by default 0.5.
     """
+    assert topostats_object.config is not None
     config = topostats_object.config["splining"].copy()
     splining_method = config["method"] if method is None else method
     rolling_window_size = config["rolling_window_size"] if rolling_window_size is None else rolling_window_size
@@ -698,7 +699,7 @@ def splining_image(
 
 
 def interpolate_between_two_points_distance(
-    point1: npt.NDArray[np.float32], point2: npt.NDArray[np.float32], distance: np.float32
+    point1: npt.NDArray[np.float32], point2: npt.NDArray[np.float32], distance: float
 ) -> npt.NDArray[np.float32]:
     """
     Interpolate between two points to create a new point at a set distance between the two.
@@ -709,7 +710,7 @@ def interpolate_between_two_points_distance(
         The first point.
     point2 : npt.NDArray[np.float32]
         The second point.
-    distance : np.float32
+    distance : float
         The distance to interpolate between the two points.
 
     Returns

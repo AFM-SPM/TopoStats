@@ -210,6 +210,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
         disordered_tracing_all = defaultdict()
         branch_stats_all = defaultdict()
         molecule_stats_all = defaultdict()
+        defect_stats_all = defaultdict()
         with tqdm(
             total=len(img_files),
             desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
@@ -222,6 +223,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                 disordered_tracing_df,
                 branch_stats_df,
                 molecule_stats_df,
+                defect_stats_df,
             ) in pool.imap_unordered(
                 processing_function,
                 scan_data_dict.values(),
@@ -238,6 +240,8 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                     branch_stats_all[str(filename)] = branch_stats_df.dropna(axis=1, how="all")
                 if molecule_stats_df is not None:
                     molecule_stats_all[str(filename)] = molecule_stats_df.dropna(axis=1, how="all")
+                if defect_stats_df is not None:
+                    defect_stats_all[str(filename)] = defect_stats_df.dropna(axis=1, how="all")
 
                 pbar.update()
                 # Display completion message for the image
@@ -311,9 +315,10 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
 
         # Molecule statistics
         if molecule_stats_all is not None:
-            if isinstance(molecule_stats_all, pd.DataFrame) and not molecule_stats_all.isna().values.all():
+            molecule_stats_all_df = pd.concat(molecule_stats_all.values())
+            if isinstance(molecule_stats_all_df, pd.DataFrame) and not molecule_stats_all_df.isna().values.all():
                 molecule_stats_all = write_csv(
-                    df=molecule_stats_all,
+                    df=molecule_stats_all_df,
                     dataset="mol_stats",
                     names=None,
                     index=["image", "grain_number"],
@@ -322,6 +327,23 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                 LOGGER.info(f"Saved molecule stats to : {config['output_dir']}/molecule_statistics.csv.")
         else:
             LOGGER.warning("There are no molecule tracing statistics to write to CSV.")
+
+        # Defect statistics
+        if defect_stats_all is not None:
+            # Concat all the file dataframes into one
+            defect_stats_all_df = pd.concat(defect_stats_all.values())
+            if isinstance(defect_stats_all_df, pd.DataFrame) and not defect_stats_all_df.isna().values.all():
+                _defect_stats_all = write_csv(
+                    df=defect_stats_all_df,
+                    dataset="defect_stats",
+                    names=None,
+                    index=["unique_grain_id"],
+                    output_dir=config["output_dir"],
+                )
+            else:
+                LOGGER.warning("No defect statistics to write to CSV - no defects or all nan in dataframe.")
+        else:
+            LOGGER.warning("No defect statistics to write to CSV.")
 
     else:
         LOGGER.info(

@@ -850,8 +850,6 @@ def extend_branch_ends_to_mask_edge(
     endpoints = np.argwhere(conv_skeleton == 2)
     extended_skeleton = skeleton.copy()
 
-    print(f"endpoins: {endpoints} px | {endpoints * pixel_to_nm_scaling} nm")
-
     for endpoint in endpoints:
         y, x = endpoint
         # find the direction of the endpoint by backtracking along the skeleton and getting the vector
@@ -861,8 +859,6 @@ def extend_branch_ends_to_mask_edge(
             start_coord=np.array([y, x]),
             distance_px=follow_distance_px,
         )
-        print(f"backtracked point: {backtracked_point}")
-        print(f"endpoint: {endpoint}")
         vector = np.array([y, x]) - backtracked_point
 
         # follow the vector from the endpoint until the edge of the mask is reached by sending out a ray

@@ -257,6 +257,7 @@ class GrainStats:
                         # from pixel units to nanometres.
                         # Removed formatting, better to keep accurate until the end, including in CSV, then shorten display
                         stats = {
+                            "unique_grain_id": grain_crop.unique_grain_id,
                             "threshold_idx": grain_crop.threshold_idx,
                             "centre_x": centre_x_m,
                             "centre_y": centre_y_m,
