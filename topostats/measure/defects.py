@@ -1,5 +1,6 @@
 """Functions for finding and quantifying defects in grains."""
 
+import logging
 from typing import Literal
 
 import numpy as np
@@ -7,11 +8,14 @@ import numpy.typing as npt
 
 from topostats.array_manipulation import calculate_distance_of_region
 from topostats.classes import Defect, Gap, MoleculeDefectData, OrderedDefectGapList, TopoStats
+from topostats.logs.logs import LOGGER_NAME
 from topostats.measure.curvature import (
     calculate_discrete_angle_difference_circular,
     calculate_discrete_angle_difference_linear,
     total_turn_in_region_radians,
 )
+
+LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 def get_defects_and_gaps_linear(

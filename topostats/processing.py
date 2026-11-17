@@ -12,7 +12,7 @@ from art import tprint
 
 from topostats import TOPOSTATS_BASE_VERSION, TOPOSTATS_COMMIT
 from topostats.array_manipulation import re_crop_grain_image_and_mask_to_set_size_nm
-from topostats.classes import MoleculeData, TopoStats, Defect
+from topostats.classes import Defect, MoleculeData, TopoStats
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
