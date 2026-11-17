@@ -143,6 +143,11 @@ defects:
   curvature_defect_minimum_length_nm: 0
   connect_close_defect_threshold_nm: 3.4
   coinciding_defect_threshold_nm: 10
+grain_qa:
+  run: false
+  qa_method: "total_contour_length"
+  min: null
+  max: null
 plotting:
   run: true # Options : true, false
   style: topostats.mplstyle # Options : topostats.mplstyle or path to a matplotlibrc params file

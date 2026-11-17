@@ -262,6 +262,29 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
             LOGGER.error(error)
         # Write statistics to CSV if there is data.
         if isinstance(grain_stats_all, pd.DataFrame) and not grain_stats_all.isna().values.all():
+            # QA: save success rate to csv
+
+            qa_config = config["grain_qa"]
+            qa_method = qa_config["qa_method"]
+            if qa_method == "total_contour_length":
+                qa_min_value = qa_config["min"]
+                qa_max_value = qa_config["max"]
+                number_successfully_processed = grain_stats_all["total_contour_length"].notnull().sum()
+                num_grains_total = len(grain_stats_all)
+                num_within_range = grain_stats_all["total_contour_length"].between(qa_min_value, qa_max_value).sum()
+                date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                qa_text = ""
+                qa_text += f"QA log for run on {date}\n"
+                qa_text += f"TopoStats commit hash: {topostats.TOPOSTATS_COMMIT}\n"
+                qa_text += f"QA method: {qa_method}\n"
+                qa_text += f"Number of grains successfully processed: {number_successfully_processed} / {num_grains_total}\n ({number_successfully_processed / num_grains_total * 100:.2f}%)\n"
+                qa_text += f"Number of grains successful grains within range: ({qa_min_value} - {qa_max_value}): {num_within_range} / {number_successfully_processed}\n ({num_within_range / number_successfully_processed * 100:.2f}%)\n"
+                LOGGER.info(qa_text)
+                with Path(config["output_dir"] / "grain_stats_qa.txt").open("w") as f:
+                    f.write(qa_text)
+            else:
+                raise ValueError(f"Unknown QA method: {qa_method}")
+
             grain_stats_all = write_csv(
                 df=grain_stats_all,
                 dataset="grain_stats",

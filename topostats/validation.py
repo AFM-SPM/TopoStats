@@ -466,6 +466,19 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "connect_close_defect_threshold_nm": lambda n: n > 0.0,
             "coinciding_defect_threshold_nm": lambda n: n > 0.0,
         },
+        "grain_qa": {
+            "run": Or(
+                True,
+                False,
+                error="Invalid value in config for 'grain_qa.run', valid values are 'True' or 'False'",
+            ),
+            "qa_method": Or(
+                "total_contour_length",
+                error="Invalid value in config for 'grain_qa.qa_method', valid values are 'total_contour_length'",
+            ),
+            "min": float,
+            "max": float,
+        },
         "plotting": {
             "run": Or(
                 True,
