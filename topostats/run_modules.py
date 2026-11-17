@@ -186,6 +186,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
         ordered_tracing_config=config["ordered_tracing"],
         splining_config=config["splining"],
         curvature_config=config["curvature"],
+        defects_config=config["defects"],
         plotting_config=config["plotting"],
         output_dir=config["output_dir"],
     )
@@ -281,8 +282,8 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     if len(grain_stats_all) > 0:
         try:
             grain_stats_all = pd.concat(grain_stats_all.values())
-            grain_stats_all.reset_index(inplace=True)
-            grain_stats_all.set_index(["image", "grain_number"], inplace=True)
+            grain_stats_all = grain_stats_all.reset_index()
+            grain_stats_all = grain_stats_all.set_index(["image", "grain_number"])
         except ValueError as error:
             LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
             LOGGER.error(error)

@@ -1,5 +1,7 @@
 """Functions for processing data."""
 
+from enum import unique
+
 import logging
 from copy import deepcopy
 from datetime import datetime, timezone
@@ -11,13 +13,14 @@ from art import tprint
 
 from topostats import TOPOSTATS_BASE_VERSION, TOPOSTATS_COMMIT
 from topostats.array_manipulation import re_crop_grain_image_and_mask_to_set_size_nm
-from topostats.classes import TopoStats
+from topostats.classes import TopoStats, MoleculeData
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import get_out_path, save_topostats_file
 from topostats.logs.logs import LOGGER_NAME
 from topostats.measure.curvature import calculate_curvature_stats_image
+from topostats.measure.defects import find_curvature_defects, find_height_defects
 from topostats.plotting import plot_crossing_linetrace_halfmax
 from topostats.plottingfuncs import (
     Images,
@@ -967,14 +970,79 @@ def run_curvature_stats(
     LOGGER.info(f"[{topostats_object.filename}] : Calculation of curvature statistics disabled.")
     return
 
-def run_defect_stats(
+
+def temp_construct_molecules(
     topostats_object: TopoStats,
 ) -> None:
+    """Temporary compatibility function for creating molecule objects in grains."""
+    for _grain_id, grain in topostats_object.require_grain_crops().items():
+        unique_grain_id = grain.unique_grain_id
+        filename = grain.filename
+        if grain.ordered_trace.molecule_data is not None:
+            try:
+                for ordered_trace_molecule_id, ordered_trace_molecule in grain.ordered_trace.molecule_data.items():
+                    ordered_trace_coords_px = ordered_trace_molecule.ordered_coords
+                    assert ordered_trace_coords_px is not None
+                    ordered_trace_heights = ordered_trace_molecule.heights
+                    assert ordered_trace_heights is not None
+                    ordered_trace_distances = ordered_trace_molecule.distances
+                    assert ordered_trace_distances is not None
+                    ordered_trace_circular = ordered_trace_molecule.circular
+                    assert ordered_trace_circular is not None
+                    spline_coords_px = ordered_trace_molecule.splined_coords
+                    assert spline_coords_px is not None
+                    spline_heights = ordered_trace_molecule.splined_coords_heights
+                    assert spline_heights is not None
+                    spline_smoothed_heights = ordered_trace_molecule.splined_coords_smoothed_heights
+                    assert spline_smoothed_heights is not None
+                    circular = ordered_trace_molecule.circular
+                    assert circular is not None
+                    curvature_stats = ordered_trace_molecule.curvature_stats
+
+                    grain.molecules[ordered_trace_molecule_id] = MoleculeData(
+                        unique_grain_id=unique_grain_id,
+                        molecule_number=ordered_trace_molecule_id,
+                        pixel_to_nm_scaling=grain.pixel_to_nm_scaling,
+                        ordered_coords_px=ordered_trace_coords_px,
+                        ordered_coords_heights=ordered_trace_heights,
+                        spline_coords_px=spline_coords_px,
+                        spline_coords_heights=spline_heights,
+                        smoothed_spline_coords_heights=spline_smoothed_heights,
+                        curvature_data=curvature_stats,
+                        circular=circular,
+                    )
+            except Exception as e:
+                LOGGER.warning(f"Error loading {unique_grain_id} from image {filename}: {e} - skipping this grain.")
+                continue
+
+
+def run_defect_stats(
+    topostats_object: TopoStats,
+    defects_config: dict,
+) -> None:
     """Run defect stats."""
-    
-
-
-
+    if defects_config["run"]:
+        defects_config.pop("run")
+        find_height_defects(
+            topostats_object=topostats_object,
+            height_defect_method=defects_config["height_defect_method"],
+            height_threshold_iqr_multiplier=defects_config["height_threshold_iqr_multiplier"],
+            height_threshold_absolute_nm=defects_config["height_threshold_absolute_nm"],
+            height_threshold_percentage_of_median=defects_config["height_threshold_percentage_of_median"],
+            connect_close_defect_threshold_nm=defects_config["connect_close_defect_threshold_nm"],
+            minimum_defect_length_nm=defects_config["height_defect_minimum_length_nm"],
+        )
+        find_curvature_defects(
+            topostats_object,
+            curvature_defect_method=defects_config["curvature_defect_method"],
+            curvature_threshold_iqr_multiplier=defects_config["curvature_threshold_iqr_multiplier"],
+            curvature_threshold_absolute_pernm=defects_config["curvature_threshold_absolute_pernm"],
+            curvature_turn_in_distance_turn_threshold_deg=defects_config[
+                "curvature_turn_in_distance_turn_threshold_deg"
+            ],
+            connect_close_defect_threshold_nm=defects_config["connect_close_defect_threshold_nm"],
+            minimum_defect_length_nm=defects_config["curvature_defect_minimum_length_nm"],
+        )
 
 
 def get_out_paths(
@@ -1032,6 +1100,7 @@ def process_scan(  # noqa: C901
     ordered_tracing_config: dict,
     splining_config: dict,
     curvature_config: dict,
+    defects_config: dict,
     plotting_config: dict,
     output_dir: str | Path = "output",
 ) -> tuple[str, pd.DataFrame, TopoStats, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -1061,6 +1130,8 @@ def process_scan(  # noqa: C901
         Dictionary of configuration options for running the splining stage.
     curvature_config : dict
         Dictionary of configuration options for running the curvature stats stage.
+    defects_config : dict
+        Dictionary of configuration options for running the defect finding stage.
     plotting_config : dict
         Dictionary of configuration options for plotting figures.
     output_dir : str | Path
@@ -1074,6 +1145,7 @@ def process_scan(  # noqa: C901
         dataframe, matched branch statistics dataframe and molecule statistics dataframe.
     """
     # Setup configuration, we use that from the topostats_object.config if not explicitly given an option
+    assert topostats_object.config is not None
     config = topostats_object.config.copy()
     base_dir = Path(config["base_dir"] if base_dir is None else base_dir)
     filter_config = config["filter"] if filter_config is None else filter_config
@@ -1086,6 +1158,7 @@ def process_scan(  # noqa: C901
     ordered_tracing_config = config["ordered_tracing"] if ordered_tracing_config is None else ordered_tracing_config
     splining_config = config["splining"] if splining_config is None else splining_config
     curvature_config = config["curvature"] if curvature_config is None else curvature_config
+    defects_config = config["defects"] if defects_config is None else defects_config
     plotting_config = config["plotting"].copy() if plotting_config is None else plotting_config
     output_dir = Path(config["output_dir"] if output_dir is None else output_dir)
 
@@ -1170,8 +1243,13 @@ def process_scan(  # noqa: C901
             plotting_config=plotting_config,
         )
 
+        temp_construct_molecules(
+            topostats_object=topostats_object,
+        )
+
         run_defect_stats(
             topostats_object=topostats_object,
+            defects_config=defects_config,
         )
 
     else:
@@ -1180,7 +1258,7 @@ def process_scan(  # noqa: C901
     LOGGER.info(f"[{topostats_object.filename}] : *** Image Statistics ***")
     # Image Statistics
     image_stats_df = pd.DataFrame([topostats_object.calculate_image_statistics()])
-    image_stats_df.set_index("image", inplace=True)
+    image_stats_df = image_stats_df.set_index("image")
     # Collate molecule and disordered tracing statistics
     if topostats_object.grain_crops is not None and len(topostats_object.grain_crops) > 0:
         molecule_stats = {}
@@ -1215,7 +1293,7 @@ def process_scan(  # noqa: C901
                 orient="index",
             )
             molecule_stats_df.index.set_names(["grain_number", "molecule_number"], inplace=True)
-            molecule_stats_df.reset_index(inplace=True)
+            molecule_stats_df = molecule_stats_df.reset_index()
             molecule_stats_df["image"] = topostats_object.filename
             molecule_stats_df["basename"] = str(Path(topostats_object.img_path).parent)
         else:

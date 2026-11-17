@@ -403,6 +403,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 False,
                 error="Invalid value in config for 'splining.run', valid values are 'True' or 'False'",
             ),
+            "height_smoothing_window_length_nm": float,
             "method": Or(
                 "spline",
                 "rolling_window",
@@ -433,6 +434,37 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "smoothing_savgol_polyorder": int,
             "curvature_turn_minimum_delay_nm": lambda n: n > 0.0,
             "curvature_turn_threshold_iqr_multiplier": lambda n: n > 0.0,
+            "turn_in_distance_window_length_nm": lambda n: n > 0.0,
+            "turn_in_distance_end_sampling_points": int,
+        },
+        "defects": {
+            "run": Or(
+                True,
+                False,
+                error="Invalid value in config for 'defects.run', valid values are 'True' or 'False'",
+            ),
+            "height_defect_method": Or(
+                "percentage_of_median",
+                "iqr",
+                "absolute",
+                error="Invalid value in config for 'defects.height_defect_method'.",
+            ),
+            "height_threshold_iqr_multiplier": lambda n: n > 0.0,
+            "height_threshold_absolute_nm": lambda n: n > 0.0,
+            "height_threshold_percentage_of_median": lambda n: n > 0.0,
+            "height_defect_minimum_length_nm": lambda n: n > 0.0,
+            "curvature_defect_method": Or(
+                "iqr",
+                "absolute",
+                "turn_in_distance",
+                error="Invalid value in config for 'defects.curvature_defect_method'.",
+            ),
+            "curvature_threshold_iqr_multiplier": lambda n: n > 0.0,
+            "curvature_threshold_absolute_pernm": lambda n: n > 0.0,
+            "curvature_turn_in_distance_turn_threshold_deg": lambda n: n > 0.0,
+            "curvature_defect_minimum_length_nm": float,
+            "connect_close_defect_threshold_nm": lambda n: n > 0.0,
+            "coinciding_defect_threshold_nm": lambda n: n > 0.0,
         },
         "plotting": {
             "run": Or(

@@ -118,6 +118,7 @@ splining:
   spline_linear_smoothing: 5.0 # The amount of smoothing to apply to linear features.
   spline_circular_smoothing: 5.0 # The amount of smoothing to apply to circular features.
   spline_degree: 3 # The polynomial degree of the spline.
+  height_smoothing_window_length_nm: 5.0 # Size in nanometres of the rolling window to smooth the heights.
 curvature:
   run: true # Options : true, false
   smoothing_method: "gaussian" # Options : "gaussian", "savitzky_golay"
@@ -126,6 +127,22 @@ curvature:
   smoothing_savgol_polyorder: 2 # The polynomial order of the Savitzky-Golay smoothing kernel.
   curvature_turn_minimum_delay_nm: 20.0 # The minimum distance in nm before re-assessing if in a turn or not.
   curvature_turn_threshold_iqr_multiplier: 1.5 # The multiplier for the IQR for determining if in a turn or not.
+  turn_in_distance_window_length_nm: 10
+  turn_in_distance_end_sampling_points: 3 
+defects:
+  run: false
+  height_defect_method: "percentage_of_median"
+  height_threshold_iqr_multiplier: 3.0
+  height_threshold_absolute_nm: 0.8
+  height_threshold_percentage_of_median: 0.75
+  height_defect_minimum_length_nm: 1
+  curvature_defect_method: "turn_in_distance"
+  curvature_threshold_iqr_multiplier: 3.0
+  curvature_threshold_absolute_pernm: 0.1
+  curvature_turn_in_distance_turn_threshold_deg: 135
+  curvature_defect_minimum_length_nm: 0
+  connect_close_defect_threshold_nm: 3.4
+  coinciding_defect_threshold_nm: 10
 plotting:
   run: true # Options : true, false
   style: topostats.mplstyle # Options : topostats.mplstyle or path to a matplotlibrc params file

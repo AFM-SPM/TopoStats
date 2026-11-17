@@ -1,5 +1,7 @@
 """Order single pixel skeletons with or without NodeStats Statistics."""
 
+from topostats.array_manipulation import distances_nm
+
 import logging
 import math
 
@@ -7,6 +9,7 @@ import numpy as np
 import numpy.typing as npt
 from scipy import interpolate as interp
 
+from topostats.array_manipulation import rolling_average
 from topostats.classes import Molecule, TopoStats
 from topostats.logs.logs import LOGGER_NAME
 
@@ -551,6 +554,7 @@ def measure_end_to_end_distance(splined_trace, mol_is_circular, pixel_to_nm_scal
 # pylint: disable=too-many-locals
 def splining_image(
     topostats_object: TopoStats,
+    height_smoothing_window_length_nm: float,
     method: str | None = None,
     rolling_window_size: float | None = None,
     spline_step_size: float | None = None,
@@ -569,6 +573,8 @@ def splining_image(
     ----------
     topostats_object : TopoStats
         TopoStats object with ordered traces of grain crops to be splined.
+    smoothing_window_length_nm : float
+        Window size for rolling average smoothing of the height data.
     method : str
         Method of trace smoothing, options are 'splining' and 'rolling_window'.
     rolling_window_size : float
@@ -643,8 +649,23 @@ def splining_image(
                                 f"Invalid parameter for splining.method : {splining_method}\n"
                                 "Please change your configuration, valid values are 'rolling_window' or 'splining'."
                             )
+                        spline_heights = np.zeros(splined_data.shape[0], dtype=np.float64)
+                        for point_index in range(splined_data.shape[0]):
+                            coord_int = tuple(splined_data[point_index].astype(int))
+                            spline_heights[point_index] = grain_crop.image[coord_int[0], coord_int[1]]
+                        assert molecule.circular is not None
+                        point_spacing_nm = np.mean(distances_nm(splined_data, circular=bool(molecule.circular)))
+                        smoothing_window_size_points = int(height_smoothing_window_length_nm / point_spacing_nm)
+                        smoothed_spline_heights = rolling_average(
+                            data=spline_heights,
+                            window_size_points=smoothing_window_size_points,
+                            circular=bool(molecule.circular),
+                        )
+
                         # Add statistics to Molecule object
                         molecule.splined_coords = splined_data
+                        molecule.splined_coords_heights = spline_heights
+                        molecule.splined_coords_smoothed_heights = smoothed_spline_heights
                         molecule.end_to_end_distance = tracing_stats["end_to_end_distance"]
                         molecule.contour_length = tracing_stats["contour_length"]
                         molecule.bbox = grain_crop.bbox

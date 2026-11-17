@@ -928,7 +928,7 @@ def dict_to_hdf5(  # noqa: C901 # pylint: disable=too-many-statements
             if key == "plot_dict":
                 continue
             # Lists need to be converted to numpy arrays, the method varies slightly
-            # depending on the array's structure/ layout
+            # depending on the array's structure/layout
             if isinstance(item, list):
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 if any(x is None for x in item):
@@ -940,6 +940,16 @@ def dict_to_hdf5(  # noqa: C901 # pylint: disable=too-many-statements
                 elif arr.dtype == object:
                     flat = list(_flatten(item))
                     # Don't flatten if rows are of equal lengths
+                    # Check if items of the list are dictionaries, if so, flattening is not possible.
+                    # This would mean storing as a list of dictionaries, which is not supported by HDF5, so
+                    # instead store as a dictionary of dictionaries, where the key is just the index of the list.
+                    if any(isinstance(x, dict) for x in item):
+                        LOGGER.debug(
+                            f"[dict_to_hdf5] {key} is a list of dictionaries, storing as a dictionary of dictionaries"
+                        )
+                        dict_of_dicts = {str(index): value for index, value in enumerate(item)}
+                        dict_to_hdf5(open_hdf5_file, group_path + key + "/", dict_of_dicts)
+                        continue
                     try:
                         arr = np.array([[np.nan if x is None else x for x in row] for row in item], dtype=float)
                     except (ValueError, TypeError):
@@ -1111,6 +1121,8 @@ def dict_to_topostats(  # noqa: C901 # pylint: disable=too-many-locals,too-many-
                             f"Invalid padding value: {padding}. Must be an int or a list/tuple of 4 ints. type: {type(padding)} len: {len(padding)}"
                         ) from e
             bbox = crop["bbox"] if "bbox" in crop.keys() else None
+            grain_position_x_nm = crop["grain_position_x_nm"] if "grain_position_x_nm" in crop.keys() else 0.0
+            grain_position_y_nm = crop["grain_position_y_nm"] if "grain_position_y_nm" in crop.keys() else 0.0
             pixel_to_nm_scaling = crop["pixel_to_nm_scaling"] if "pixel_to_nm_scaling" in crop.keys() else None
             filename = crop["filename"] if "filename" in crop.keys() else None
             skeleton = crop["skeleton"] if "skeleton" in crop.keys() else None
@@ -1124,7 +1136,11 @@ def dict_to_topostats(  # noqa: C901 # pylint: disable=too-many-locals,too-many-
                     nodes[node] = Node(**node_data)
             else:
                 nodes = None
-            ordered_trace = OrderedTrace(**crop["ordered_trace"]) if "ordered_trace" in crop.keys() else None
+            try:
+                ordered_trace = OrderedTrace(**crop["ordered_trace"]) if "ordered_trace" in crop.keys() else None
+            except Exception as e:
+                LOGGER.warning(f"Ordered trace data loading failed, defaulting to None: {e}")
+                ordered_trace = None
             threshold_method = crop["threshold_method"] if "threshold_method" in crop.keys() else None
             thresholds = crop["thresholds"] if "thresholds" in crop.keys() else None
             threshold_idx = crop["threshold_idx"] if "threshold_idx" in crop.keys() else None
@@ -1134,6 +1150,8 @@ def dict_to_topostats(  # noqa: C901 # pylint: disable=too-many-locals,too-many-
                 padding=padding,
                 bbox=bbox,
                 pixel_to_nm_scaling=pixel_to_nm_scaling,
+                grain_position_x_nm=grain_position_x_nm,
+                grain_position_y_nm=grain_position_y_nm,
                 filename=filename,
                 skeleton=skeleton,
                 stats=stats,
@@ -1288,13 +1306,13 @@ def write_csv(
     df.index.set_names(names, inplace=True)
     # Reset index
     if dataset == "mol_stats":
-        df.reset_index(drop=True, inplace=True)
+        df = df.reset_index(drop=True)
     else:
-        df.reset_index(inplace=True)
+        df = df.reset_index()
     # Set index to required columns
-    df.set_index(index, inplace=True)
+    df = df.set_index(index)
     # Write to CSV
     df.to_csv(Path(output_dir) / dataset_to_csv[dataset], index=True)
     # Return dataframe with index reset
-    df.reset_index(inplace=True)
+    df = df.reset_index()
     return df

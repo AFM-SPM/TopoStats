@@ -779,6 +779,8 @@ def get_defects_and_gaps_from_bool_array(
                     length_nm=length_nm,
                     position_along_trace_nm=position_along_trace_nm,
                     total_turn_radians=total_turn_radians,
+                    depth_nm=np.nan,
+                    volume_nm3=np.nan,
                 )
             )
 
@@ -936,8 +938,6 @@ def find_height_defects(  # noqa: C901
     height_threshold_absolute_nm: float,
     height_threshold_percentage_of_median: float,
     connect_close_defect_threshold_nm: float | None,
-    find_height_defects_close_to_curvature_defects: bool,
-    curvature_defect_height_defect_search_range_nm: float,
     minimum_defect_length_nm: float,
 ) -> set[str]:
     """

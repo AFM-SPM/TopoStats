@@ -944,6 +944,8 @@ class Grains:
                     padding=graincrop.padding,
                     bbox=graincrop.bbox,
                     pixel_to_nm_scaling=graincrop.pixel_to_nm_scaling,
+                    grain_position_x_nm=graincrop.grain_position_x_nm,
+                    grain_position_y_nm=graincrop.grain_position_y_nm,
                     filename=graincrop.filename,
                     stats=graincrop.stats,
                     disordered_trace=graincrop.disordered_trace,
@@ -1830,6 +1832,8 @@ class Grains:
                 padding=graincrop.padding,
                 bbox=graincrop.bbox,
                 pixel_to_nm_scaling=graincrop.pixel_to_nm_scaling,
+                grain_position_x_nm=graincrop.grain_position_x_nm,
+                grain_position_y_nm=graincrop.grain_position_y_nm,
                 filename=graincrop.filename,
                 stats=graincrop.stats,
                 disordered_trace=graincrop.disordered_trace,
@@ -2038,12 +2042,19 @@ class Grains:
             assert bounding_box_shape == grain_cropped_image.shape
             assert bounding_box_shape == (grain_cropped_tensor.shape[0], grain_cropped_tensor.shape[1])
 
+            # calculate the grain position in the iamge by the centroid of the mask in nanometres
+            grain_centroid = flat_region.centroid
+            grain_position_x_nm = grain_centroid[1] * pixel_to_nm_scaling
+            grain_position_y_nm = grain_centroid[0] * pixel_to_nm_scaling
+
             graincrops[grain_number] = GrainCrop(
                 image=grain_cropped_image,
                 mask=grain_cropped_tensor,
                 padding=padding_used,
                 bbox=square_flat_bounding_box,
                 pixel_to_nm_scaling=pixel_to_nm_scaling,
+                grain_position_x_nm=grain_position_x_nm,
+                grain_position_y_nm=grain_position_y_nm,
                 filename=filename,
                 stats=None,
                 disordered_trace=None,

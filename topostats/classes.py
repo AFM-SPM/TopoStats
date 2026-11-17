@@ -87,6 +87,8 @@ class Gap(TopoStatsBaseModel):
     length_nm: float
     position_along_trace_nm: float
     total_turn_radians: tuple[float, float]
+    depth_nm: float
+    volume_nm3: float
 
 
 class OrderedDefectGapList(TopoStatsBaseModel):
@@ -182,7 +184,7 @@ class MoleculeData(TopoStatsBaseModel):
     ordered_coords_heights: npt.NDArray[np.float64]
     spline_coords_heights: npt.NDArray[np.float64]
     spline_coords_px: npt.NDArray[np.float64]
-    ordered_coords: npt.NDArray[np.float64]
+    ordered_coords_px: npt.NDArray[np.float64]
     curvature_data: MoleculeCurvatureStats | None = None
     pixel_to_nm_scaling: float
     unique_grain_id: str
@@ -322,7 +324,7 @@ class GrainCrop:
             A collection of Molecule objects for this grain.
         """
         self.grain_position_x_nm = grain_position_x_nm
-        self.grain_posiion_y_nm = grain_position_y_nm
+        self.grain_position_y_nm = grain_position_y_nm
         centroid_rounded_to_nearest_5nm = (round(grain_position_x_nm / 5) * 5, round(grain_position_y_nm / 5) * 5)
         self.unique_grain_id = (
             f"{filename}_{int(centroid_rounded_to_nearest_5nm[0])}_x_{int(centroid_rounded_to_nearest_5nm[1])}_y"
@@ -341,11 +343,13 @@ class GrainCrop:
         self.skeleton: npt.NDArray[np.bool_] | None = skeleton
         self.convolved_skeleton: npt.NDArray[np.int32] | None = convolved_skeleton
         self.disordered_trace: DisorderedTrace | None = disordered_trace
-        if nodes is not None:
-            self.nodes: dict[int, Node] | None = nodes
+        if nodes is None:
+            self.nodes = {}
+        else:
+            self.nodes: dict[str, Node] = nodes
         self.ordered_trace: OrderedTrace | None = ordered_trace
         self.threshold_method: str | None = threshold_method
-        self.molecules = molecules
+        self.molecules = {} if molecules is None else molecules
 
     def __eq__(self, other: object) -> bool:
         """
@@ -718,7 +722,7 @@ class GrainCrop:
         return self._nodes
 
     @nodes.setter
-    def nodes(self, value: Node) -> None:
+    def nodes(self, value: dict[int, Node]) -> None:
         """
         Setter for the ``nodes`` attribute.
 
@@ -1396,6 +1400,10 @@ class Molecule:
         Ordered coordinates for the molecule.
     splined_coords : npt.NDArray, optional
         Smoothed (aka splined) coordinates for the molecule.
+    splined_coords_heights : npt.NDArray[np.float64]
+        Height values for the splined coords.
+    splined_coords_smoothed_heights : npt.NDArray[np.float64]
+        Smoothed height values for the splined coords.
     contour_length : float
         Length of the molecule.
     end_to_end_distance : float
@@ -1418,6 +1426,8 @@ class Molecule:
     topology_flip: Any | None = None
     ordered_coords: npt.NDArray | None = None
     splined_coords: npt.NDArray | None = None
+    splined_coords_heights: npt.NDArray | None = None
+    splined_coords_smoothed_heights: npt.NDArray | None = None
     contour_length: float | None = None
     end_to_end_distance: float | None = None
     heights: npt.NDArray | None = None

@@ -636,6 +636,7 @@ def calculate_curvature_stats_image(
                     curvatures=curvatures_smoothed,
                     turn_in_distances_deg=turn_in_distances_deg,
                     turn_in_distance_window_length_nm=turn_in_distance_window_length_nm,
+                    turn_in_distance_end_sampling_points=turn_in_distance_end_sampling_points,
                     is_circular=is_circular,
                     num_turns=num_turns,
                     **curvature_metrics,
