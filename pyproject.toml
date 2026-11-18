@@ -29,7 +29,7 @@ keywords = ["afm", "atomic force microscopy", "image processing"]
 requires-python = ">=3.10, <3.12"
 dependencies = [
   "art",
-  "AFMReader",
+  "AFMReader>=0.0.8",
   "h5py",
   "keras",
   "matplotlib",

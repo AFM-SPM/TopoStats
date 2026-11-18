@@ -10,8 +10,8 @@ from topostats.unet_masking import (
     dice_loss,
     iou_loss,
     make_bounding_box_square,
-    pad_bounding_box_cutting_off_at_image_bounds,
     model_predict_tensorflow,
+    pad_bounding_box_cutting_off_at_image_bounds,
 )
 
 # pylint: disable=too-many-positional-arguments
