@@ -611,7 +611,6 @@ def dummy_graincrop(
         axis=-1,
     )
     return GrainCrop(
-        threshold_idx=0,
         image=image,
         mask=mask,
         padding=2,
@@ -656,7 +655,6 @@ def graincrop_catenanes_0(
         bbox=(0, 2, 323, 325),
         pixel_to_nm_scaling=0.488,
         thresholds=(1, 2),
-        threshold_idx=0,
         filename="example_catenanes",
         stats={1: {0: {"centre_x": 5, "centre_y": 5}}},
         skeleton=dummy_skeleton,
@@ -683,7 +681,6 @@ def graincrop_catenanes_1(
         bbox=(77, 75, 400, 398),
         pixel_to_nm_scaling=0.488,
         thresholds=(1, 2),
-        threshold_idx=0,
         filename="example_catenanes",
         stats={1: {0: {"centre_x": 5, "centre_y": 5}}},
         skeleton=dummy_skeleton,
@@ -749,7 +746,6 @@ def graincrop_rep_int_0(
         bbox=(19, 4, 341, 326),
         pixel_to_nm_scaling=0.488,
         thresholds=(1, 2),
-        threshold_idx=0,
         filename="example_rep",
         stats={1: {0: {"centre_x": 5, "centre_y": 5}}},
         skeleton=dummy_skeleton,
@@ -1835,7 +1831,6 @@ def topostats_object_small_grain() -> TopoStats:
                 bbox=(0, 8, 0, 8),
                 filename="small_grain",
                 thresholds=[10],
-                threshold_idx=0,
             )
         },
     )

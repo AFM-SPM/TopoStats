@@ -511,7 +511,6 @@
         }),
       }),
     }),
-    'threshold_idx': 0,
     'threshold_method': None,
     'thresholds': tuple(
       1,
@@ -1910,7 +1909,6 @@
             }),
           }),
         }),
-        'threshold_idx': 0,
         'threshold_method': None,
         'thresholds': tuple(
           1,
@@ -2310,7 +2308,6 @@
             }),
           }),
         }),
-        'threshold_idx': 0,
         'threshold_method': None,
         'thresholds': tuple(
           1,
@@ -3490,7 +3487,6 @@
             }),
           }),
         }),
-        'threshold_idx': 0,
         'threshold_method': None,
         'thresholds': tuple(
           1,
